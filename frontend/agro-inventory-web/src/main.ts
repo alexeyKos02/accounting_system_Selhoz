@@ -19,6 +19,7 @@ import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
 import Toast from 'primevue/toast'
 import Dialog from 'primevue/dialog'
+import ToggleSwitch from 'primevue/toggleswitch'
 
 import './style.css'
 import App from './App.vue'
@@ -51,5 +52,6 @@ app.component('PvMessage', Message)
 app.component('PvProgressSpinner', ProgressSpinner)
 app.component('PvToast', Toast)
 app.component('PvDialog', Dialog)
+app.component('PvToggleSwitch', ToggleSwitch)
 
 app.mount('#app')

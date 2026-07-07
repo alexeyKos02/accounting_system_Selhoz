@@ -1,16 +1,35 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { useToast } from 'primevue/usetoast'
 import { chemicalsApi } from '../api/chemicals'
 import { cropsApi, warehousesApi } from '../api/reference'
+import { exportApi } from '../api/export'
+import { ApiError } from '../api/http'
 import type { ChemicalListItemDto, CropDto, WarehouseDto } from '../api/types'
 import { StockStatus } from '../api/types'
 
 const router = useRouter()
+const toast = useToast()
 const items = ref<ChemicalListItemDto[]>([])
 const crops = ref<CropDto[]>([])
 const warehouses = ref<WarehouseDto[]>([])
 const loading = ref(false)
+const exporting = ref(false)
+
+async function exportExcel() {
+  exporting.value = true
+  try {
+    await exportApi.chemicals()
+  } catch (e) {
+    toast.add({
+      severity: 'error', summary: 'Ошибка',
+      detail: e instanceof ApiError ? e.message : 'Не удалось выгрузить Excel', life: 4000,
+    })
+  } finally {
+    exporting.value = false
+  }
+}
 
 const search = ref('')
 const cropId = ref<string | null>(null)
@@ -73,7 +92,10 @@ onMounted(async () => {
   <section class="page">
     <div class="head">
       <h1 class="page__title">Химия</h1>
-      <PvButton label="Добавить химию" icon="pi pi-plus" @click="router.push({ name: 'chemical-create' })" />
+      <div class="head__actions">
+        <PvButton label="Excel" icon="pi pi-file-excel" outlined :loading="exporting" @click="exportExcel" />
+        <PvButton label="Добавить химию" icon="pi pi-plus" @click="router.push({ name: 'chemical-create' })" />
+      </div>
     </div>
 
     <div class="filters">
@@ -104,6 +126,7 @@ onMounted(async () => {
 
 <style scoped>
 .head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.head__actions { display: flex; gap: 0.5rem; }
 .filters { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
 .mt { margin-top: 1rem; }
 .ml { margin-left: 0.5rem; }

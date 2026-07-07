@@ -4,6 +4,9 @@ obj/
 *.user
 appsettings.*.local.json
 
+# --- Локальные бэкапы (dev) ---
+.backups/
+
 # --- Node / Vite ---
 node_modules/
 dist/

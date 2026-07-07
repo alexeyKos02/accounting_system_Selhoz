@@ -4,6 +4,7 @@ import { useToast } from 'primevue/usetoast'
 import { historyApi, MovementType } from '../api/history'
 import type { HistoryItemDto, HistoryDetailDto, EditMovementRequest, HistoryFilters } from '../api/history'
 import { useReference } from '../composables/useReference'
+import { exportApi } from '../api/export'
 import { localToIso } from '../utils/datetime'
 import { ApiError } from '../api/http'
 import { UnitType } from '../api/types'
@@ -12,6 +13,18 @@ const toast = useToast()
 const ref_ = useReference()
 const items = ref<HistoryItemDto[]>([])
 const loading = ref(false)
+const exporting = ref(false)
+
+async function exportExcel() {
+  exporting.value = true
+  try {
+    await exportApi.history(filters.value)
+  } catch (e) {
+    fail(e, 'Не удалось выгрузить Excel')
+  } finally {
+    exporting.value = false
+  }
+}
 
 const filters = ref<HistoryFilters>({})
 const typeOptions = [
@@ -117,7 +130,10 @@ onMounted(async () => { await ref_.load(); await load() })
 
 <template>
   <section class="page">
-    <h1 class="page__title">История</h1>
+    <div class="head">
+      <h1 class="page__title">История</h1>
+      <PvButton label="Excel" icon="pi pi-file-excel" outlined :loading="exporting" @click="exportExcel" />
+    </div>
 
     <div class="filters">
       <PvSelect v-model="filters.chemicalId" :options="ref_.chemicalOptions.value" option-label="label" option-value="value" filter show-clear placeholder="Химия" />
@@ -184,6 +200,7 @@ onMounted(async () => { await ref_.load(); await load() })
 </template>
 
 <style scoped>
+.head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
 .filters { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 .mt { margin-top: 1rem; }
 .empty { padding: 1rem; color: #6b7280; }

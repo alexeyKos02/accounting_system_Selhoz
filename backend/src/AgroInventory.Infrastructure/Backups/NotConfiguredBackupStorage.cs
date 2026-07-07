@@ -9,6 +9,8 @@ namespace AgroInventory.Infrastructure.Backups;
 /// </summary>
 public sealed class NotConfiguredBackupStorage : IBackupStorage
 {
+    public bool IsConfigured => false;
+
     public Task SaveBackupAsync(string fileName, Stream content, CancellationToken ct = default)
         => throw new NotSupportedException("S3-хранилище бэкапов ещё не настроено.");
 

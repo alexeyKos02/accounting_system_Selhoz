@@ -8,6 +8,9 @@ namespace AgroInventory.Application.Abstractions;
 /// </summary>
 public interface IBackupStorage
 {
+    /// <summary>Настроено ли хранилище (S3/локальная папка). Если нет — авто-бэкап не запускается.</summary>
+    bool IsConfigured { get; }
+
     Task SaveBackupAsync(string fileName, Stream content, CancellationToken ct = default);
     Task<IReadOnlyList<BackupInfo>> GetBackupsAsync(CancellationToken ct = default);
     Task<Stream> DownloadBackupAsync(string fileName, CancellationToken ct = default);
