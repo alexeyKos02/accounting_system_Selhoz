@@ -1,6 +1,7 @@
 using AgroInventory.Application.Audit;
 using AgroInventory.Application.Chemicals;
 using AgroInventory.Application.Crops;
+using AgroInventory.Application.Dashboard;
 using AgroInventory.Application.History;
 using AgroInventory.Application.Inventory;
 using AgroInventory.Application.Warehouses;
@@ -24,6 +25,7 @@ public static class DependencyInjection
         services.AddScoped<InventoryService>();
         services.AddScoped<HistoryQueryService>();
         services.AddScoped<AuditQueryService>();
+        services.AddScoped<DashboardService>();
 
         return services;
     }

@@ -489,6 +489,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["DashboardDto"];
+                        "application/json": components["schemas"]["DashboardDto"];
+                        "text/json": components["schemas"]["DashboardDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -930,6 +967,88 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/inventory/check-sheet": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    warehouseId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["InventoryCheckSheetDto"];
+                        "application/json": components["schemas"]["InventoryCheckSheetDto"];
+                        "text/json": components["schemas"]["InventoryCheckSheetDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inventory/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["InventoryCheckRequest"];
+                    "text/json": components["schemas"]["InventoryCheckRequest"];
+                    "application/*+json": components["schemas"]["InventoryCheckRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["InventoryCheckResultDto"];
+                        "application/json": components["schemas"]["InventoryCheckResultDto"];
+                        "text/json": components["schemas"]["InventoryCheckResultDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/warehouses": {
         parameters: {
             query?: never;
@@ -1165,6 +1284,31 @@ export interface components {
             id?: string;
             name?: string | null;
         };
+        DashboardDto: {
+            /** Format: int32 */
+            activeChemicals?: number;
+            /** Format: int32 */
+            warehouses?: number;
+            /** Format: int32 */
+            emptyCount?: number;
+            /** Format: int32 */
+            lowCount?: number;
+            /** Format: double */
+            totalLiters?: number;
+            /** Format: double */
+            lowStockThresholdLiters?: number;
+            empty?: components["schemas"]["DashboardStockDto"][] | null;
+            low?: components["schemas"]["DashboardStockDto"][] | null;
+            recentOperations?: components["schemas"]["HistoryItemDto"][] | null;
+        };
+        DashboardStockDto: {
+            /** Format: uuid */
+            chemicalId?: string;
+            name?: string | null;
+            /** Format: double */
+            totalLiters?: number;
+            status?: components["schemas"]["StockStatus"];
+        };
         DetailedGroupDto: {
             unitType?: components["schemas"]["UnitType"];
             /** Format: double */
@@ -1278,6 +1422,65 @@ export interface components {
             totalLiters?: number;
             /** Format: uuid */
             movementId?: string;
+        };
+        InventoryCheckEntry: {
+            /** Format: uuid */
+            chemicalId?: string;
+            /** Format: double */
+            actualTotalLiters?: number;
+        };
+        InventoryCheckLineDto: {
+            /** Format: uuid */
+            chemicalId?: string;
+            chemicalName?: string | null;
+            /** Format: double */
+            currentTotalLiters?: number;
+            /** Format: double */
+            looseLiters?: number;
+            /** Format: int32 */
+            fullPackages?: number;
+            /** Format: int32 */
+            openedPackages?: number;
+        };
+        InventoryCheckLineResult: {
+            /** Format: uuid */
+            chemicalId?: string;
+            chemicalName?: string | null;
+            /** Format: double */
+            previousTotal?: number;
+            /** Format: double */
+            newTotal?: number;
+            /** Format: double */
+            delta?: number;
+            outcome?: components["schemas"]["InventoryCheckOutcome"];
+        };
+        /**
+         * Format: int32
+         * @enum {integer}
+         */
+        InventoryCheckOutcome: 0 | 1 | 2;
+        InventoryCheckRequest: {
+            /** Format: uuid */
+            warehouseId?: string;
+            entries?: components["schemas"]["InventoryCheckEntry"][] | null;
+            /** Format: date-time */
+            occurredAt?: string | null;
+            comment?: string | null;
+        };
+        InventoryCheckResultDto: {
+            /** Format: int32 */
+            appliedCount?: number;
+            /** Format: int32 */
+            unchangedCount?: number;
+            /** Format: int32 */
+            needsDetailedCount?: number;
+            lines?: components["schemas"]["InventoryCheckLineResult"][] | null;
+        };
+        InventoryCheckSheetDto: {
+            /** Format: uuid */
+            warehouseId?: string;
+            warehouseNumber?: string | null;
+            lines?: components["schemas"]["InventoryCheckLineDto"][] | null;
         };
         /**
          * Format: int32

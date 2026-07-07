@@ -84,3 +84,46 @@ public sealed record CorrectionPreviewResponse(
     string? Message);
 
 public sealed record CorrectionResultDto(decimal TotalLiters, Guid MovementId);
+
+// ---------- Инвентаризация склада (ТЗ §14) ----------
+
+/// <summary>Строка ведомости инвентаризации: текущий остаток по химии на складе.</summary>
+public sealed record InventoryCheckLineDto(
+    Guid ChemicalId,
+    string ChemicalName,
+    decimal CurrentTotalLiters,
+    decimal LooseLiters,
+    int FullPackages,
+    int OpenedPackages);
+
+/// <summary>Ведомость инвентаризации по одному складу.</summary>
+public sealed record InventoryCheckSheetDto(
+    Guid WarehouseId,
+    string WarehouseNumber,
+    IReadOnlyList<InventoryCheckLineDto> Lines);
+
+/// <summary>Введённый фактический остаток по одной химии.</summary>
+public sealed record InventoryCheckEntry(Guid ChemicalId, decimal ActualTotalLiters);
+
+public sealed record InventoryCheckRequest(
+    Guid WarehouseId,
+    IReadOnlyList<InventoryCheckEntry> Entries,
+    DateTimeOffset? OccurredAt,
+    string? Comment);
+
+/// <summary>Что произошло со строкой ведомости при применении.</summary>
+public enum InventoryCheckOutcome { Unchanged = 0, Applied = 1, NeedsDetailed = 2 }
+
+public sealed record InventoryCheckLineResult(
+    Guid ChemicalId,
+    string ChemicalName,
+    decimal PreviousTotal,
+    decimal NewTotal,
+    decimal Delta,
+    InventoryCheckOutcome Outcome);
+
+public sealed record InventoryCheckResultDto(
+    int AppliedCount,
+    int UnchangedCount,
+    int NeedsDetailedCount,
+    IReadOnlyList<InventoryCheckLineResult> Lines);

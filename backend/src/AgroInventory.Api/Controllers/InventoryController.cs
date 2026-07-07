@@ -33,4 +33,14 @@ public sealed class InventoryController : ControllerBase
     [HttpPost("correction")]
     public async Task<CorrectionResultDto> Correction(CorrectionRequest request, CancellationToken ct) =>
         await _service.CorrectionAsync(request, ct);
+
+    /// <summary>Ведомость инвентаризации по складу: текущие остатки для сверки с фактом (ТЗ §14).</summary>
+    [HttpGet("check-sheet")]
+    public async Task<InventoryCheckSheetDto> CheckSheet([FromQuery] Guid warehouseId, CancellationToken ct) =>
+        await _service.GetCheckSheetAsync(warehouseId, ct);
+
+    /// <summary>Применение фактических остатков инвентаризации (ТЗ §14).</summary>
+    [HttpPost("check")]
+    public async Task<InventoryCheckResultDto> Check(InventoryCheckRequest request, CancellationToken ct) =>
+        await _service.ApplyCheckAsync(request, ct);
 }
