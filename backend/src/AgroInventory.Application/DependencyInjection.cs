@@ -1,5 +1,6 @@
 using AgroInventory.Application.Chemicals;
 using AgroInventory.Application.Crops;
+using AgroInventory.Application.Inventory;
 using AgroInventory.Application.Warehouses;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -18,6 +19,7 @@ public static class DependencyInjection
         services.AddScoped<CropService>();
         services.AddScoped<WarehouseService>();
         services.AddScoped<ChemicalService>();
+        services.AddScoped<InventoryService>();
 
         return services;
     }

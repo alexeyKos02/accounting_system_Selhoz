@@ -545,6 +545,221 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/inventory/income": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["IncomeRequest"];
+                    "text/json": components["schemas"]["IncomeRequest"];
+                    "application/*+json": components["schemas"]["IncomeRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["IncomeResultDto"];
+                        "application/json": components["schemas"]["IncomeResultDto"];
+                        "text/json": components["schemas"]["IncomeResultDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inventory/outcome/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["OutcomeRequest"];
+                    "text/json": components["schemas"]["OutcomeRequest"];
+                    "application/*+json": components["schemas"]["OutcomeRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["OutcomePreviewResponse"];
+                        "application/json": components["schemas"]["OutcomePreviewResponse"];
+                        "text/json": components["schemas"]["OutcomePreviewResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inventory/outcome": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["OutcomeRequest"];
+                    "text/json": components["schemas"]["OutcomeRequest"];
+                    "application/*+json": components["schemas"]["OutcomeRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["OutcomeResultDto"];
+                        "application/json": components["schemas"]["OutcomeResultDto"];
+                        "text/json": components["schemas"]["OutcomeResultDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inventory/correction/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["CorrectionRequest"];
+                    "text/json": components["schemas"]["CorrectionRequest"];
+                    "application/*+json": components["schemas"]["CorrectionRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["CorrectionPreviewResponse"];
+                        "application/json": components["schemas"]["CorrectionPreviewResponse"];
+                        "text/json": components["schemas"]["CorrectionPreviewResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inventory/correction": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["CorrectionRequest"];
+                    "text/json": components["schemas"]["CorrectionRequest"];
+                    "application/*+json": components["schemas"]["CorrectionRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["CorrectionResultDto"];
+                        "application/json": components["schemas"]["CorrectionResultDto"];
+                        "text/json": components["schemas"]["CorrectionResultDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/warehouses": {
         parameters: {
             query?: never;
@@ -700,6 +915,44 @@ export interface components {
          * @enum {integer}
          */
         ChemicalSortBy: 0 | 1 | 2 | 3;
+        /**
+         * Format: int32
+         * @enum {integer}
+         */
+        CorrectionMode: 0 | 1 | 2;
+        CorrectionPreviewResponse: {
+            /** Format: double */
+            currentTotal?: number;
+            /** Format: double */
+            newTotal?: number;
+            /** Format: double */
+            delta?: number;
+            isBigChange?: boolean;
+            requiresDetailed?: boolean;
+            message?: string | null;
+        };
+        CorrectionRequest: {
+            /** Format: uuid */
+            chemicalId?: string;
+            /** Format: uuid */
+            warehouseId?: string;
+            mode?: components["schemas"]["CorrectionMode"];
+            /** Format: double */
+            actualTotalLiters?: number | null;
+            /** Format: double */
+            deltaLiters?: number | null;
+            detailed?: components["schemas"]["DetailedInventoryDto"];
+            confirmed?: boolean;
+            /** Format: date-time */
+            occurredAt?: string | null;
+            comment?: string | null;
+        };
+        CorrectionResultDto: {
+            /** Format: double */
+            totalLiters?: number;
+            /** Format: uuid */
+            movementId?: string;
+        };
         CreateChemicalRequest: {
             name?: string | null;
             manufacturer?: string | null;
@@ -722,11 +975,51 @@ export interface components {
             id?: string;
             name?: string | null;
         };
+        DetailedGroupDto: {
+            unitType?: components["schemas"]["UnitType"];
+            /** Format: double */
+            packageVolumeLiters?: number;
+            /** Format: int32 */
+            quantity?: number;
+        };
+        DetailedInventoryDto: {
+            /** Format: double */
+            looseLiters?: number;
+            groups?: components["schemas"]["DetailedGroupDto"][] | null;
+            opened?: components["schemas"]["DetailedOpenedDto"][] | null;
+        };
+        DetailedOpenedDto: {
+            unitType?: components["schemas"]["UnitType"];
+            /** Format: double */
+            initialLiters?: number;
+            /** Format: double */
+            remainingLiters?: number;
+        };
         DuplicateDto: {
             /** Format: uuid */
             id?: string;
             name?: string | null;
             manufacturer?: string | null;
+        };
+        IncomeRequest: {
+            /** Format: uuid */
+            chemicalId?: string;
+            /** Format: uuid */
+            warehouseId?: string;
+            unit?: components["schemas"]["UnitType"];
+            /** Format: double */
+            quantity?: number;
+            /** Format: double */
+            packageVolumeLiters?: number | null;
+            /** Format: date-time */
+            occurredAt?: string | null;
+            comment?: string | null;
+        };
+        IncomeResultDto: {
+            /** Format: double */
+            totalLiters?: number;
+            /** Format: uuid */
+            movementId?: string;
         };
         /**
          * Format: int32
@@ -741,6 +1034,11 @@ export interface components {
             comment?: string | null;
             cropIds?: string[] | null;
         };
+        /**
+         * Format: int32
+         * @enum {integer}
+         */
+        MovementSourceType: 1 | 2 | 3;
         OpenedPackageDto: {
             /** Format: uuid */
             id?: string;
@@ -749,6 +1047,62 @@ export interface components {
             initialLiters?: number;
             /** Format: double */
             remainingLiters?: number;
+        };
+        OutcomePreviewResponse: {
+            sufficient?: boolean;
+            /** Format: double */
+            requested?: number;
+            /** Format: double */
+            fulfilled?: number;
+            /** Format: double */
+            available?: number;
+            willOpenNewPackage?: boolean;
+            topUpUsed?: boolean;
+            requiresOpenConfirmation?: boolean;
+            steps?: components["schemas"]["OutcomeStepDto"][] | null;
+        };
+        OutcomeRequest: {
+            /** Format: uuid */
+            chemicalId?: string;
+            /** Format: uuid */
+            warehouseId?: string;
+            /** Format: uuid */
+            cropId?: string;
+            /** Format: double */
+            quantityLiters?: number;
+            source?: components["schemas"]["OutcomeSourceDto"];
+            allowOpenNewPackage?: boolean;
+            /** Format: date-time */
+            occurredAt?: string | null;
+            comment?: string | null;
+        };
+        OutcomeResultDto: {
+            /** Format: double */
+            writtenOffLiters?: number;
+            /** Format: double */
+            totalLiters?: number;
+            /** Format: uuid */
+            movementId?: string;
+        };
+        OutcomeSourceDto: {
+            type?: components["schemas"]["MovementSourceType"];
+            /** Format: uuid */
+            id?: string | null;
+        };
+        OutcomeStepDto: {
+            sourceType?: components["schemas"]["MovementSourceType"];
+            /** Format: uuid */
+            sourceId?: string | null;
+            unitType?: components["schemas"]["UnitType"];
+            /** Format: double */
+            packageVolumeLiters?: number | null;
+            /** Format: double */
+            liters?: number;
+            /** Format: int32 */
+            wholePackages?: number;
+            /** Format: double */
+            openedRemainder?: number;
+            opensNewPackage?: boolean;
         };
         PackageGroupDto: {
             /** Format: uuid */
