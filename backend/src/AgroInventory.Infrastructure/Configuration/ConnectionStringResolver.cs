@@ -28,6 +28,9 @@ public static class ConnectionStringResolver
             "Не задана строка подключения к БД: укажите DATABASE_URL или ConnectionStrings:Default.");
     }
 
+    /// <summary>Публично для design-time фабрики миграций.</summary>
+    public static string FromUrlPublic(string url) => FromUrl(url);
+
     private static string FromUrl(string url)
     {
         var uri = new Uri(url);
