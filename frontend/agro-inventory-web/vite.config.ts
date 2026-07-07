@@ -1,0 +1,44 @@
+import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import { VitePWA } from 'vite-plugin-pwa'
+
+// base для GitHub Pages задаётся через VITE_BASE (в CI = "/<repo>/").
+// Локально по умолчанию "/".
+const base = process.env.VITE_BASE ?? '/'
+
+// https://vite.dev/config/
+export default defineConfig({
+  base,
+  plugins: [
+    vue(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['favicon.ico'],
+      manifest: {
+        name: 'AgroInventory',
+        short_name: 'AgroInventory',
+        description: 'Учёт складских остатков агрохимии',
+        lang: 'ru',
+        theme_color: '#16a34a',
+        background_color: '#ffffff',
+        display: 'standalone',
+        // Иконки добавим на этапе PWA-полировки (этап 9).
+        icons: [],
+      },
+      // Offline-режим в MVP не делаем (ТЗ §5): кешируем только оболочку приложения.
+      workbox: {
+        navigateFallbackDenylist: [/^\/api/],
+      },
+    }),
+  ],
+  server: {
+    port: 5173,
+    // Прокси на бэкенд в разработке — чтобы фронт ходил на /api.
+    proxy: {
+      '/api': {
+        target: process.env.VITE_API_TARGET ?? 'http://localhost:5080',
+        changeOrigin: true,
+      },
+    },
+  },
+})
