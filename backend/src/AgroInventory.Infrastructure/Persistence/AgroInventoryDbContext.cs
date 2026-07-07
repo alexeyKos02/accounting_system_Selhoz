@@ -1,3 +1,4 @@
+using AgroInventory.Application.Abstractions;
 using AgroInventory.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -5,9 +6,9 @@ namespace AgroInventory.Infrastructure.Persistence;
 
 /// <summary>
 /// Контекст БД. Имена таблиц/колонок — snake_case (EFCore.NamingConventions),
-/// чтобы совпадать со схемой из ТЗ.
+/// чтобы совпадать со схемой из ТЗ. Реализует IApplicationDbContext для слоя Application.
 /// </summary>
-public class AgroInventoryDbContext : DbContext
+public class AgroInventoryDbContext : DbContext, IApplicationDbContext
 {
     public AgroInventoryDbContext(DbContextOptions<AgroInventoryDbContext> options) : base(options) { }
 

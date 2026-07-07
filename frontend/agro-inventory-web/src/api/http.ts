@@ -22,6 +22,10 @@ export async function apiPost<T>(path: string, body?: unknown, init?: RequestIni
   return request<T>('POST', path, body, init)
 }
 
+export async function apiPut<T>(path: string, body?: unknown, init?: RequestInit): Promise<T> {
+  return request<T>('PUT', path, body, init)
+}
+
 async function request<T>(method: string, path: string, body?: unknown, init?: RequestInit): Promise<T> {
   let response: Response
   try {

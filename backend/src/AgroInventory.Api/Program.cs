@@ -38,6 +38,9 @@ app.UseSwaggerUI(o =>
     o.DocumentTitle = "AgroInventory API";
 });
 
+// Обработка доменных исключений → корректные HTTP-ответы (ProblemDetails).
+app.UseMiddleware<AgroInventory.Api.Middleware.ExceptionHandlingMiddleware>();
+
 app.UseCors(CorsPolicy);
 
 // Заготовка под будущую авторизацию (ТЗ §6, §31.9): пока пропускаем всё.

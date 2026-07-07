@@ -2,7 +2,23 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import PrimeVue from 'primevue/config'
 import Aura from '@primevue/themes/aura'
+import ToastService from 'primevue/toastservice'
+import ConfirmationService from 'primevue/confirmationservice'
 import 'primeicons/primeicons.css'
+
+// Часто используемые компоненты PrimeVue — регистрируем глобально.
+import Button from 'primevue/button'
+import InputText from 'primevue/inputtext'
+import Textarea from 'primevue/textarea'
+import Select from 'primevue/select'
+import MultiSelect from 'primevue/multiselect'
+import DataTable from 'primevue/datatable'
+import Column from 'primevue/column'
+import Tag from 'primevue/tag'
+import Message from 'primevue/message'
+import ProgressSpinner from 'primevue/progressspinner'
+import Toast from 'primevue/toast'
+import Dialog from 'primevue/dialog'
 
 import './style.css'
 import App from './App.vue'
@@ -20,5 +36,20 @@ app.use(PrimeVue, {
     options: { darkModeSelector: '.dark' },
   },
 })
+app.use(ToastService)
+app.use(ConfirmationService)
+
+app.component('PvButton', Button)
+app.component('PvInputText', InputText)
+app.component('PvTextarea', Textarea)
+app.component('PvSelect', Select)
+app.component('PvMultiSelect', MultiSelect)
+app.component('PvDataTable', DataTable)
+app.component('PvColumn', Column)
+app.component('PvTag', Tag)
+app.component('PvMessage', Message)
+app.component('PvProgressSpinner', ProgressSpinner)
+app.component('PvToast', Toast)
+app.component('PvDialog', Dialog)
 
 app.mount('#app')

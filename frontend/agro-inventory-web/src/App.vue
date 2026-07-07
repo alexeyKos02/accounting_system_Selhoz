@@ -3,5 +3,6 @@ import AppLayout from './layouts/AppLayout.vue'
 </script>
 
 <template>
+  <PvToast position="top-right" />
   <AppLayout />
 </template>

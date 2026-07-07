@@ -1,3 +1,6 @@
+using AgroInventory.Application.Chemicals;
+using AgroInventory.Application.Crops;
+using AgroInventory.Application.Warehouses;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AgroInventory.Application;
@@ -10,7 +13,12 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
-        // TODO(этап 3+): регистрация application-сервисов и FluentValidation-валидаторов.
+        services.AddSingleton(TimeProvider.System);
+
+        services.AddScoped<CropService>();
+        services.AddScoped<WarehouseService>();
+        services.AddScoped<ChemicalService>();
+
         return services;
     }
 }

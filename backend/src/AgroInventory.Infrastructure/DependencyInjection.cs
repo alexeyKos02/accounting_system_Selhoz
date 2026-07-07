@@ -1,8 +1,10 @@
 using AgroInventory.Application.Abstractions;
+using AgroInventory.Infrastructure.Audit;
 using AgroInventory.Infrastructure.Backups;
 using AgroInventory.Infrastructure.Configuration;
 using AgroInventory.Infrastructure.Health;
 using AgroInventory.Infrastructure.Persistence;
+using AgroInventory.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,6 +25,10 @@ public static class DependencyInjection
             options
                 .UseNpgsql(connectionString)
                 .UseSnakeCaseNamingConvention());
+
+        services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<AgroInventoryDbContext>());
+        services.AddSingleton<ICurrentUser, SystemCurrentUser>();
+        services.AddScoped<IAuditLogger, AuditLogger>();
 
         services.AddScoped<IDatabaseHealthService, DatabaseHealthService>();
 
