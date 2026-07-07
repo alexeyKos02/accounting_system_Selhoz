@@ -4,6 +4,49 @@
  */
 
 export interface paths {
+    "/api/audit-log": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    DateFrom?: string;
+                    DateTo?: string;
+                    Action?: components["schemas"]["AuditAction"];
+                    EntityType?: string;
+                    UserId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["AuditLogDto"][];
+                        "application/json": components["schemas"]["AuditLogDto"][];
+                        "text/json": components["schemas"]["AuditLogDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/chemicals": {
         parameters: {
             query?: never;
@@ -545,6 +588,133 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    DateFrom?: string;
+                    DateTo?: string;
+                    ChemicalId?: string;
+                    MovementType?: components["schemas"]["MovementType"];
+                    WarehouseId?: string;
+                    CropId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["HistoryItemDto"][];
+                        "application/json": components["schemas"]["HistoryItemDto"][];
+                        "text/json": components["schemas"]["HistoryItemDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/history/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["HistoryDetailDto"];
+                        "application/json": components["schemas"]["HistoryDetailDto"];
+                        "text/json": components["schemas"]["HistoryDetailDto"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["EditMovementRequest"];
+                    "text/json": components["schemas"]["EditMovementRequest"];
+                    "application/*+json": components["schemas"]["EditMovementRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/inventory/income": {
         parameters: {
             query?: never;
@@ -887,6 +1057,26 @@ export interface components {
             /** Format: date-time */
             archivedAt?: string;
         };
+        /**
+         * Format: int32
+         * @enum {integer}
+         */
+        AuditAction: 1 | 2 | 3 | 4 | 5 | 6;
+        AuditLogDto: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: uuid */
+            userId?: string;
+            userName?: string | null;
+            action?: components["schemas"]["AuditAction"];
+            entityType?: string | null;
+            /** Format: uuid */
+            entityId?: string;
+            oldValues?: string | null;
+            newValues?: string | null;
+        };
         ChemicalDetailDto: {
             /** Format: uuid */
             id?: string;
@@ -1001,6 +1191,74 @@ export interface components {
             name?: string | null;
             manufacturer?: string | null;
         };
+        EditMovementRequest: {
+            /** Format: date-time */
+            occurredAt?: string | null;
+            /** Format: uuid */
+            cropId?: string | null;
+            comment?: string | null;
+            /** Format: double */
+            quantityLiters?: number | null;
+            unit?: components["schemas"]["UnitType"];
+            /** Format: double */
+            packageVolumeLiters?: number | null;
+            /** Format: int32 */
+            packagesQuantity?: number | null;
+        };
+        HistoryDetailDto: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: date-time */
+            occurredAt?: string;
+            movementType?: components["schemas"]["MovementType"];
+            /** Format: uuid */
+            chemicalId?: string;
+            chemicalName?: string | null;
+            /** Format: double */
+            quantityLiters?: number;
+            unitType?: components["schemas"]["UnitType"];
+            /** Format: double */
+            packageVolumeLiters?: number | null;
+            /** Format: int32 */
+            packagesQuantity?: number | null;
+            /** Format: uuid */
+            warehouseId?: string;
+            warehouseNumber?: string | null;
+            /** Format: uuid */
+            cropId?: string | null;
+            cropName?: string | null;
+            comment?: string | null;
+            sources?: components["schemas"]["HistoryDetailSourceDto"][] | null;
+        };
+        HistoryDetailSourceDto: {
+            sourceType?: components["schemas"]["MovementSourceType"];
+            unitType?: components["schemas"]["UnitType"];
+            /** Format: double */
+            packageVolumeLiters?: number | null;
+            /** Format: double */
+            quantityLiters?: number;
+            /** Format: int32 */
+            packagesQuantity?: number | null;
+        };
+        HistoryItemDto: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: date-time */
+            occurredAt?: string;
+            movementType?: components["schemas"]["MovementType"];
+            /** Format: uuid */
+            chemicalId?: string;
+            chemicalName?: string | null;
+            /** Format: double */
+            quantityLiters?: number;
+            /** Format: uuid */
+            warehouseId?: string;
+            warehouseNumber?: string | null;
+            /** Format: uuid */
+            cropId?: string | null;
+            cropName?: string | null;
+            comment?: string | null;
+        };
         IncomeRequest: {
             /** Format: uuid */
             chemicalId?: string;
@@ -1039,6 +1297,11 @@ export interface components {
          * @enum {integer}
          */
         MovementSourceType: 1 | 2 | 3;
+        /**
+         * Format: int32
+         * @enum {integer}
+         */
+        MovementType: 1 | 2 | 3 | 4;
         OpenedPackageDto: {
             /** Format: uuid */
             id?: string;

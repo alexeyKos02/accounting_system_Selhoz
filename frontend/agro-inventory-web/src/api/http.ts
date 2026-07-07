@@ -26,6 +26,10 @@ export async function apiPut<T>(path: string, body?: unknown, init?: RequestInit
   return request<T>('PUT', path, body, init)
 }
 
+export async function apiDelete<T>(path: string, init?: RequestInit): Promise<T> {
+  return request<T>('DELETE', path, undefined, init)
+}
+
 async function request<T>(method: string, path: string, body?: unknown, init?: RequestInit): Promise<T> {
   let response: Response
   try {
