@@ -114,17 +114,31 @@ onMounted(load)
       <div class="block__head"><i class="pi pi-clock" /> Последние операции
         <RouterLink to="/history" class="all">вся история →</RouterLink>
       </div>
-      <div class="ops-scroll">
+      <!-- Десктоп: таблица -->
+      <div class="ops-desktop">
         <PvDataTable :value="data?.recentOperations ?? []" :loading="loading" data-key="id" size="small">
-        <PvColumn header="Дата"><template #body="{ data: r }">{{ fmtDate(r.occurredAt) }}</template></PvColumn>
-        <PvColumn header="Тип"><template #body="{ data: r }">
-          <PvTag :value="typeLabel(r.movementType)" :severity="typeSeverity(r.movementType)" />
-        </template></PvColumn>
-        <PvColumn field="chemicalName" header="Химия" />
-        <PvColumn header="Кол-во, л"><template #body="{ data: r }">{{ fmtNum(r.quantityLiters) }}</template></PvColumn>
-        <PvColumn header="Склад"><template #body="{ data: r }">Склад {{ r.warehouseNumber }}</template></PvColumn>
-        <template #empty><div class="empty">Операций пока нет</div></template>
+          <PvColumn header="Дата"><template #body="{ data: r }">{{ fmtDate(r.occurredAt) }}</template></PvColumn>
+          <PvColumn header="Тип"><template #body="{ data: r }">
+            <PvTag :value="typeLabel(r.movementType)" :severity="typeSeverity(r.movementType)" />
+          </template></PvColumn>
+          <PvColumn field="chemicalName" header="Химия" />
+          <PvColumn header="Кол-во, л"><template #body="{ data: r }">{{ fmtNum(r.quantityLiters) }}</template></PvColumn>
+          <PvColumn header="Склад"><template #body="{ data: r }">Склад {{ r.warehouseNumber }}</template></PvColumn>
+          <template #empty><div class="empty">Операций пока нет</div></template>
         </PvDataTable>
+      </div>
+
+      <!-- Мобилка: карточки (как на странице «История») -->
+      <div class="ops-cards">
+        <div v-for="r in data?.recentOperations ?? []" :key="r.id!" class="ops-card">
+          <div class="ops-card__row">
+            <PvTag :value="typeLabel(r.movementType)" :severity="typeSeverity(r.movementType)" />
+            <span class="ops-card__qty">{{ fmtNum(r.quantityLiters) }} л</span>
+          </div>
+          <div class="ops-card__name">{{ r.chemicalName }}</div>
+          <div class="ops-card__meta">{{ fmtDate(r.occurredAt!) }} · Склад {{ r.warehouseNumber }}</div>
+        </div>
+        <div v-if="!(data?.recentOperations?.length)" class="empty">Операций пока нет</div>
       </div>
     </div>
   </section>
@@ -165,8 +179,8 @@ onMounted(load)
   .quick__card:hover { background: transparent; }
 }
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem; }
-/* Таблица последних операций не должна растягивать страницу — при нехватке места скроллится внутри. */
-.ops-scroll { overflow-x: auto; }
+/* Последние операции: на десктопе таблица, на мобилке карточки (карточки скрыты по умолчанию). */
+.ops-cards { display: none; }
 .stat {
   border: 1px solid var(--p-content-border-color, #e5e7eb); border-radius: 12px;
   padding: 0.9rem 1rem; background: var(--p-content-background, #fff);
@@ -197,5 +211,16 @@ onMounted(load)
   .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .block { min-width: 0; }
   .block__head { flex-wrap: wrap; }
+  /* Таблицу прячем, показываем карточки — без горизонтального переполнения. */
+  .ops-desktop { display: none; }
+  .ops-cards { display: flex; flex-direction: column; gap: 0.6rem; }
+  .ops-card {
+    display: flex; flex-direction: column; gap: 0.3rem;
+    padding: 0.7rem 0.75rem; border: 1px solid var(--p-content-border-color, #e5e7eb); border-radius: 10px;
+  }
+  .ops-card__row { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+  .ops-card__qty { font-weight: 700; color: #111827; }
+  .ops-card__name { font-weight: 600; color: #374151; }
+  .ops-card__meta { color: #6b7280; font-size: 0.85rem; }
 }
 </style>
