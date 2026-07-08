@@ -87,13 +87,6 @@ function badge(status?: number): { label: string; severity: 'danger' | 'warn' } 
   return null
 }
 
-function cropsLabel(item: ChemicalListItemDto): string {
-  const names = (item.crops ?? []).map((c) => c.name)
-  const head = names.slice(0, 2).join(', ')
-  const more = names.length - 2
-  return more > 0 ? `${head} +ещё ${more}` : head
-}
-
 const cropOptions = computed(() => crops.value.map((c) => ({ label: c.name, value: c.id })))
 const warehouseOptions = computed(() =>
   warehouses.value.map((w) => ({ label: `Склад ${w.number}`, value: w.id })),
@@ -176,43 +169,56 @@ onMounted(async () => {
         placeholder="Склад" show-clear />
     </div>
 
-    <PvDataTable :value="items" :loading="loading" data-key="id" class="mt desktop-table"
-      selection-mode="single" @row-click="onRowClick">
-      <PvColumn field="name" header="Название" />
-      <PvColumn header="Остаток">
-        <template #body="{ data }">
-          <span>{{ (data.totalLiters ?? 0).toLocaleString('ru-RU') }} л</span>
-          <PvTag v-if="badge(data.stockStatus)" :value="badge(data.stockStatus)!.label"
-            :severity="badge(data.stockStatus)!.severity" class="ml" />
-        </template>
-      </PvColumn>
-      <PvColumn header="Культуры">
-        <template #body="{ data }">{{ cropsLabel(data) }}</template>
-      </PvColumn>
-      <PvColumn header="" class="desktop-actions-column">
-        <template #body="{ data }">
-          <div class="desktop-row-actions">
-            <PvButton
-              icon="pi pi-plus"
-              text
-              rounded
-              size="small"
-              aria-label="Приход"
-              @click.stop="openIncome(data)"
-            />
-            <PvButton
-              icon="pi pi-minus"
-              text
-              rounded
-              size="small"
-              aria-label="Списание"
-              @click.stop="openOutcome(data)"
-            />
-          </div>
-        </template>
-      </PvColumn>
-      <template #empty><div class="empty">Химия не найдена</div></template>
-    </PvDataTable>
+    <div class="desktop-table-panel mt">
+      <div class="desktop-table-panel__head">
+        <h2>Список химии</h2>
+        <span>Найдено: {{ items.length }}</span>
+      </div>
+      <PvDataTable :value="items" :loading="loading" data-key="id" class="desktop-table"
+        selection-mode="single" @row-click="onRowClick">
+        <PvColumn field="name" header="Название" />
+        <PvColumn header="Остаток">
+          <template #body="{ data }">
+            <div class="stock-cell">
+              <span>{{ (data.totalLiters ?? 0).toLocaleString('ru-RU') }} л</span>
+              <PvTag v-if="badge(data.stockStatus)" :value="badge(data.stockStatus)!.label"
+                :severity="badge(data.stockStatus)!.severity" />
+            </div>
+          </template>
+        </PvColumn>
+        <PvColumn header="Культуры">
+          <template #body="{ data }">
+            <div class="desktop-crops">
+              <span v-for="crop in data.crops ?? []" :key="crop.id!" class="desktop-crop">{{ crop.name }}</span>
+              <span v-if="!data.crops?.length" class="muted">—</span>
+            </div>
+          </template>
+        </PvColumn>
+        <PvColumn header="" class="desktop-actions-column">
+          <template #body="{ data }">
+            <div class="desktop-row-actions">
+              <PvButton
+                icon="pi pi-plus"
+                text
+                rounded
+                size="small"
+                aria-label="Приход"
+                @click.stop="openIncome(data)"
+              />
+              <PvButton
+                icon="pi pi-minus"
+                text
+                rounded
+                size="small"
+                aria-label="Списание"
+                @click.stop="openOutcome(data)"
+              />
+            </div>
+          </template>
+        </PvColumn>
+        <template #empty><div class="empty">Химия не найдена</div></template>
+      </PvDataTable>
+    </div>
 
     <div class="chemical-cards">
       <div v-if="loading" class="empty">Загрузка...</div>
@@ -258,16 +264,61 @@ onMounted(async () => {
 .filters { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
 .mt { margin-top: 1rem; }
 .ml { margin-left: 0.5rem; }
+.muted { color: #6b7280; }
 .empty { padding: 1rem; color: #6b7280; }
 .chemical-cards { display: none; }
+.desktop-table-panel {
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+}
+.desktop-table-panel__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+.desktop-table-panel__head h2 { margin: 0; font-size: 1.2rem; }
+.desktop-table-panel__head span { color: #374151; font-weight: 600; }
+.stock-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 0.4rem; }
+.desktop-crops { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.desktop-crop {
+  padding: 0.35rem 0.7rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  color: #374151;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
+}
 .desktop-row-actions { display: flex; justify-content: flex-end; gap: 0.25rem; }
 :deep(.desktop-actions-column) { width: 6rem; text-align: right; }
 :deep(.p-datatable-tbody > tr) { cursor: pointer; }
+:deep(.desktop-table .p-datatable-header) { border: 0; }
+:deep(.desktop-table .p-datatable-thead > tr > th) {
+  padding: 1.15rem 1.5rem;
+  border-color: #e5e7eb;
+  background: #fff;
+  color: #374151;
+  font-size: 1rem;
+}
+:deep(.desktop-table .p-datatable-tbody > tr > td) {
+  padding: 1.5rem;
+  border-color: #e5e7eb;
+  color: #374151;
+  vertical-align: middle;
+}
+:deep(.desktop-table .p-datatable-tbody > tr:hover) { background: #f8fffb; }
+:deep(.desktop-table .p-datatable-tbody > tr:hover > td:first-child) {
+  box-shadow: inset 3px 0 0 #10b981;
+}
 
 @media (max-width: 640px) {
   .head__actions--desktop { display: none; }
   .head__actions--mobile { display: flex; }
-  .desktop-table { display: none; }
+  .desktop-table-panel { display: none; }
   .chemical-cards { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem; }
   .chemical-card {
     display: flex;
