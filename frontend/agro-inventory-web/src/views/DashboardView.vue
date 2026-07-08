@@ -35,10 +35,10 @@ function openChemical(row: DashboardStockDto) {
 }
 
 const quick = [
-  { label: 'Приход', icon: 'pi pi-plus-circle', to: '/income' },
-  { label: 'Списание', icon: 'pi pi-minus-circle', to: '/outcome' },
-  { label: 'Инвентаризация', icon: 'pi pi-check-square', to: '/inventory-check' },
-  { label: 'Корректировка', icon: 'pi pi-sliders-h', to: '/corrections' },
+  { label: 'Приход', icon: 'pi pi-plus-circle', to: '/income', color: 'green' },
+  { label: 'Списание', icon: 'pi pi-minus-circle', to: '/outcome', color: 'orange' },
+  { label: 'Инвентаризация', icon: 'pi pi-check-square', to: '/inventory-check', color: 'blue' },
+  { label: 'Корректировка', icon: 'pi pi-sliders-h', to: '/corrections', color: 'violet' },
 ]
 
 onMounted(load)
@@ -48,12 +48,12 @@ onMounted(load)
   <section class="page">
     <h1 class="page__title">Дашборд</h1>
 
-    <!-- Быстрые действия (ТЗ §22): понятные карточки-действия -->
+    <!-- Быстрые действия (ТЗ §22): на телефоне — иконка сверху/текст снизу, на десктопе — кнопки-контуры -->
     <div class="quick">
-      <button v-for="q in quick" :key="q.to" type="button" class="quick__card"
+      <button v-for="q in quick" :key="q.to" type="button" class="quick__card" :class="`quick__card--${q.color}`"
         :aria-label="q.label" @click="router.push(q.to)">
-        <span class="quick__ic"><i class="pi" :class="q.icon" /></span>
-        <span class="quick__label">{{ q.label }}</span>
+        <i class="pi" :class="q.icon" />
+        <span>{{ q.label }}</span>
       </button>
     </div>
 
@@ -129,29 +129,37 @@ onMounted(load)
 </template>
 
 <style scoped>
-.quick {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem;
-  margin-bottom: 1.5rem;
-}
+/* Десктоп: зелёные кнопки-контуры «иконка + текст» в ряд. */
+.quick { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem; }
 .quick__card {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 0.5rem; padding: 1rem 0.5rem;
-  border-radius: 14px; border: 1px solid var(--p-content-border-color, #e5e7eb);
-  background: var(--p-content-background, #fff); cursor: pointer;
-  font: inherit; color: inherit;
-  transition: transform 0.08s ease, border-color 0.15s ease, background 0.15s ease;
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.6rem 1rem; border-radius: 8px;
+  border: 1px solid #16a34a; background: transparent; color: #16a34a;
+  cursor: pointer; font: inherit; font-weight: 600;
+  transition: background 0.15s ease, transform 0.08s ease;
 }
-.quick__card:hover { border-color: rgba(22, 163, 74, 0.45); background: rgba(22, 163, 74, 0.04); }
+.quick__card i { font-size: 1.1rem; color: #16a34a; }
+.quick__card:hover { background: rgba(22, 163, 74, 0.06); }
 .quick__card:active { transform: scale(0.98); }
-.quick__ic {
-  flex: none; width: 44px; height: 44px; border-radius: 12px;
-  display: grid; place-items: center;
-  background: rgba(22, 163, 74, 0.12); color: #16a34a;
-}
-.quick__ic i { font-size: 1.4rem; }
-.quick__label { font-weight: 600; font-size: 0.95rem; text-align: center; }
-@media (min-width: 769px) {
-  .quick { grid-template-columns: repeat(4, 1fr); max-width: 560px; }
+.quick__card--green { --qc: #16a34a; }
+.quick__card--orange { --qc: #ea580c; }
+.quick__card--blue { --qc: #2563eb; }
+.quick__card--violet { --qc: #7c3aed; }
+
+/* Телефон: минимализм — иконка сверху (в цвете действия), подпись снизу, без рамок, линия-разделитель. */
+@media (max-width: 768px) {
+  .quick {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.25rem;
+    border-bottom: 1px solid var(--p-content-border-color, #e5e7eb);
+    padding-bottom: 0.85rem; margin-bottom: 1.25rem;
+  }
+  .quick__card {
+    flex-direction: column; gap: 0.35rem; padding: 0.5rem 0.25rem;
+    border: none; background: transparent; color: #6b7280; font-weight: 500;
+  }
+  .quick__card i { font-size: 1.7rem; color: var(--qc, #16a34a); }
+  .quick__card span { font-size: 0.72rem; line-height: 1.1; text-align: center; }
+  .quick__card:hover { background: transparent; }
 }
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem; }
 .stat {
