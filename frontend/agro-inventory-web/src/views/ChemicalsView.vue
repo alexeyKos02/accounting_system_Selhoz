@@ -16,6 +16,7 @@ const crops = ref<CropDto[]>([])
 const warehouses = ref<WarehouseDto[]>([])
 const loading = ref(false)
 const exporting = ref(false)
+const filtersVisible = ref(false)
 
 async function exportExcel() {
   exporting.value = true
@@ -34,6 +35,12 @@ async function exportExcel() {
 const search = ref('')
 const cropId = ref<string | null>(null)
 const warehouseId = ref<string | null>(null)
+const activeFiltersCount = computed(() =>
+  [search.value.trim(), cropId.value, warehouseId.value].filter(Boolean).length,
+)
+const filterButtonLabel = computed(() =>
+  activeFiltersCount.value ? `Фильтры (${activeFiltersCount.value})` : 'Фильтры',
+)
 
 let debounce: ReturnType<typeof setTimeout> | undefined
 
@@ -93,12 +100,21 @@ onMounted(async () => {
     <div class="head">
       <h1 class="page__title">Химия</h1>
       <div class="head__actions">
+        <PvButton
+          :label="filterButtonLabel"
+          icon="pi pi-filter"
+          :outlined="!filtersVisible"
+          :severity="activeFiltersCount ? 'info' : undefined"
+          :aria-expanded="filtersVisible"
+          aria-controls="chemical-filters"
+          @click="filtersVisible = !filtersVisible"
+        />
         <PvButton label="Excel" icon="pi pi-file-excel" outlined :loading="exporting" @click="exportExcel" />
         <PvButton label="Добавить химию" icon="pi pi-plus" @click="router.push({ name: 'chemical-create' })" />
       </div>
     </div>
 
-    <div class="filters">
+    <div v-show="filtersVisible" id="chemical-filters" class="filters">
       <PvInputText v-model="search" placeholder="Поиск по названию" />
       <PvSelect v-model="cropId" :options="cropOptions" option-label="label" option-value="value"
         placeholder="Культура" show-clear />
@@ -125,8 +141,8 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
-.head__actions { display: flex; gap: 0.5rem; }
+.head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.head__actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 .filters { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
 .mt { margin-top: 1rem; }
 .ml { margin-left: 0.5rem; }
