@@ -181,8 +181,13 @@ onMounted(async () => {
           <template #body="{ data }">
             <div class="stock-cell">
               <span>{{ (data.totalLiters ?? 0).toLocaleString('ru-RU') }} л</span>
-              <PvTag v-if="badge(data.stockStatus)" :value="badge(data.stockStatus)!.label"
-                :severity="badge(data.stockStatus)!.severity" />
+              <span
+                v-if="badge(data.stockStatus)"
+                class="stock-label"
+                :class="`stock-label--${badge(data.stockStatus)!.severity}`"
+              >
+                {{ badge(data.stockStatus)!.label }}
+              </span>
             </div>
           </template>
         </PvColumn>
@@ -283,7 +288,28 @@ onMounted(async () => {
 }
 .desktop-table-panel__head h2 { margin: 0; font-size: 1.2rem; }
 .desktop-table-panel__head span { color: #374151; font-weight: 600; }
-.stock-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 0.4rem; }
+.stock-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 0.3rem; }
+.stock-label {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.45rem;
+  padding: 0.18rem 0.5rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.1;
+}
+.stock-label--danger {
+  border-color: #fecaca;
+  background: #fff1f2;
+  color: #b91c1c;
+}
+.stock-label--warn {
+  border-color: #fed7aa;
+  background: #fff7ed;
+  color: #c2410c;
+}
 .desktop-crops { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 .desktop-crop {
   padding: 0.35rem 0.7rem;

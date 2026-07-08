@@ -17,3 +17,17 @@ a:hover { text-decoration: underline; }
 
 .page__title { margin: 0 0 0.75rem; font-size: 1.5rem; }
 .page__stub { color: #6b7280; }
+
+@media (max-width: 640px) {
+  input,
+  textarea,
+  select,
+  .p-inputtext,
+  .p-select-label,
+  .p-multiselect-label,
+  .p-select-filter,
+  .p-multiselect-filter,
+  .p-autocomplete-input {
+    font-size: 16px;
+  }
+}
