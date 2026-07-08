@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import { historyApi, MovementType } from '../api/history'
 import type { HistoryItemDto, HistoryDetailDto, EditMovementRequest, HistoryFilters } from '../api/history'
@@ -33,6 +33,14 @@ const typeOptions = [
   { label: 'Корректировка', value: MovementType.Correction },
 ]
 
+// Фильтры на мобилке прячем за кнопкой (как на странице «Химия»). На десктопе видны всегда.
+const filtersVisible = ref(false)
+const activeFiltersCount = computed(() =>
+  [filters.value.chemicalId, filters.value.movementType, filters.value.warehouseId, filters.value.cropId]
+    .filter((v) => v !== undefined && v !== null && v !== '').length,
+)
+const filterBadge = computed(() => (activeFiltersCount.value ? String(activeFiltersCount.value) : undefined))
+
 const detail = ref<HistoryDetailDto | null>(null)
 const detailDialog = ref(false)
 const editDialog = ref(false)
@@ -53,6 +61,9 @@ watch(filters, () => { clearTimeout(timer); timer = setTimeout(load, 300) }, { d
 
 function typeLabel(t?: number) {
   return t === MovementType.Income ? 'Приход' : t === MovementType.Outcome ? 'Списание' : 'Корректировка'
+}
+function typeSeverity(t?: number) {
+  return t === MovementType.Income ? 'success' : t === MovementType.Outcome ? 'warn' : 'info'
 }
 function fmtDate(iso: string) { return new Date(iso).toLocaleString('ru-RU') }
 function fail(e: unknown, fb: string) {
@@ -132,31 +143,60 @@ onMounted(async () => { await ref_.load(); await load() })
   <section class="page">
     <div class="head">
       <h1 class="page__title">История</h1>
-      <PvButton label="Excel" icon="pi pi-file-excel" outlined :loading="exporting" @click="exportExcel" />
+      <div class="head__actions">
+        <PvButton class="filter-toggle" icon="pi pi-filter" rounded
+          :outlined="!filtersVisible" :severity="activeFiltersCount ? 'info' : undefined"
+          :badge="filterBadge" aria-label="Фильтры" :aria-expanded="filtersVisible"
+          aria-controls="history-filters" @click="filtersVisible = !filtersVisible" />
+        <PvButton label="Excel" icon="pi pi-file-excel" outlined :loading="exporting" @click="exportExcel" />
+      </div>
     </div>
 
-    <div class="filters">
+    <div id="history-filters" class="filters" :class="{ 'filters--open': filtersVisible }">
       <PvSelect v-model="filters.chemicalId" :options="ref_.chemicalOptions.value" option-label="label" option-value="value" filter show-clear placeholder="Химия" />
       <PvSelect v-model="filters.movementType" :options="typeOptions" option-label="label" option-value="value" show-clear placeholder="Тип" />
       <PvSelect v-model="filters.warehouseId" :options="ref_.warehouseOptions.value" option-label="label" option-value="value" show-clear placeholder="Склад" />
       <PvSelect v-model="filters.cropId" :options="ref_.cropOptions.value" option-label="label" option-value="value" filter show-clear placeholder="Культура" />
     </div>
 
-    <PvDataTable :value="items" :loading="loading" data-key="id" class="mt">
-      <PvColumn header="Дата"><template #body="{ data }">{{ fmtDate(data.occurredAt) }}</template></PvColumn>
-      <PvColumn header="Тип"><template #body="{ data }">
-        <PvTag :value="typeLabel(data.movementType)"
-          :severity="data.movementType === 1 ? 'success' : data.movementType === 2 ? 'warn' : 'info'" />
-      </template></PvColumn>
-      <PvColumn field="chemicalName" header="Химия" />
-      <PvColumn header="Кол-во, л"><template #body="{ data }">{{ data.quantityLiters }}</template></PvColumn>
-      <PvColumn header="Склад"><template #body="{ data }">Склад {{ data.warehouseNumber }}</template></PvColumn>
-      <PvColumn field="cropName" header="Культура" />
-      <PvColumn header="" style="width: 5rem"><template #body="{ data }">
-        <PvButton icon="pi pi-info-circle" text rounded @click="openDetail(data)" />
-      </template></PvColumn>
-      <template #empty><div class="empty">Операций нет</div></template>
-    </PvDataTable>
+    <!-- Десктоп: таблица -->
+    <div class="desktop-table mt">
+      <PvDataTable :value="items" :loading="loading" data-key="id">
+        <PvColumn header="Дата"><template #body="{ data }">{{ fmtDate(data.occurredAt) }}</template></PvColumn>
+        <PvColumn header="Тип"><template #body="{ data }">
+          <PvTag :value="typeLabel(data.movementType)" :severity="typeSeverity(data.movementType)" />
+        </template></PvColumn>
+        <PvColumn field="chemicalName" header="Химия" />
+        <PvColumn header="Кол-во, л"><template #body="{ data }">{{ data.quantityLiters }}</template></PvColumn>
+        <PvColumn header="Склад"><template #body="{ data }">Склад {{ data.warehouseNumber }}</template></PvColumn>
+        <PvColumn field="cropName" header="Культура" />
+        <PvColumn header="" style="width: 5rem"><template #body="{ data }">
+          <PvButton icon="pi pi-info-circle" text rounded @click="openDetail(data)" />
+        </template></PvColumn>
+        <template #empty><div class="empty">Операций нет</div></template>
+      </PvDataTable>
+    </div>
+
+    <!-- Мобилка: карточки -->
+    <div class="history-cards">
+      <div v-if="loading" class="empty">Загрузка…</div>
+      <template v-else>
+        <article v-for="item in items" :key="item.id!" class="history-card" role="button" tabindex="0"
+          @click="openDetail(item)" @keydown.enter="openDetail(item)" @keydown.space.prevent="openDetail(item)">
+          <div class="history-card__top">
+            <PvTag :value="typeLabel(item.movementType)" :severity="typeSeverity(item.movementType)" />
+            <span class="history-card__date">{{ fmtDate(item.occurredAt!) }}</span>
+          </div>
+          <div class="history-card__name">{{ item.chemicalName }}</div>
+          <div class="history-card__meta">
+            <span class="history-card__qty">{{ item.quantityLiters }} л</span>
+            <span>Склад {{ item.warehouseNumber }}</span>
+            <span v-if="item.cropName">{{ item.cropName }}</span>
+          </div>
+        </article>
+        <div v-if="!items.length" class="empty">Операций нет</div>
+      </template>
+    </div>
 
     <!-- Детали операции -->
     <PvDialog v-model:visible="detailDialog" header="Операция" modal :style="{ width: '30rem' }">
@@ -201,9 +241,33 @@ onMounted(async () => { await ref_.load(); await load() })
 
 <style scoped>
 .head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.head__actions { display: flex; gap: 0.5rem; align-items: center; }
 .filters { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 .mt { margin-top: 1rem; }
 .empty { padding: 1rem; color: #6b7280; }
+/* Кнопка-фильтр и карточки — только на мобилке. */
+.filter-toggle { display: none; }
+.history-cards { display: none; }
+
+@media (max-width: 640px) {
+  .filter-toggle { display: inline-flex; }
+  .filters { display: none; flex-direction: column; }
+  .filters.filters--open { display: flex; }
+  .filters :deep(.p-select) { width: 100%; }
+  .desktop-table { display: none; }
+  .history-cards { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem; }
+  .history-card {
+    display: flex; flex-direction: column; gap: 0.5rem;
+    width: 100%; padding: 0.875rem; text-align: left;
+    border: 1px solid #e5e7eb; border-radius: 10px; background: #fff;
+    color: inherit; font: inherit; cursor: pointer;
+  }
+  .history-card__top { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
+  .history-card__date { color: #6b7280; font-size: 0.85rem; }
+  .history-card__name { font-weight: 700; color: #374151; }
+  .history-card__meta { display: flex; flex-wrap: wrap; gap: 0.35rem 0.75rem; color: #4b5563; font-size: 0.9rem; }
+  .history-card__qty { font-weight: 600; color: #111827; }
+}
 .detail { display: flex; flex-direction: column; gap: 0.4rem; }
 .sources ul { margin: 0.25rem 0; padding-left: 1.25rem; }
 .field { display: flex; flex-direction: column; gap: 0.25rem; margin-bottom: 0.75rem; }
