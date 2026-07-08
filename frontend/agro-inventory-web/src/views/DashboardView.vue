@@ -151,16 +151,17 @@ onMounted(load)
 /* Телефон: минимализм — иконка сверху (в цвете действия), подпись снизу, без рамок, линия-разделитель. */
 @media (max-width: 768px) {
   .quick {
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.25rem;
+    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.25rem;
     border-bottom: 1px solid var(--p-content-border-color, #e5e7eb);
     padding-bottom: 0.85rem; margin-bottom: 1.25rem;
   }
   .quick__card {
-    flex-direction: column; gap: 0.35rem; padding: 0.5rem 0.25rem;
-    border: none; background: transparent; color: #6b7280; font-weight: 500;
+    flex-direction: column; gap: 0.35rem; padding: 0.5rem 0.15rem;
+    min-width: 0; border: none; background: transparent; color: #6b7280; font-weight: 500;
   }
   .quick__card i { font-size: 1.7rem; color: var(--qc, #16a34a); }
-  .quick__card span { font-size: 0.72rem; line-height: 1.1; text-align: center; }
+  /* Длинные подписи («Инвентаризация», «Корректировка») переносятся, а не расширяют колонку. */
+  .quick__card span { font-size: 0.68rem; line-height: 1.05; text-align: center; overflow-wrap: anywhere; }
   .quick__card:hover { background: transparent; }
 }
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem; }
