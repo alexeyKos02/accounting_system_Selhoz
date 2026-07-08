@@ -1,5 +1,7 @@
 using AgroInventory.Application;
 using AgroInventory.Infrastructure;
+using AgroInventory.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,6 +31,21 @@ builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
+
+// Применяем миграции при старте (удобно для Railway). Ошибку не роняем — приложение должно
+// подняться даже при недоступной БД, чтобы отдавать health и экран восстановления (ТЗ §24.6).
+if (app.Configuration.GetValue("Database:MigrateOnStartup", true))
+{
+    try
+    {
+        using var scope = app.Services.CreateScope();
+        scope.ServiceProvider.GetRequiredService<AgroInventoryDbContext>().Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogError(ex, "Не удалось применить миграции при старте");
+    }
+}
 
 // Swagger доступен всегда: фронт генерит типы из OpenAPI (ТЗ §3).
 app.UseSwagger();

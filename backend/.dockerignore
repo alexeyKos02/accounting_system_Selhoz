@@ -1,0 +1,8 @@
+**/bin/
+**/obj/
+**/.backups/
+**/appsettings.*.local.json
+tests/
+*.user
+.vs/
+.idea/
