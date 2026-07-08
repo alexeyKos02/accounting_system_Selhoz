@@ -114,7 +114,8 @@ onMounted(load)
       <div class="block__head"><i class="pi pi-clock" /> Последние операции
         <RouterLink to="/history" class="all">вся история →</RouterLink>
       </div>
-      <PvDataTable :value="data?.recentOperations ?? []" :loading="loading" data-key="id" size="small">
+      <div class="ops-scroll">
+        <PvDataTable :value="data?.recentOperations ?? []" :loading="loading" data-key="id" size="small">
         <PvColumn header="Дата"><template #body="{ data: r }">{{ fmtDate(r.occurredAt) }}</template></PvColumn>
         <PvColumn header="Тип"><template #body="{ data: r }">
           <PvTag :value="typeLabel(r.movementType)" :severity="typeSeverity(r.movementType)" />
@@ -123,7 +124,8 @@ onMounted(load)
         <PvColumn header="Кол-во, л"><template #body="{ data: r }">{{ fmtNum(r.quantityLiters) }}</template></PvColumn>
         <PvColumn header="Склад"><template #body="{ data: r }">Склад {{ r.warehouseNumber }}</template></PvColumn>
         <template #empty><div class="empty">Операций пока нет</div></template>
-      </PvDataTable>
+        </PvDataTable>
+      </div>
     </div>
   </section>
 </template>
@@ -162,6 +164,8 @@ onMounted(load)
   .quick__card:hover { background: transparent; }
 }
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem; }
+/* Таблица последних операций не должна растягивать страницу — при нехватке места скроллится внутри. */
+.ops-scroll { overflow-x: auto; }
 .stat {
   border: 1px solid var(--p-content-border-color, #e5e7eb); border-radius: 12px;
   padding: 0.9rem 1rem; background: var(--p-content-background, #fff);
@@ -188,5 +192,9 @@ onMounted(load)
 .empty { padding: 0.75rem 0.25rem; color: #6b7280; }
 @media (max-width: 768px) {
   .columns { grid-template-columns: 1fr; }
+  /* На узком экране — ровно 2 колонки, разрешаем сжатие ниже 140px, чтобы не выходить за экран. */
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .block { min-width: 0; }
+  .block__head { flex-wrap: wrap; }
 }
 </style>
