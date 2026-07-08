@@ -35,10 +35,10 @@ function openChemical(row: DashboardStockDto) {
 }
 
 const quick = [
-  { label: 'Приход', icon: 'pi pi-plus-circle', to: '/income' },
-  { label: 'Списание', icon: 'pi pi-minus-circle', to: '/outcome' },
-  { label: 'Инвентаризация', icon: 'pi pi-check-square', to: '/inventory-check' },
-  { label: 'Корректировка', icon: 'pi pi-sliders-h', to: '/corrections' },
+  { label: 'Приход', icon: 'pi pi-plus-circle', to: '/income', color: 'green' },
+  { label: 'Списание', icon: 'pi pi-minus-circle', to: '/outcome', color: 'orange' },
+  { label: 'Инвентаризация', icon: 'pi pi-check-square', to: '/inventory-check', color: 'blue' },
+  { label: 'Корректировка', icon: 'pi pi-sliders-h', to: '/corrections', color: 'violet' },
 ]
 
 onMounted(load)
@@ -48,9 +48,12 @@ onMounted(load)
   <section class="page">
     <h1 class="page__title">Дашборд</h1>
 
-    <!-- Быстрые действия (ТЗ §22) -->
+    <!-- Быстрые действия (ТЗ §22): иконки-кнопки, различаются цветом -->
     <div class="quick">
-      <PvButton v-for="q in quick" :key="q.to" :label="q.label" :icon="q.icon" outlined @click="router.push(q.to)" />
+      <button v-for="q in quick" :key="q.to" type="button" class="quick__btn" :class="`quick__btn--${q.color}`"
+        :title="q.label" :aria-label="q.label" @click="router.push(q.to)">
+        <i class="pi" :class="q.icon" />
+      </button>
     </div>
 
     <!-- Счётчики -->
@@ -125,7 +128,22 @@ onMounted(load)
 </template>
 
 <style scoped>
-.quick { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+.quick {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.6rem;
+  max-width: 280px; margin-bottom: 1.5rem;
+}
+.quick__btn {
+  aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+  border-radius: 14px; border: 1px solid transparent; cursor: pointer;
+  transition: transform 0.08s ease, filter 0.15s ease;
+}
+.quick__btn i { font-size: 1.6rem; }
+.quick__btn:hover { filter: brightness(0.97); }
+.quick__btn:active { transform: scale(0.93); }
+.quick__btn--green  { color: #16a34a; background: rgba(22, 163, 74, 0.10);  border-color: rgba(22, 163, 74, 0.20); }
+.quick__btn--orange { color: #d97706; background: rgba(217, 119, 6, 0.10);  border-color: rgba(217, 119, 6, 0.20); }
+.quick__btn--blue   { color: #2563eb; background: rgba(37, 99, 235, 0.10);  border-color: rgba(37, 99, 235, 0.20); }
+.quick__btn--violet { color: #7c3aed; background: rgba(124, 58, 237, 0.10); border-color: rgba(124, 58, 237, 0.20); }
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem; }
 .stat {
   border: 1px solid var(--p-content-border-color, #e5e7eb); border-radius: 12px;

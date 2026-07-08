@@ -89,18 +89,23 @@ const secondary = [
 @media (max-width: 768px) {
   .layout { grid-template-columns: 1fr; }
   .layout__sidebar { display: none; }
-  .layout__content { padding: 1rem 1rem 5rem; }
+  /* Нижний отступ = высота панели + безопасная зона экрана. */
+  .layout__content { padding: 1rem 1rem calc(5.5rem + env(safe-area-inset-bottom)); }
   .layout__bottombar {
     display: flex; justify-content: space-around;
     position: fixed; bottom: 0; left: 0; right: 0;
     background: var(--p-content-background, #fff);
     border-top: 1px solid var(--p-content-border-color, #e5e7eb);
-    padding: 0.4rem 0; z-index: 10;
+    /* Приподнимаем панель над home-индикатором iPhone (safe area). */
+    padding: 0.5rem 0 calc(0.5rem + env(safe-area-inset-bottom));
+    z-index: 10;
   }
   .layout__tab {
-    display: flex; flex-direction: column; align-items: center; gap: 2px;
-    font-size: 0.7rem; text-decoration: none; color: inherit; padding: 0.2rem 0.5rem;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    font-size: 0.7rem; text-decoration: none; color: inherit;
+    padding: 0.35rem 0.5rem; min-width: 56px; border-radius: 10px;
   }
-  .layout__tab.router-link-exact-active { color: #3b82f6; }
+  .layout__tab i { font-size: 1.15rem; }
+  .layout__tab.router-link-exact-active { color: #16a34a; }
 }
 </style>
