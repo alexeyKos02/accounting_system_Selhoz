@@ -727,6 +727,169 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/gpt/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/gpt/parse-text": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["ParseTextRequest"];
+                    "text/json": components["schemas"]["ParseTextRequest"];
+                    "application/*+json": components["schemas"]["ParseTextRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["OperationSuggestionDto"];
+                        "application/json": components["schemas"]["OperationSuggestionDto"];
+                        "text/json": components["schemas"]["OperationSuggestionDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/gpt/parse-photo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "multipart/form-data": {
+                        /** Format: binary */
+                        file?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["OperationSuggestionDto"];
+                        "application/json": components["schemas"]["OperationSuggestionDto"];
+                        "text/json": components["schemas"]["OperationSuggestionDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/gpt/enrich-chemical": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["EnrichChemicalRequest"];
+                    "text/json": components["schemas"]["EnrichChemicalRequest"];
+                    "application/*+json": components["schemas"]["EnrichChemicalRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ChemicalEnrichmentDto"];
+                        "application/json": components["schemas"]["ChemicalEnrichmentDto"];
+                        "text/json": components["schemas"]["ChemicalEnrichmentDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -1495,6 +1658,12 @@ export interface components {
             totalLiters?: number;
             warehouses?: components["schemas"]["WarehouseStockDto"][] | null;
         };
+        ChemicalEnrichmentDto: {
+            manufacturer?: string | null;
+            crops?: components["schemas"]["ReferenceMatchDto"][] | null;
+            comment?: string | null;
+            notes?: string | null;
+        };
         ChemicalListItemDto: {
             /** Format: uuid */
             id?: string;
@@ -1633,6 +1802,9 @@ export interface components {
             packageVolumeLiters?: number | null;
             /** Format: int32 */
             packagesQuantity?: number | null;
+        };
+        EnrichChemicalRequest: {
+            name?: string | null;
         };
         HistoryDetailDto: {
             /** Format: uuid */
@@ -1799,6 +1971,19 @@ export interface components {
             /** Format: double */
             remainingLiters?: number;
         };
+        OperationSuggestionDto: {
+            operationType?: components["schemas"]["MovementType"];
+            chemical?: components["schemas"]["ReferenceMatchDto"];
+            /** Format: double */
+            quantity?: number | null;
+            unit?: components["schemas"]["UnitType"];
+            /** Format: double */
+            packageVolumeLiters?: number | null;
+            warehouse?: components["schemas"]["ReferenceMatchDto"];
+            crop?: components["schemas"]["ReferenceMatchDto"];
+            comment?: string | null;
+            notes?: string | null;
+        };
         OutcomePreviewResponse: {
             sufficient?: boolean;
             /** Format: double */
@@ -1863,6 +2048,15 @@ export interface components {
             packageVolumeLiters?: number;
             /** Format: int32 */
             quantity?: number;
+        };
+        ParseTextRequest: {
+            text?: string | null;
+        };
+        ReferenceMatchDto: {
+            /** Format: uuid */
+            id?: string | null;
+            name?: string | null;
+            matched?: boolean;
         };
         /**
          * Format: int32

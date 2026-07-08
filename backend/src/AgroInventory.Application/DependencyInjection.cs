@@ -2,6 +2,7 @@ using AgroInventory.Application.Audit;
 using AgroInventory.Application.Chemicals;
 using AgroInventory.Application.Crops;
 using AgroInventory.Application.Dashboard;
+using AgroInventory.Application.Gpt;
 using AgroInventory.Application.History;
 using AgroInventory.Application.Inventory;
 using AgroInventory.Application.Settings;
@@ -28,6 +29,7 @@ public static class DependencyInjection
         services.AddScoped<AuditQueryService>();
         services.AddScoped<DashboardService>();
         services.AddScoped<SettingsService>();
+        services.AddScoped<GptService>();
 
         return services;
     }

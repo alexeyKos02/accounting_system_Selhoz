@@ -4,6 +4,7 @@ import { useRouter, onBeforeRouteLeave } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
 import { chemicalsApi } from '../api/chemicals'
 import { cropsApi } from '../api/reference'
+import { gptApi } from '../api/gpt'
 import type { CropDto, DuplicateDto } from '../api/types'
 import { ApiError } from '../api/http'
 
@@ -25,6 +26,43 @@ const createdId = ref<string | null>(null) // после успешного со
 
 const newCropName = ref('')
 const cropOptions = computed(() => crops.value.map((c) => ({ label: c.name, value: c.id })))
+
+const gptConfigured = ref(false)
+const enriching = ref(false)
+
+// Обогащение карточки через ИИ (ТЗ §26): подставляем производителя, назначение и известные культуры.
+async function enrich() {
+  const q = name.value.trim()
+  if (!q) {
+    toast.add({ severity: 'warn', summary: 'Введите название химии', life: 2500 })
+    return
+  }
+  enriching.value = true
+  try {
+    const data = await gptApi.enrichChemical(q)
+    if (data.manufacturer && !manufacturer.value.trim()) manufacturer.value = data.manufacturer
+    if (data.comment && !comment.value.trim()) comment.value = data.comment
+
+    const matchedIds = (data.crops ?? []).filter((c) => c.matched && c.id).map((c) => c.id as string)
+    if (matchedIds.length) {
+      const set = new Set([...selectedCropIds.value, ...matchedIds])
+      selectedCropIds.value = [...set]
+    }
+    const unknown = (data.crops ?? []).filter((c) => !c.matched).map((c) => c.name)
+
+    const notes: string[] = []
+    if (unknown.length) notes.push(`Не найдены в справочнике: ${unknown.join(', ')} — добавьте вручную.`)
+    if (data.notes) notes.push(data.notes)
+    toast.add({
+      severity: 'success', summary: 'Данные подобраны',
+      detail: notes.length ? notes.join(' ') : 'Проверьте поля перед сохранением.', life: 5000,
+    })
+  } catch (e) {
+    fail(e, 'Не удалось подобрать данные')
+  } finally {
+    enriching.value = false
+  }
+}
 
 watch([name, manufacturer, comment, selectedCropIds], () => { dirty.value = true }, { deep: true })
 
@@ -101,7 +139,10 @@ onBeforeRouteLeave(() => {
   return true
 })
 
-onMounted(async () => { crops.value = await cropsApi.list() })
+onMounted(async () => {
+  crops.value = await cropsApi.list()
+  try { gptConfigured.value = (await gptApi.status()).configured } catch { gptConfigured.value = false }
+})
 </script>
 
 <template>
@@ -120,7 +161,11 @@ onMounted(async () => { crops.value = await cropsApi.list() })
     <template v-else>
       <label class="field">
         <span>Название *</span>
-        <PvInputText v-model="name" placeholder="Например, Раундап" />
+        <div class="name-row">
+          <PvInputText v-model="name" placeholder="Например, Раундап" />
+          <PvButton v-if="gptConfigured" label="Заполнить с ИИ" icon="pi pi-sparkles" outlined
+            :loading="enriching" @click="enrich" />
+        </div>
       </label>
 
       <PvMessage v-if="duplicates.length" severity="warn" :closable="false" class="dups">
@@ -167,6 +212,8 @@ onMounted(async () => { crops.value = await cropsApi.list() })
 .form { max-width: 620px; }
 .field { display: flex; flex-direction: column; gap: 0.25rem; margin-bottom: 1rem; }
 .field > span { font-weight: 600; font-size: 0.9rem; }
+.name-row { display: flex; gap: 0.5rem; align-items: center; }
+.name-row :deep(.p-inputtext) { flex: 1; }
 .quick { display: flex; gap: 0.5rem; align-items: center; margin: -0.5rem 0 1rem; }
 .row { display: flex; gap: 0.5rem; align-items: center; }
 .result { display: flex; flex-direction: column; gap: 1rem; }

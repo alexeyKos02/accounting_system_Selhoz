@@ -5,6 +5,7 @@ using AgroInventory.Infrastructure.Audit;
 using AgroInventory.Infrastructure.Backups;
 using AgroInventory.Infrastructure.Configuration;
 using AgroInventory.Infrastructure.Export;
+using AgroInventory.Infrastructure.Gpt;
 using AgroInventory.Infrastructure.Health;
 using AgroInventory.Infrastructure.Persistence;
 using AgroInventory.Infrastructure.Security;
@@ -13,6 +14,7 @@ using Amazon.S3;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.Net.Http.Headers;
 
 namespace AgroInventory.Infrastructure;
 
@@ -39,8 +41,34 @@ public static class DependencyInjection
 
         AddBackups(services, configuration);
         services.AddScoped<IExcelExportService, ExcelExportService>();
+        AddGpt(services, configuration);
 
         return services;
+    }
+
+    /// <summary>
+    /// LLM-клиент (ТЗ §26): OpenAI при заданном API-ключе, иначе «не настроено». GptService
+    /// (Application) поверх него сопоставляет ответы со справочниками.
+    /// </summary>
+    private static void AddGpt(IServiceCollection services, IConfiguration configuration)
+    {
+        var options = new GptOptions();
+        configuration.GetSection(GptOptions.SectionName).Bind(options);
+        services.AddSingleton(options);
+
+        if (options.IsValid)
+        {
+            services.AddHttpClient<IGptClient, OpenAiGptClient>(client =>
+            {
+                client.BaseAddress = new Uri(options.BaseUrl.TrimEnd('/') + "/");
+                client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", options.ApiKey);
+            });
+        }
+        else
+        {
+            services.AddSingleton<IGptClient, NotConfiguredGptClient>();
+        }
     }
 
     /// <summary>

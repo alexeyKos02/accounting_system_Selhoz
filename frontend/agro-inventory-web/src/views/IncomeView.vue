@@ -5,9 +5,13 @@ import { useToast } from 'primevue/usetoast'
 import { inventoryApi, Unit } from '../api/inventory'
 import type { IncomeRequest } from '../api/inventory'
 import { warehousesApi } from '../api/reference'
+import { gptApi } from '../api/gpt'
+import type { OperationSuggestionDto } from '../api/gpt'
+import GptParseDialog from '../components/GptParseDialog.vue'
 import { useReference } from '../composables/useReference'
 import { nowLocalInput, localToIso } from '../utils/datetime'
 import { ApiError } from '../api/http'
+import { MovementType } from '../api/history'
 
 const route = useRoute()
 const router = useRouter()
@@ -33,7 +37,36 @@ const dirty = ref(false)
 
 const newWarehouse = ref('')
 
+const gptConfigured = ref(false)
+const gptDialog = ref(false)
+
 function markDirty() { dirty.value = true }
+
+// Применяем распознанное предложение к форме (ТЗ §26). Пользователь проверяет и сохраняет сам.
+function applySuggestion(s: OperationSuggestionDto) {
+  const notes: string[] = []
+
+  if (s.operationType === MovementType.Outcome)
+    notes.push('Похоже на списание — эта форма для прихода, проверьте тип операции.')
+
+  if (s.chemical?.id) chemicalId.value = s.chemical.id
+  else if (s.chemical?.name) notes.push(`Химия «${s.chemical.name}» не найдена — выберите вручную.`)
+
+  if (s.warehouse?.id) warehouseId.value = s.warehouse.id
+  else if (s.warehouse?.name) notes.push(`Склад «${s.warehouse.name}» не найден — выберите вручную.`)
+
+  if (s.unit) unit.value = s.unit
+  if (s.quantity != null) quantity.value = s.quantity
+  if (s.packageVolumeLiters != null) packageVolume.value = s.packageVolumeLiters
+  if (s.comment) comment.value = s.comment
+  if (s.notes) notes.push(s.notes)
+
+  dirty.value = true
+  toast.add({
+    severity: 'success', summary: 'Данные распознаны',
+    detail: notes.length ? notes.join(' ') : 'Проверьте поля и сохраните.', life: 5000,
+  })
+}
 
 function fail(e: unknown, fallback: string) {
   toast.add({ severity: 'error', summary: 'Ошибка', detail: e instanceof ApiError ? e.message : fallback, life: 4000 })
@@ -99,12 +132,21 @@ function close() { router.back() }
 onBeforeRouteLeave(() => (dirty.value && !done.value)
   ? window.confirm('У вас есть несохранённые изменения. Выйти без сохранения?') : true)
 
-onMounted(ref_.load)
+onMounted(async () => {
+  await ref_.load()
+  try { gptConfigured.value = (await gptApi.status()).configured } catch { gptConfigured.value = false }
+})
 </script>
 
 <template>
   <section class="page form">
-    <h1 class="page__title">Приход химии</h1>
+    <div class="head">
+      <h1 class="page__title">Приход химии</h1>
+      <PvButton v-if="gptConfigured && !done" label="Распознать (ИИ)" icon="pi pi-sparkles"
+        outlined @click="gptDialog = true" />
+    </div>
+
+    <GptParseDialog v-model:visible="gptDialog" @apply="applySuggestion" />
 
     <div v-if="done" class="result">
       <PvMessage severity="success" :closable="false">Приход добавлен</PvMessage>
@@ -160,6 +202,7 @@ onMounted(ref_.load)
 
 <style scoped>
 .form { max-width: 620px; }
+.head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
 .field { display: flex; flex-direction: column; gap: 0.25rem; margin-bottom: 1rem; }
 .field > span { font-weight: 600; font-size: 0.9rem; }
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
