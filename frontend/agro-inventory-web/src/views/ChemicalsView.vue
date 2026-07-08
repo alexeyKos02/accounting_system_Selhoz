@@ -189,6 +189,28 @@ onMounted(async () => {
       <PvColumn header="Культуры">
         <template #body="{ data }">{{ cropsLabel(data) }}</template>
       </PvColumn>
+      <PvColumn header="" class="desktop-actions-column">
+        <template #body="{ data }">
+          <div class="desktop-row-actions">
+            <PvButton
+              icon="pi pi-plus"
+              text
+              rounded
+              size="small"
+              aria-label="Приход"
+              @click.stop="openIncome(data)"
+            />
+            <PvButton
+              icon="pi pi-minus"
+              text
+              rounded
+              size="small"
+              aria-label="Списание"
+              @click.stop="openOutcome(data)"
+            />
+          </div>
+        </template>
+      </PvColumn>
       <template #empty><div class="empty">Химия не найдена</div></template>
     </PvDataTable>
 
@@ -238,6 +260,8 @@ onMounted(async () => {
 .ml { margin-left: 0.5rem; }
 .empty { padding: 1rem; color: #6b7280; }
 .chemical-cards { display: none; }
+.desktop-row-actions { display: flex; justify-content: flex-end; gap: 0.25rem; }
+:deep(.desktop-actions-column) { width: 6rem; text-align: right; }
 :deep(.p-datatable-tbody > tr) { cursor: pointer; }
 
 @media (max-width: 640px) {
