@@ -2,6 +2,8 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
+import Menu from 'primevue/menu'
+import type { MenuItem } from 'primevue/menuitem'
 import { chemicalsApi } from '../api/chemicals'
 import { cropsApi, warehousesApi } from '../api/reference'
 import { exportApi } from '../api/export'
@@ -17,6 +19,7 @@ const warehouses = ref<WarehouseDto[]>([])
 const loading = ref(false)
 const exporting = ref(false)
 const filtersVisible = ref(false)
+const actionsMenu = ref<InstanceType<typeof Menu> | null>(null)
 
 async function exportExcel() {
   exporting.value = true
@@ -38,9 +41,21 @@ const warehouseId = ref<string | null>(null)
 const activeFiltersCount = computed(() =>
   [search.value.trim(), cropId.value, warehouseId.value].filter(Boolean).length,
 )
-const filterButtonLabel = computed(() =>
-  activeFiltersCount.value ? `Фильтры (${activeFiltersCount.value})` : 'Фильтры',
+const filterButtonBadge = computed(() =>
+  activeFiltersCount.value ? String(activeFiltersCount.value) : undefined,
 )
+const actionItems = computed<MenuItem[]>(() => [
+  {
+    label: 'Excel',
+    icon: 'pi pi-file-excel',
+    command: exportExcel,
+  },
+  {
+    label: 'Добавить химию',
+    icon: 'pi pi-plus',
+    command: () => router.push({ name: 'chemical-create' }),
+  },
+])
 
 let debounce: ReturnType<typeof setTimeout> | undefined
 
@@ -89,6 +104,10 @@ function onRowClick(event: { data: ChemicalListItemDto }) {
   openCard(event.data)
 }
 
+function toggleActions(event: MouseEvent) {
+  actionsMenu.value?.toggle(event)
+}
+
 onMounted(async () => {
   ;[crops.value, warehouses.value] = await Promise.all([cropsApi.list(), warehousesApi.list()])
   await load()
@@ -101,16 +120,27 @@ onMounted(async () => {
       <h1 class="page__title">Химия</h1>
       <div class="head__actions">
         <PvButton
-          :label="filterButtonLabel"
           icon="pi pi-filter"
+          rounded
           :outlined="!filtersVisible"
           :severity="activeFiltersCount ? 'info' : undefined"
+          :badge="filterButtonBadge"
+          aria-label="Фильтры"
           :aria-expanded="filtersVisible"
           aria-controls="chemical-filters"
           @click="filtersVisible = !filtersVisible"
         />
-        <PvButton label="Excel" icon="pi pi-file-excel" outlined :loading="exporting" @click="exportExcel" />
-        <PvButton label="Добавить химию" icon="pi pi-plus" @click="router.push({ name: 'chemical-create' })" />
+        <PvButton
+          icon="pi pi-ellipsis-v"
+          rounded
+          outlined
+          :loading="exporting"
+          aria-label="Действия"
+          aria-haspopup="true"
+          aria-controls="chemical-actions-menu"
+          @click="toggleActions"
+        />
+        <Menu id="chemical-actions-menu" ref="actionsMenu" :model="actionItems" popup />
       </div>
     </div>
 
@@ -141,8 +171,8 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
-.head__actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.head__actions { display: flex; gap: 0.5rem; align-items: center; }
 .filters { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
 .mt { margin-top: 1rem; }
 .ml { margin-left: 0.5rem; }
