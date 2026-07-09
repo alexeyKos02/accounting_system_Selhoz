@@ -8,6 +8,7 @@ import { MovementType } from '../api/history'
 const router = useRouter()
 const data = ref<DashboardDto | null>(null)
 const loading = ref(false)
+const quickOpen = ref(false)
 
 async function load() {
   loading.value = true
@@ -33,6 +34,10 @@ function typeSeverity(t?: number) {
 function openChemical(row: DashboardStockDto) {
   router.push({ name: 'chemical-detail', params: { id: row.chemicalId } })
 }
+function runQuickAction(to: string) {
+  quickOpen.value = false
+  router.push(to)
+}
 
 const quick = [
   { label: 'Приход', icon: 'pi pi-plus-circle', to: '/income', color: 'green' },
@@ -48,12 +53,38 @@ onMounted(load)
   <section class="page">
     <h1 class="page__title">Дашборд</h1>
 
-    <!-- Быстрые действия (ТЗ §22): на телефоне — иконка сверху/текст снизу, на десктопе — кнопки-контуры -->
+    <!-- Быстрые действия: на десктопе кнопки остаются сверху, на телефоне используются в плавающем меню. -->
     <div class="quick">
       <button v-for="q in quick" :key="q.to" type="button" class="quick__card" :class="`quick__card--${q.color}`"
         :aria-label="q.label" @click="router.push(q.to)">
         <i class="pi" :class="q.icon" />
         <span>{{ q.label }}</span>
+      </button>
+    </div>
+
+    <div class="quick-fab" :class="{ 'quick-fab--open': quickOpen }">
+      <TransitionGroup name="quick-fab-item" tag="div" class="quick-fab__menu">
+        <button
+          v-for="(q, index) in quickOpen ? quick : []"
+          :key="q.to"
+          type="button"
+          class="quick-fab__item"
+          :class="`quick-fab__item--${q.color}`"
+          :style="{ '--quick-delay': `${(quick.length - index - 1) * 34}ms` }"
+          @click="runQuickAction(q.to)"
+        >
+          <span class="quick-fab__icon"><i class="pi" :class="q.icon" /></span>
+          <span class="quick-fab__label">{{ q.label }}</span>
+        </button>
+      </TransitionGroup>
+      <button
+        type="button"
+        class="quick-fab__button"
+        :aria-expanded="quickOpen"
+        aria-label="Быстрые действия"
+        @click="quickOpen = !quickOpen"
+      >
+        <i class="pi" :class="quickOpen ? 'pi-times' : 'pi-plus'" />
       </button>
     </div>
 
@@ -161,22 +192,110 @@ onMounted(load)
 .quick__card--orange { --qc: #ea580c; }
 .quick__card--blue { --qc: #2563eb; }
 .quick__card--violet { --qc: #7c3aed; }
+.quick-fab { display: none; }
 
-/* Телефон: минимализм — иконка сверху (в цвете действия), подпись снизу, без рамок, линия-разделитель. */
 @media (max-width: 768px) {
-  .quick {
-    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.25rem;
-    border-bottom: 1px solid var(--p-content-border-color, #e5e7eb);
-    padding-bottom: 0.85rem; margin-bottom: 1.25rem;
+  .quick { display: none; }
+  .quick-fab {
+    display: flex;
+    position: fixed;
+    right: 1rem;
+    bottom: calc(5.85rem + env(safe-area-inset-bottom));
+    z-index: 30;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.75rem;
+    pointer-events: none;
   }
-  .quick__card {
-    flex-direction: column; gap: 0.35rem; padding: 0.5rem 0.15rem;
-    min-width: 0; border: none; background: transparent; color: #6b7280; font-weight: 500;
+  .quick-fab__menu {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.45rem;
+    max-width: calc(100vw - 2rem);
   }
-  .quick__card i { font-size: 1.7rem; color: var(--qc, #16a34a); }
-  /* Длинные подписи («Инвентаризация», «Корректировка») переносятся, а не расширяют колонку. */
-  .quick__card span { font-size: 0.68rem; line-height: 1.05; text-align: center; overflow-wrap: anywhere; }
-  .quick__card:hover { background: transparent; }
+  .quick-fab__item {
+    --quick-color: #16a34a;
+    --quick-soft: #dcfce7;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.55rem;
+    min-height: 2.65rem;
+    max-width: calc(100vw - 2rem);
+    padding: 0.45rem 0.5rem 0.45rem 0.85rem;
+    border: 1px solid var(--p-content-border-color, #e5e7eb);
+    border-radius: 999px;
+    background: var(--p-content-background, #fff);
+    color: #374151;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.15);
+    cursor: pointer;
+    font: inherit;
+    font-weight: 600;
+    pointer-events: auto;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
+  }
+  .quick-fab__item--green { --quick-color: #16a34a; --quick-soft: #dcfce7; }
+  .quick-fab__item--orange { --quick-color: #ea580c; --quick-soft: #ffedd5; }
+  .quick-fab__item--blue { --quick-color: #2563eb; --quick-soft: #dbeafe; }
+  .quick-fab__item--violet { --quick-color: #7c3aed; --quick-soft: #ede9fe; }
+  .quick-fab__item:active { transform: translateY(1px) scale(0.98); }
+  .quick-fab__icon {
+    display: grid;
+    place-items: center;
+    width: 1.85rem;
+    height: 1.85rem;
+    border-radius: 999px;
+    background: var(--quick-soft);
+    color: var(--quick-color);
+    flex: 0 0 auto;
+  }
+  .quick-fab__icon i { font-size: 1rem; }
+  .quick-fab__label {
+    min-width: 0;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+  }
+  .quick-fab__button {
+    display: grid;
+    place-items: center;
+    width: 3.35rem;
+    height: 3.35rem;
+    border: none;
+    border-radius: 999px;
+    background: #16a34a;
+    color: #fff;
+    box-shadow: 0 14px 32px rgba(22, 163, 74, 0.32);
+    cursor: pointer;
+    font: inherit;
+    pointer-events: auto;
+    transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.18s ease;
+  }
+  .quick-fab__button i {
+    font-size: 1.25rem;
+    transition: transform 0.18s ease;
+  }
+  .quick-fab--open .quick-fab__button {
+    background: #15803d;
+    box-shadow: 0 16px 36px rgba(21, 128, 61, 0.36);
+  }
+  .quick-fab--open .quick-fab__button i { transform: rotate(90deg); }
+  .quick-fab-item-enter-active {
+    transition: opacity 0.2s ease var(--quick-delay), transform 0.2s ease var(--quick-delay);
+  }
+  .quick-fab-item-leave-active {
+    transition: opacity 0.13s ease, transform 0.13s ease;
+  }
+  .quick-fab-item-enter-from,
+  .quick-fab-item-leave-to {
+    opacity: 0;
+    transform: translateY(0.7rem) scale(0.94);
+  }
+  .quick-fab-item-enter-to,
+  .quick-fab-item-leave-from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem; }
 /* Последние операции: на десктопе таблица, на мобилке карточки (карточки скрыты по умолчанию). */
