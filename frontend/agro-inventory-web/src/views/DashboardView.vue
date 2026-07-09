@@ -65,12 +65,11 @@ onMounted(load)
     <div class="quick-fab" :class="{ 'quick-fab--open': quickOpen }">
       <TransitionGroup name="quick-fab-item" tag="div" class="quick-fab__menu">
         <button
-          v-for="(q, index) in quickOpen ? quick : []"
+          v-for="q in quickOpen ? quick : []"
           :key="q.to"
           type="button"
           class="quick-fab__item"
           :class="`quick-fab__item--${q.color}`"
-          :style="{ '--quick-delay': `${(quick.length - index - 1) * 34}ms` }"
           @click="runQuickAction(q.to)"
         >
           <span class="quick-fab__icon"><i class="pi" :class="q.icon" /></span>
@@ -200,7 +199,7 @@ onMounted(load)
     display: flex;
     position: fixed;
     right: 1rem;
-    bottom: calc(5.85rem + env(safe-area-inset-bottom));
+    bottom: calc(4.95rem + env(safe-area-inset-bottom));
     z-index: 30;
     flex-direction: column;
     align-items: flex-end;
@@ -223,17 +222,18 @@ onMounted(load)
     gap: 0.55rem;
     min-height: 2.65rem;
     max-width: calc(100vw - 2rem);
-    padding: 0.45rem 0.5rem 0.45rem 0.85rem;
+    padding: 0.45rem 0.65rem 0.45rem 0.8rem;
     border: 1px solid var(--p-content-border-color, #e5e7eb);
     border-radius: 999px;
     background: var(--p-content-background, #fff);
     color: #374151;
-    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.15);
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.12);
     cursor: pointer;
     font: inherit;
     font-weight: 600;
     pointer-events: auto;
-    transition: background 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
+    -webkit-tap-highlight-color: transparent;
+    transition: border-color 0.15s ease, transform 0.12s ease;
   }
   .quick-fab__item--green { --quick-color: #16a34a; --quick-soft: #dcfce7; }
   .quick-fab__item--orange { --quick-color: #ea580c; --quick-soft: #ffedd5; }
@@ -265,10 +265,11 @@ onMounted(load)
     border-radius: 999px;
     background: #16a34a;
     color: #fff;
-    box-shadow: 0 14px 32px rgba(22, 163, 74, 0.32);
+    box-shadow: 0 10px 26px rgba(22, 163, 74, 0.28);
     cursor: pointer;
     font: inherit;
     pointer-events: auto;
+    -webkit-tap-highlight-color: transparent;
     transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.18s ease;
   }
   .quick-fab__button i {
@@ -277,11 +278,11 @@ onMounted(load)
   }
   .quick-fab--open .quick-fab__button {
     background: #15803d;
-    box-shadow: 0 16px 36px rgba(21, 128, 61, 0.36);
+    box-shadow: 0 12px 28px rgba(21, 128, 61, 0.3);
   }
   .quick-fab--open .quick-fab__button i { transform: rotate(90deg); }
   .quick-fab-item-enter-active {
-    transition: opacity 0.2s ease var(--quick-delay), transform 0.2s ease var(--quick-delay);
+    transition: opacity 0.18s ease, transform 0.18s ease;
   }
   .quick-fab-item-leave-active {
     transition: opacity 0.13s ease, transform 0.13s ease;
