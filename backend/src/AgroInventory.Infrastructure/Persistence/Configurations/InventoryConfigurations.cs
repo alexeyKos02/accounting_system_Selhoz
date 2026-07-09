@@ -36,6 +36,7 @@ public sealed class ChemicalDetailsConfiguration : IEntityTypeConfiguration<Chem
     {
         b.ToTable("chemical_details");
         b.HasKey(x => x.Id);
+        b.Property(x => x.Type).HasConversion<int?>();
         b.Property(x => x.Manufacturer).HasMaxLength(300);
         b.Property(x => x.Comment).HasMaxLength(2000);
         b.HasIndex(x => x.InventoryItemId).IsUnique();

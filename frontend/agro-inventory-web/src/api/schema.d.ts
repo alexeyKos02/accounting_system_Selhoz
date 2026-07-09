@@ -188,6 +188,7 @@ export interface paths {
                     Search?: string;
                     CropId?: string;
                     WarehouseId?: string;
+                    Type?: components["schemas"]["ChemicalType"];
                     SortBy?: components["schemas"]["ChemicalSortBy"];
                     SortDirection?: components["schemas"]["SortDirection"];
                 };
@@ -1604,6 +1605,7 @@ export interface components {
             /** Format: uuid */
             id?: string;
             name?: string | null;
+            type?: components["schemas"]["ChemicalType"];
             manufacturer?: string | null;
             crops?: components["schemas"]["CropRefDto"][] | null;
             /** Format: double */
@@ -1648,6 +1650,7 @@ export interface components {
             /** Format: uuid */
             id?: string;
             name?: string | null;
+            type?: components["schemas"]["ChemicalType"];
             manufacturer?: string | null;
             comment?: string | null;
             status?: components["schemas"]["ItemStatus"];
@@ -1659,6 +1662,7 @@ export interface components {
             warehouses?: components["schemas"]["WarehouseStockDto"][] | null;
         };
         ChemicalEnrichmentDto: {
+            type?: components["schemas"]["ChemicalType"];
             manufacturer?: string | null;
             crops?: components["schemas"]["ReferenceMatchDto"][] | null;
             comment?: string | null;
@@ -1668,6 +1672,7 @@ export interface components {
             /** Format: uuid */
             id?: string;
             name?: string | null;
+            type?: components["schemas"]["ChemicalType"];
             /** Format: double */
             totalLiters?: number;
             crops?: components["schemas"]["CropRefDto"][] | null;
@@ -1678,6 +1683,11 @@ export interface components {
          * @enum {integer}
          */
         ChemicalSortBy: 0 | 1 | 2 | 3;
+        /**
+         * Format: int32
+         * @enum {integer}
+         */
+        ChemicalType: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
         /**
          * Format: int32
          * @enum {integer}
@@ -1718,6 +1728,7 @@ export interface components {
         };
         CreateChemicalRequest: {
             name?: string | null;
+            type?: components["schemas"]["ChemicalType"];
             manufacturer?: string | null;
             comment?: string | null;
             cropIds?: string[] | null;
@@ -1948,6 +1959,7 @@ export interface components {
             /** Format: uuid */
             targetId?: string;
             sourceIds?: string[] | null;
+            type?: components["schemas"]["ChemicalType"];
             manufacturer?: string | null;
             comment?: string | null;
             cropIds?: string[] | null;
@@ -2075,6 +2087,7 @@ export interface components {
         UnitType: 1 | 2 | 3;
         UpdateChemicalRequest: {
             name?: string | null;
+            type?: components["schemas"]["ChemicalType"];
             manufacturer?: string | null;
             comment?: string | null;
             cropIds?: string[] | null;

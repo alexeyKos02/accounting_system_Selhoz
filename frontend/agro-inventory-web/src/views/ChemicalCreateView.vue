@@ -5,13 +5,15 @@ import { useToast } from 'primevue/usetoast'
 import { chemicalsApi } from '../api/chemicals'
 import { cropsApi } from '../api/reference'
 import { gptApi } from '../api/gpt'
-import type { CropDto, DuplicateDto } from '../api/types'
+import type { ChemicalTypeValue, CropDto, DuplicateDto } from '../api/types'
+import { chemicalTypeOptions } from '../api/types'
 import { ApiError } from '../api/http'
 
 const router = useRouter()
 const toast = useToast()
 
 const name = ref('')
+const type = ref<ChemicalTypeValue | null>(null)
 const manufacturer = ref('')
 const comment = ref('')
 const selectedCropIds = ref<string[]>([])
@@ -30,7 +32,7 @@ const cropOptions = computed(() => crops.value.map((c) => ({ label: c.name, valu
 const gptConfigured = ref(false)
 const enriching = ref(false)
 
-// Обогащение карточки через ИИ (ТЗ §26): подставляем производителя, назначение и известные культуры.
+// Обогащение карточки через ИИ (ТЗ §26): подставляем тип средства, производителя, назначение и известные культуры.
 async function enrich() {
   const q = name.value.trim()
   if (!q) {
@@ -40,6 +42,7 @@ async function enrich() {
   enriching.value = true
   try {
     const data = await gptApi.enrichChemical(q)
+    if (data.type != null && type.value == null) type.value = data.type
     if (data.manufacturer && !manufacturer.value.trim()) manufacturer.value = data.manufacturer
     if (data.comment && !comment.value.trim()) comment.value = data.comment
 
@@ -64,7 +67,7 @@ async function enrich() {
   }
 }
 
-watch([name, manufacturer, comment, selectedCropIds], () => { dirty.value = true }, { deep: true })
+watch([name, type, manufacturer, comment, selectedCropIds], () => { dirty.value = true }, { deep: true })
 
 watch(name, (v) => {
   clearTimeout(dupTimer)
@@ -98,6 +101,7 @@ async function submit() {
   try {
     const created = await chemicalsApi.create({
       name: name.value.trim(),
+      type: type.value ?? undefined,
       manufacturer: manufacturer.value.trim() || null,
       comment: comment.value.trim() || null,
       cropIds: selectedCropIds.value,
@@ -116,6 +120,7 @@ async function submit() {
 function addAnother() {
   createdId.value = null
   name.value = ''
+  type.value = null
   manufacturer.value = ''
   comment.value = ''
   selectedCropIds.value = []
@@ -178,6 +183,12 @@ onMounted(async () => {
         </ul>
         <small>Можно использовать существующую или всё равно создать новую.</small>
       </PvMessage>
+
+      <label class="field">
+        <span>Тип средства</span>
+        <PvSelect v-model="type" :options="chemicalTypeOptions" option-label="label"
+          option-value="value" placeholder="Не указан" show-clear />
+      </label>
 
       <label class="field">
         <span>Производитель</span>

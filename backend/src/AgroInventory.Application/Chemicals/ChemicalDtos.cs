@@ -12,6 +12,7 @@ public sealed record CropRefDto(Guid Id, string Name);
 public sealed record ChemicalListItemDto(
     Guid Id,
     string Name,
+    ChemicalType? Type,
     decimal TotalLiters,
     IReadOnlyList<CropRefDto> Crops,
     StockStatus StockStatus);
@@ -33,6 +34,7 @@ public sealed record WarehouseStockDto(
 public sealed record ChemicalDetailDto(
     Guid Id,
     string Name,
+    ChemicalType? Type,
     string? Manufacturer,
     string? Comment,
     ItemStatus Status,
@@ -45,6 +47,7 @@ public sealed record ChemicalDetailDto(
 public sealed record ArchivedChemicalDto(
     Guid Id,
     string Name,
+    ChemicalType? Type,
     string? Manufacturer,
     IReadOnlyList<CropRefDto> Crops,
     decimal TotalLiters,
@@ -52,12 +55,14 @@ public sealed record ArchivedChemicalDto(
 
 public sealed record CreateChemicalRequest(
     string Name,
+    ChemicalType? Type,
     string? Manufacturer,
     string? Comment,
     IReadOnlyList<Guid> CropIds);
 
 public sealed record UpdateChemicalRequest(
     string Name,
+    ChemicalType? Type,
     string? Manufacturer,
     string? Comment,
     IReadOnlyList<Guid> CropIds);
@@ -71,6 +76,7 @@ public sealed record DuplicateDto(Guid Id, string Name, string? Manufacturer);
 public sealed record MergeChemicalsRequest(
     Guid TargetId,
     IReadOnlyList<Guid> SourceIds,
+    ChemicalType? Type,
     string? Manufacturer,
     string? Comment,
     IReadOnlyList<Guid> CropIds);
@@ -80,5 +86,6 @@ public sealed record ChemicalListQuery(
     string? Search = null,
     Guid? CropId = null,
     Guid? WarehouseId = null,
+    ChemicalType? Type = null,
     ChemicalSortBy SortBy = ChemicalSortBy.Name,
     SortDirection SortDirection = SortDirection.Asc);

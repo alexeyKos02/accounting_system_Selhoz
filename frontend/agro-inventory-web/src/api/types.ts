@@ -19,6 +19,36 @@ export type UpdateChemicalRequest = S['UpdateChemicalRequest']
 export type MergeChemicalsRequest = S['MergeChemicalsRequest']
 export type ArchiveChemicalRequest = S['ArchiveChemicalRequest']
 
+// ChemicalType: тип средства (см. Domain/Enums/ChemicalType.cs). Необязателен.
+export type ChemicalTypeValue = S['ChemicalType']
+
+export const ChemicalType = {
+  Herbicide: 1,
+  Fungicide: 2,
+  Insecticide: 3,
+  SeedTreatment: 4,
+  Desiccant: 5,
+  GrowthRegulator: 6,
+  Fertilizer: 7,
+  Other: 8,
+} as const
+
+export const chemicalTypeLabels: Record<number, string> = {
+  1: 'Гербицид',
+  2: 'Фунгицид',
+  3: 'Инсектицид',
+  4: 'Протравитель',
+  5: 'Десикант',
+  6: 'Регулятор роста',
+  7: 'Удобрение',
+  8: 'Другое',
+}
+
+// Опции для выпадающего списка «Тип средства».
+export const chemicalTypeOptions = Object.entries(chemicalTypeLabels).map(
+  ([value, label]) => ({ value: Number(value), label }),
+)
+
 // StockStatus: 0 InStock, 1 Low, 2 Empty (см. Application/Chemicals/ChemicalDtos.cs)
 export const StockStatus = { InStock: 0, Low: 1, Empty: 2 } as const
 // ItemStatus: 1 Active, 2 Archived, 3 Merged

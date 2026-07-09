@@ -24,19 +24,20 @@ public sealed class ExcelExportService : IExcelExportService
 
         using var workbook = new XLWorkbook();
         var sheet = workbook.Worksheets.Add("Остатки");
-        WriteHeader(sheet, "Название", "Всего, л", "Статус", "Культуры");
+        WriteHeader(sheet, "Название", "Тип средства", "Всего, л", "Статус", "Культуры");
 
         var row = 2;
         foreach (var item in items)
         {
             sheet.Cell(row, 1).Value = item.Name;
-            sheet.Cell(row, 2).Value = item.TotalLiters;
-            sheet.Cell(row, 3).Value = StatusText(item.StockStatus);
-            sheet.Cell(row, 4).Value = string.Join(", ", item.Crops.Select(c => c.Name));
+            sheet.Cell(row, 2).Value = item.Type?.ToRussian() ?? string.Empty;
+            sheet.Cell(row, 3).Value = item.TotalLiters;
+            sheet.Cell(row, 4).Value = StatusText(item.StockStatus);
+            sheet.Cell(row, 5).Value = string.Join(", ", item.Crops.Select(c => c.Name));
             row++;
         }
 
-        return Finish(workbook, sheet, lastColumn: 4);
+        return Finish(workbook, sheet, lastColumn: 5);
     }
 
     public async Task<byte[]> ExportHistoryAsync(HistoryQuery filter, CancellationToken ct = default)

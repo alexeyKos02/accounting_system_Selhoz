@@ -13,6 +13,7 @@ export interface ChemicalListParams {
   search?: string
   cropId?: string
   warehouseId?: string
+  type?: number
 }
 
 function toQuery(params: ChemicalListParams): string {
@@ -20,6 +21,7 @@ function toQuery(params: ChemicalListParams): string {
   if (params.search) q.set('Search', params.search)
   if (params.cropId) q.set('CropId', params.cropId)
   if (params.warehouseId) q.set('WarehouseId', params.warehouseId)
+  if (params.type != null) q.set('Type', String(params.type))
   const s = q.toString()
   return s ? `?${s}` : ''
 }

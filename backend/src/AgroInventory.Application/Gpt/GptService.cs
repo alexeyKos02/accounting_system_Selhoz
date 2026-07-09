@@ -54,7 +54,8 @@ public sealed class GptService
             crops.Add(await MatchCropAsync(cropName, ct));
 
         return new ChemicalEnrichmentDto(
-            NullIfBlank(raw.Manufacturer), crops, NullIfBlank(raw.Comment), NullIfBlank(raw.Notes));
+            ParseChemicalType(raw.Type), NullIfBlank(raw.Manufacturer), crops,
+            NullIfBlank(raw.Comment), NullIfBlank(raw.Notes));
     }
 
     // ---------- Сборка предложения операции ----------
@@ -127,6 +128,20 @@ public sealed class GptService
         var v = value.Trim().ToLowerInvariant();
         if (v.Contains("income") || v.Contains("приход") || v.Contains("поступ")) return MovementType.Income;
         if (v.Contains("outcome") || v.Contains("списан") || v.Contains("расход")) return MovementType.Outcome;
+        return null;
+    }
+
+    private static ChemicalType? ParseChemicalType(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        var v = value.Trim().ToLowerInvariant();
+        if (v.Contains("гербицид") || v.Contains("herbicid")) return ChemicalType.Herbicide;
+        if (v.Contains("фунгицид") || v.Contains("fungicid")) return ChemicalType.Fungicide;
+        if (v.Contains("инсектицид") || v.Contains("insecticid")) return ChemicalType.Insecticide;
+        if (v.Contains("протрав") || v.Contains("seed")) return ChemicalType.SeedTreatment;
+        if (v.Contains("десикант") || v.Contains("desiccant")) return ChemicalType.Desiccant;
+        if (v.Contains("регулятор") || v.Contains("growth")) return ChemicalType.GrowthRegulator;
+        if (v.Contains("удобрен") || v.Contains("fertiliz")) return ChemicalType.Fertilizer;
         return null;
     }
 

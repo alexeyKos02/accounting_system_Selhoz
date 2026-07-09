@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
 import { chemicalsApi } from '../api/chemicals'
 import type { ArchivedChemicalDto } from '../api/types'
+import { chemicalTypeLabels } from '../api/types'
 import { ApiError } from '../api/http'
 
 const router = useRouter()
@@ -47,6 +48,9 @@ onMounted(load)
         <template #body="{ data }">
           <a href="#" @click.prevent="router.push({ name: 'chemical-detail', params: { id: data.id } })">{{ data.name }}</a>
         </template>
+      </PvColumn>
+      <PvColumn header="Тип">
+        <template #body="{ data }">{{ data.type ? chemicalTypeLabels[data.type] : '—' }}</template>
       </PvColumn>
       <PvColumn field="manufacturer" header="Производитель" />
       <PvColumn header="Культуры"><template #body="{ data }">{{ cropsLabel(data) }}</template></PvColumn>

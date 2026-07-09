@@ -9,7 +9,7 @@ import { cropsApi, warehousesApi } from '../api/reference'
 import { exportApi } from '../api/export'
 import { ApiError } from '../api/http'
 import type { ChemicalListItemDto, CropDto, WarehouseDto } from '../api/types'
-import { StockStatus } from '../api/types'
+import { StockStatus, chemicalTypeLabels, chemicalTypeOptions } from '../api/types'
 
 const router = useRouter()
 const toast = useToast()
@@ -38,8 +38,9 @@ async function exportExcel() {
 const search = ref('')
 const cropId = ref<string | null>(null)
 const warehouseId = ref<string | null>(null)
+const typeId = ref<number | null>(null)
 const activeFiltersCount = computed(() =>
-  [search.value.trim(), cropId.value, warehouseId.value].filter(Boolean).length,
+  [search.value.trim(), cropId.value, warehouseId.value, typeId.value].filter((v) => v != null && v !== '').length,
 )
 const filterButtonLabel = computed(() =>
   activeFiltersCount.value ? `Фильтры (${activeFiltersCount.value})` : 'Фильтры',
@@ -69,6 +70,7 @@ async function load() {
       search: search.value.trim() || undefined,
       cropId: cropId.value ?? undefined,
       warehouseId: warehouseId.value ?? undefined,
+      type: typeId.value ?? undefined,
     })
   } finally {
     loading.value = false
@@ -79,7 +81,7 @@ watch(search, () => {
   clearTimeout(debounce)
   debounce = setTimeout(load, 300)
 })
-watch([cropId, warehouseId], load)
+watch([cropId, warehouseId, typeId], load)
 
 function badge(status?: number): { label: string; severity: 'danger' | 'warn' } | null {
   if (status === StockStatus.Empty) return { label: 'Закончилась', severity: 'danger' }
@@ -163,6 +165,8 @@ onMounted(async () => {
 
     <div v-show="filtersVisible" id="chemical-filters" class="filters">
       <PvInputText v-model="search" placeholder="Поиск по названию" />
+      <PvSelect v-model="typeId" :options="chemicalTypeOptions" option-label="label" option-value="value"
+        placeholder="Тип средства" show-clear />
       <PvSelect v-model="cropId" :options="cropOptions" option-label="label" option-value="value"
         placeholder="Культура" show-clear />
       <PvSelect v-model="warehouseId" :options="warehouseOptions" option-label="label" option-value="value"
@@ -177,6 +181,12 @@ onMounted(async () => {
       <PvDataTable :value="items" :loading="loading" data-key="id" class="desktop-table"
         selection-mode="single" @row-click="onRowClick">
         <PvColumn field="name" header="Название" />
+        <PvColumn header="Тип">
+          <template #body="{ data }">
+            <span v-if="data.type">{{ chemicalTypeLabels[data.type] }}</span>
+            <span v-else class="muted">—</span>
+          </template>
+        </PvColumn>
         <PvColumn header="Остаток">
           <template #body="{ data }">
             <div class="stock-cell">
@@ -241,6 +251,7 @@ onMounted(async () => {
         <div class="chemical-card__top">
           <div>
             <div class="chemical-card__name">{{ item.name }}</div>
+            <div class="chemical-card__type" v-if="item.type">{{ chemicalTypeLabels[item.type] }}</div>
             <div class="chemical-card__cultures" v-if="item.crops?.length">
               <span v-for="crop in item.crops" :key="crop.id!" class="chemical-card__culture">{{ crop.name }}</span>
             </div>
@@ -361,6 +372,7 @@ onMounted(async () => {
   }
   .chemical-card__top { display: flex; justify-content: space-between; gap: 1rem; }
   .chemical-card__name { font-weight: 700; color: #374151; }
+  .chemical-card__type { margin-top: 0.15rem; font-size: 0.8rem; color: #6b7280; }
   .chemical-card__cultures { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.45rem; }
   .chemical-card__culture {
     padding: 0.15rem 0.45rem;

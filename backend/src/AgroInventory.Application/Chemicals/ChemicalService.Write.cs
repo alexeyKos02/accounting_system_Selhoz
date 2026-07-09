@@ -29,6 +29,7 @@ public sealed partial class ChemicalService
             ChemicalDetails = new ChemicalDetails
             {
                 Id = Guid.NewGuid(),
+                Type = request.Type,
                 Manufacturer = Trim(request.Manufacturer),
                 Comment = Trim(request.Comment),
             },
@@ -37,7 +38,7 @@ public sealed partial class ChemicalService
 
         _db.InventoryItems.Add(item);
         _audit.Log(AuditAction.Create, EntityType, item.Id,
-            null, new { item.Name, item.ChemicalDetails.Manufacturer, CropIds = cropIds });
+            null, new { item.Name, item.ChemicalDetails.Type, item.ChemicalDetails.Manufacturer, CropIds = cropIds });
         await _db.SaveChangesAsync(ct);
 
         return await GetByIdAsync(item.Id, ct);
@@ -62,17 +63,18 @@ public sealed partial class ChemicalService
 
         item.ChemicalDetails ??= new ChemicalDetails { Id = Guid.NewGuid(), InventoryItemId = item.Id };
 
-        var old = new { item.Name, item.ChemicalDetails.Manufacturer, item.ChemicalDetails.Comment,
+        var old = new { item.Name, item.ChemicalDetails.Type, item.ChemicalDetails.Manufacturer, item.ChemicalDetails.Comment,
             CropIds = item.ChemicalCrops.Select(cc => cc.CropId).OrderBy(x => x).ToList() };
 
         item.Name = name;
+        item.ChemicalDetails.Type = request.Type;
         item.ChemicalDetails.Manufacturer = Trim(request.Manufacturer);
         item.ChemicalDetails.Comment = Trim(request.Comment);
         item.UpdatedAt = _clock.GetUtcNow();
         ReconcileCrops(item, cropIds);
 
         _audit.Log(AuditAction.Update, EntityType, item.Id, old,
-            new { item.Name, item.ChemicalDetails.Manufacturer, item.ChemicalDetails.Comment, CropIds = cropIds });
+            new { item.Name, item.ChemicalDetails.Type, item.ChemicalDetails.Manufacturer, item.ChemicalDetails.Comment, CropIds = cropIds });
         await _db.SaveChangesAsync(ct);
 
         return await GetByIdAsync(item.Id, ct);
@@ -159,6 +161,7 @@ public sealed partial class ChemicalService
 
         // Итоговые поля выбирает пользователь (ТЗ §18.3).
         target.ChemicalDetails ??= new ChemicalDetails { Id = Guid.NewGuid(), InventoryItemId = target.Id };
+        target.ChemicalDetails.Type = request.Type;
         target.ChemicalDetails.Manufacturer = Trim(request.Manufacturer);
         target.ChemicalDetails.Comment = Trim(request.Comment);
         target.UpdatedAt = now;

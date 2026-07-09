@@ -47,6 +47,9 @@ public sealed partial class ChemicalService
         if (query.WarehouseId is { } warehouseId)
             q = q.Where(i => _db.ChemicalStockBalances.Any(b => b.ChemicalId == i.Id && b.WarehouseId == warehouseId));
 
+        if (query.Type is { } type)
+            q = q.Where(i => i.ChemicalDetails!.Type == type);
+
         // MVP: сортировка только по названию (ТЗ §16.3), направление учитывается.
         q = query.SortDirection == SortDirection.Desc
             ? q.OrderByDescending(i => i.Name)
@@ -57,6 +60,7 @@ public sealed partial class ChemicalService
             {
                 i.Id,
                 i.Name,
+                Type = i.ChemicalDetails!.Type,
                 Crops = i.ChemicalCrops.Select(cc => new CropRefDto(cc.CropId, cc.Crop.Name)).ToList(),
                 Total = _db.ChemicalStockBalances
                     .Where(b => b.ChemicalId == i.Id)
@@ -65,7 +69,7 @@ public sealed partial class ChemicalService
             .ToListAsync(ct);
 
         return rows
-            .Select(r => new ChemicalListItemDto(r.Id, r.Name, r.Total, r.Crops, Badge(r.Total, threshold)))
+            .Select(r => new ChemicalListItemDto(r.Id, r.Name, r.Type, r.Total, r.Crops, Badge(r.Total, threshold)))
             .ToList();
     }
 
@@ -86,7 +90,7 @@ public sealed partial class ChemicalService
         var total = warehouses.Sum(w => w.TotalLiters);
 
         return new ChemicalDetailDto(
-            item.Id, item.Name, item.ChemicalDetails?.Manufacturer, item.ChemicalDetails?.Comment,
+            item.Id, item.Name, item.ChemicalDetails?.Type, item.ChemicalDetails?.Manufacturer, item.ChemicalDetails?.Comment,
             item.Status, item.MergedIntoItemId, crops, total, warehouses);
     }
 
@@ -100,6 +104,7 @@ public sealed partial class ChemicalService
                 i.Id,
                 i.Name,
                 i.UpdatedAt,
+                Type = i.ChemicalDetails!.Type,
                 Manufacturer = i.ChemicalDetails!.Manufacturer,
                 Crops = i.ChemicalCrops.Select(cc => new CropRefDto(cc.CropId, cc.Crop.Name)).ToList(),
                 Total = _db.ChemicalStockBalances.Where(b => b.ChemicalId == i.Id).Sum(b => (decimal?)b.TotalLiters) ?? 0m,
@@ -115,7 +120,7 @@ public sealed partial class ChemicalService
 
         return items
             .Select(i => new ArchivedChemicalDto(
-                i.Id, i.Name, i.Manufacturer, i.Crops, i.Total,
+                i.Id, i.Name, i.Type, i.Manufacturer, i.Crops, i.Total,
                 archivedAt.TryGetValue(i.Id, out var at) ? at : i.UpdatedAt))
             .ToList();
     }

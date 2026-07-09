@@ -4,8 +4,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
 import { chemicalsApi } from '../api/chemicals'
 import { cropsApi } from '../api/reference'
-import type { ChemicalDetailDto, CropDto } from '../api/types'
-import { ItemStatus, UnitType } from '../api/types'
+import type { ChemicalDetailDto, ChemicalTypeValue, CropDto } from '../api/types'
+import { ItemStatus, UnitType, chemicalTypeLabels, chemicalTypeOptions } from '../api/types'
 import { ApiError } from '../api/http'
 
 const route = useRoute()
@@ -19,7 +19,10 @@ const expanded = ref(window.innerWidth > 768) // ТЗ §15.2: на компью�
 
 const crops = ref<CropDto[]>([])
 const editDialog = ref(false)
-const edit = ref({ name: '', manufacturer: '', comment: '', cropIds: [] as string[] })
+const edit = ref({ name: '', type: null as ChemicalTypeValue | null, manufacturer: '', comment: '', cropIds: [] as string[] })
+
+const typeLabel = computed(() =>
+  chem.value?.type != null ? chemicalTypeLabels[chem.value.type] : null)
 
 const archiveDialog = ref(false)
 const archiveWord = ref('')
@@ -54,6 +57,7 @@ async function openEdit() {
   if (crops.value.length === 0) crops.value = await cropsApi.list()
   edit.value = {
     name: chem.value.name ?? '',
+    type: chem.value.type ?? null,
     manufacturer: chem.value.manufacturer ?? '',
     comment: chem.value.comment ?? '',
     cropIds: (chem.value.crops ?? []).map((c) => c.id!),
@@ -65,6 +69,7 @@ async function saveEdit() {
   try {
     await chemicalsApi.update(id.value, {
       name: edit.value.name.trim(),
+      type: edit.value.type ?? undefined,
       manufacturer: edit.value.manufacturer.trim() || null,
       comment: edit.value.comment.trim() || null,
       cropIds: edit.value.cropIds,
@@ -119,6 +124,7 @@ onMounted(load)
     <div class="head">
       <div>
         <h1 class="page__title">{{ chem.name }}</h1>
+        <div v-if="typeLabel" class="muted">{{ typeLabel }}</div>
         <div v-if="chem.manufacturer" class="muted">{{ chem.manufacturer }}</div>
       </div>
       <PvTag v-if="isArchived" value="В архиве" severity="secondary" />
@@ -167,6 +173,10 @@ onMounted(load)
     <!-- Диалог редактирования -->
     <PvDialog v-model:visible="editDialog" header="Редактировать химию" modal :style="{ width: '30rem' }">
       <div class="field"><span>Название *</span><PvInputText v-model="edit.name" /></div>
+      <div class="field"><span>Тип средства</span>
+        <PvSelect v-model="edit.type" :options="chemicalTypeOptions" option-label="label"
+          option-value="value" placeholder="Не указан" show-clear />
+      </div>
       <div class="field"><span>Производитель</span><PvInputText v-model="edit.manufacturer" /></div>
       <div class="field"><span>Культуры *</span>
         <PvMultiSelect v-model="edit.cropIds" :options="cropOptions" option-label="label" option-value="value" filter />

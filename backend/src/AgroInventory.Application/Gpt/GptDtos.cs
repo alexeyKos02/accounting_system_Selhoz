@@ -18,6 +18,7 @@ public sealed record RawOperationSuggestion(
 
 /// <summary>Предложение по карточке химии от модели.</summary>
 public sealed record RawChemicalEnrichment(
+    string? Type,
     string? Manufacturer,
     IReadOnlyList<string>? Crops,
     string? Comment,
@@ -44,6 +45,7 @@ public sealed record OperationSuggestionDto(
 
 /// <summary>Предложение по карточке химии, культуры сопоставлены со справочником.</summary>
 public sealed record ChemicalEnrichmentDto(
+    ChemicalType? Type,
     string? Manufacturer,
     IReadOnlyList<ReferenceMatchDto> Crops,
     string? Comment,
