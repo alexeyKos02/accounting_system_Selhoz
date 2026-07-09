@@ -5,6 +5,13 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Локальные переопределения с секретами (ключи S3, GPT и т.п.). Файл не коммитится
+// (.gitignore: appsettings.*.local.json), поэтому подходит для приватной конфигурации on-prem.
+// В облаке те же ключи можно задавать переменными окружения (Backup__S3__AccessKey и т.д.).
+builder.Configuration.AddJsonFile(
+    $"appsettings.{builder.Environment.EnvironmentName}.local.json",
+    optional: true, reloadOnChange: true);
+
 const string CorsPolicy = "AgroInventoryFrontend";
 
 builder.Services.AddControllers();
