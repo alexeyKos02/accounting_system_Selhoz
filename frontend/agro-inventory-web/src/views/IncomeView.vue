@@ -210,4 +210,11 @@ onMounted(async () => {
 .row { display: flex; gap: 0.5rem; align-items: center; }
 .result { display: flex; flex-direction: column; gap: 1rem; }
 .dt { padding: 0.5rem; border: 1px solid var(--p-inputtext-border-color, #d1d5db); border-radius: 6px; font: inherit; }
+
+/* Мобилка: числовые поля не должны распирать экран (min-width инпутов) */
+@media (max-width: 640px) {
+  .grid2 { grid-template-columns: 1fr; }
+  .grid2 :deep(.p-inputtext) { min-width: 0; width: 100%; }
+  .dt { width: 100%; box-sizing: border-box; }
+}
 </style>

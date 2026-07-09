@@ -190,4 +190,12 @@ onMounted(ref_.load)
 .result { display: flex; flex-direction: column; gap: 1rem; }
 .preview { background: rgba(0,0,0,0.04); border-radius: 8px; padding: 0.6rem 0.8rem; margin-bottom: 0.75rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
 .confirm { display: inline-flex; gap: 0.35rem; align-items: center; margin-left: 0.5rem; }
+
+/* Мобилка: строка детальной инвентаризации не должна распирать экран.
+   Селект единицы — на всю ширину, под ним «литраж/объём», «кол-во/осталось» и корзина. */
+@media (max-width: 640px) {
+  .rowline { grid-template-columns: 1fr 1fr auto; }
+  .rowline > :deep(.p-select) { grid-column: 1 / -1; }
+  .rowline :deep(.p-inputtext) { min-width: 0; width: 100%; }
+}
 </style>
