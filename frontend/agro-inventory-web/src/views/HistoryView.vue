@@ -141,6 +141,7 @@ onMounted(async () => { await ref_.load(); await load() })
 
 <template>
   <section class="page">
+    <div class="toolbar">
     <div class="head">
       <h1 class="page__title">История</h1>
       <div class="head__actions">
@@ -157,6 +158,7 @@ onMounted(async () => { await ref_.load(); await load() })
       <PvSelect v-model="filters.movementType" :options="typeOptions" option-label="label" option-value="value" show-clear placeholder="Тип" />
       <PvSelect v-model="filters.warehouseId" :options="ref_.warehouseOptions.value" option-label="label" option-value="value" show-clear placeholder="Склад" />
       <PvSelect v-model="filters.cropId" :options="ref_.cropOptions.value" option-label="label" option-value="value" filter show-clear placeholder="Культура" />
+    </div>
     </div>
 
     <!-- Десктоп: таблица -->
@@ -251,8 +253,8 @@ onMounted(async () => { await ref_.load(); await load() })
 
 @media (max-width: 640px) {
   .filter-toggle { display: inline-flex; }
-  /* Шапка (заголовок + кнопки) закреплена, список карточек скроллится под ней. */
-  .head {
+  /* Шапка + фильтры закреплены, список карточек скроллится под ними. */
+  .toolbar {
     position: sticky;
     top: 0;
     z-index: 15;

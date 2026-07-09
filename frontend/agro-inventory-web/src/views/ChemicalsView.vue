@@ -122,6 +122,7 @@ onMounted(async () => {
 
 <template>
   <section class="page">
+    <div class="toolbar">
     <div class="head">
       <h1 class="page__title">Химия</h1>
       <div class="head__actions head__actions--desktop">
@@ -171,6 +172,7 @@ onMounted(async () => {
         placeholder="Культура" show-clear />
       <PvSelect v-model="warehouseId" :options="warehouseOptions" option-label="label" option-value="value"
         placeholder="Склад" show-clear />
+    </div>
     </div>
 
     <div class="desktop-table-panel mt">
@@ -355,8 +357,8 @@ onMounted(async () => {
 @media (max-width: 640px) {
   .head__actions--desktop { display: none; }
   .head__actions--mobile { display: flex; }
-  /* Шапка (заголовок + кнопки) закреплена, список карточек скроллится под ней. */
-  .head {
+  /* Шапка + фильтры закреплены, список карточек скроллится под ними. */
+  .toolbar {
     position: sticky;
     top: 0;
     z-index: 15;
