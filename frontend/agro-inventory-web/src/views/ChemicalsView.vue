@@ -355,6 +355,16 @@ onMounted(async () => {
 @media (max-width: 640px) {
   .head__actions--desktop { display: none; }
   .head__actions--mobile { display: flex; }
+  /* Шапка (заголовок + кнопки) закреплена, список карточек скроллится под ней. */
+  .head {
+    position: sticky;
+    top: 0;
+    z-index: 15;
+    margin: -1rem -1rem 0;
+    padding: 0.75rem 1rem;
+    background: var(--p-content-background, #fff);
+    border-bottom: 1px solid var(--p-content-border-color, #e5e7eb);
+  }
   .desktop-table-panel { display: none; }
   .chemical-cards { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem; }
   .chemical-card {

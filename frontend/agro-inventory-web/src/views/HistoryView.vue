@@ -251,6 +251,16 @@ onMounted(async () => { await ref_.load(); await load() })
 
 @media (max-width: 640px) {
   .filter-toggle { display: inline-flex; }
+  /* Шапка (заголовок + кнопки) закреплена, список карточек скроллится под ней. */
+  .head {
+    position: sticky;
+    top: 0;
+    z-index: 15;
+    margin: -1rem -1rem 0;
+    padding: 0.75rem 1rem;
+    background: var(--p-content-background, #fff);
+    border-bottom: 1px solid var(--p-content-border-color, #e5e7eb);
+  }
   .filters { display: none; flex-direction: column; }
   .filters.filters--open { display: flex; }
   .filters :deep(.p-select) { width: 100%; }
