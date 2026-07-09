@@ -261,4 +261,8 @@ onMounted(async () => { await ref_.load(); await loadStock() })
 .plan { margin-bottom: 1rem; }
 .plan ul { margin: 0.4rem 0; padding-left: 1.25rem; }
 .dt { padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font: inherit; }
+/* iOS Safari: нативный datetime-local распирает экран — сдавливаем до контейнера на мобилке */
+@media (max-width: 640px) {
+  .dt { width: 100%; min-width: 0; max-width: 100%; box-sizing: border-box; -webkit-appearance: none; appearance: none; }
+}
 </style>

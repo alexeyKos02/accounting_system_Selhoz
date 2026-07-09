@@ -273,4 +273,8 @@ onMounted(async () => { await ref_.load(); await load() })
 .field { display: flex; flex-direction: column; gap: 0.25rem; margin-bottom: 0.75rem; }
 .field > span { font-weight: 600; font-size: 0.9rem; }
 .dt { padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font: inherit; }
+/* iOS Safari: нативный datetime-local распирает экран — сдавливаем до контейнера на мобилке */
+@media (max-width: 640px) {
+  .dt { width: 100%; min-width: 0; max-width: 100%; box-sizing: border-box; -webkit-appearance: none; appearance: none; }
+}
 </style>

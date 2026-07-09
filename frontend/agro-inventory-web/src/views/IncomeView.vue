@@ -215,6 +215,7 @@ onMounted(async () => {
 @media (max-width: 640px) {
   .grid2 { grid-template-columns: 1fr; }
   .grid2 :deep(.p-inputtext) { min-width: 0; width: 100%; }
-  .dt { width: 100%; box-sizing: border-box; }
+  /* iOS Safari: нативный datetime-local имеет большую min-width — сдавливаем до контейнера */
+  .dt { width: 100%; min-width: 0; max-width: 100%; box-sizing: border-box; -webkit-appearance: none; appearance: none; }
 }
 </style>

@@ -190,6 +190,10 @@ onMounted(ref_.load)
 .empty { padding: 1rem; color: #6b7280; }
 .footer { display: flex; gap: 0.75rem; align-items: flex-end; flex-wrap: wrap; margin-top: 1rem; }
 .dt { padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font: inherit; }
+/* iOS Safari: нативный datetime-local распирает экран — сдавливаем до контейнера на мобилке */
+@media (max-width: 640px) {
+  .dt { width: 100%; min-width: 0; max-width: 100%; box-sizing: border-box; -webkit-appearance: none; appearance: none; }
+}
 .actions { margin-top: 1rem; }
 .result { margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
 .detailed { border: 1px solid #fcd34d; background: rgba(252, 211, 77, 0.12); border-radius: 8px; padding: 0.75rem; }
