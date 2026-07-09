@@ -93,10 +93,6 @@ onMounted(load)
         <div class="stat__value">{{ data?.activeChemicals ?? 0 }}</div>
         <div class="stat__label">Химии в работе</div>
       </div>
-      <div class="stat">
-        <div class="stat__value">{{ fmtNum(data?.totalLiters) }} л</div>
-        <div class="stat__label">Всего на складах</div>
-      </div>
       <div class="stat stat--warn" :class="{ 'stat--muted': !data?.lowCount }">
         <div class="stat__value">{{ data?.lowCount ?? 0 }}</div>
         <div class="stat__label">Малый остаток</div>
