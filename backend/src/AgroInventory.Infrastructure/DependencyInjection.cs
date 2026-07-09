@@ -107,7 +107,13 @@ public static class DependencyInjection
     {
         var config = new AmazonS3Config { ForcePathStyle = s3.ForcePathStyle };
         if (!string.IsNullOrWhiteSpace(s3.ServiceUrl))
+        {
             config.ServiceURL = s3.ServiceUrl;
+            // Для S3-совместимых (Yandex Object Storage и т.п.) регион нужен для подписи SigV4,
+            // иначе возможен SignatureDoesNotMatch. RegionEndpoint при заданном ServiceURL не ставим.
+            if (!string.IsNullOrWhiteSpace(s3.Region))
+                config.AuthenticationRegion = s3.Region;
+        }
         else if (!string.IsNullOrWhiteSpace(s3.Region))
             config.RegionEndpoint = Amazon.RegionEndpoint.GetBySystemName(s3.Region);
 
