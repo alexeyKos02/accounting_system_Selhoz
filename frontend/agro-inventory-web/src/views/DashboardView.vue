@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { dashboardApi } from '../api/dashboard'
 import type { DashboardDto, DashboardStockDto } from '../api/dashboard'
@@ -9,6 +9,10 @@ const router = useRouter()
 const data = ref<DashboardDto | null>(null)
 const loading = ref(false)
 const quickOpen = ref(false)
+
+// История на дашборде: 10 записей на десктопе, 4 на мобилке.
+const recentDesktop = computed(() => (data.value?.recentOperations ?? []).slice(0, 10))
+const recentMobile = computed(() => (data.value?.recentOperations ?? []).slice(0, 4))
 
 async function load() {
   loading.value = true
@@ -142,7 +146,7 @@ onMounted(load)
       </div>
       <!-- Десктоп: таблица -->
       <div class="ops-desktop">
-        <PvDataTable :value="data?.recentOperations ?? []" :loading="loading" data-key="id" size="small">
+        <PvDataTable :value="recentDesktop" :loading="loading" data-key="id" size="small">
           <PvColumn header="Дата"><template #body="{ data: r }">{{ fmtDate(r.occurredAt) }}</template></PvColumn>
           <PvColumn header="Тип"><template #body="{ data: r }">
             <PvTag :value="typeLabel(r.movementType)" :severity="typeSeverity(r.movementType)" />
@@ -156,7 +160,7 @@ onMounted(load)
 
       <!-- Мобилка: карточки (как на странице «История») -->
       <div class="ops-cards">
-        <div v-for="r in data?.recentOperations ?? []" :key="r.id!" class="ops-card">
+        <div v-for="r in recentMobile" :key="r.id!" class="ops-card">
           <div class="ops-card__row">
             <PvTag :value="typeLabel(r.movementType)" :severity="typeSeverity(r.movementType)" />
             <span class="ops-card__qty">{{ fmtNum(r.quantityLiters) }} л</span>
@@ -164,7 +168,7 @@ onMounted(load)
           <div class="ops-card__name">{{ r.chemicalName }}</div>
           <div class="ops-card__meta">{{ fmtDate(r.occurredAt!) }} · Склад {{ r.warehouseNumber }}</div>
         </div>
-        <div v-if="!(data?.recentOperations?.length)" class="empty">Операций пока нет</div>
+        <div v-if="!recentMobile.length" class="empty">Операций пока нет</div>
       </div>
     </div>
   </section>
