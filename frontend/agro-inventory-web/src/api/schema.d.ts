@@ -704,6 +704,7 @@ export interface paths {
                     MovementType?: components["schemas"]["MovementType"];
                     WarehouseId?: string;
                     CropId?: string;
+                    FieldId?: string;
                 };
                 header?: never;
                 path?: never;
@@ -721,6 +722,115 @@ export interface paths {
             };
         };
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fields": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["FieldDto"][];
+                        "application/json": components["schemas"]["FieldDto"][];
+                        "text/json": components["schemas"]["FieldDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["CreateFieldRequest"];
+                    "text/json": components["schemas"]["CreateFieldRequest"];
+                    "application/*+json": components["schemas"]["CreateFieldRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["FieldDto"];
+                        "application/json": components["schemas"]["FieldDto"];
+                        "text/json": components["schemas"]["FieldDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fields/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["UpdateFieldRequest"];
+                    "text/json": components["schemas"]["UpdateFieldRequest"];
+                    "application/*+json": components["schemas"]["UpdateFieldRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["FieldDto"];
+                        "application/json": components["schemas"]["FieldDto"];
+                        "text/json": components["schemas"]["FieldDto"];
+                    };
+                };
+            };
+        };
         post?: never;
         delete?: never;
         options?: never;
@@ -1006,6 +1116,7 @@ export interface paths {
                     MovementType?: components["schemas"]["MovementType"];
                     WarehouseId?: string;
                     CropId?: string;
+                    FieldId?: string;
                 };
                 header?: never;
                 path?: never;
@@ -1736,6 +1847,9 @@ export interface components {
         CreateCropRequest: {
             name?: string | null;
         };
+        CreateFieldRequest: {
+            number?: string | null;
+        };
         CreateWarehouseRequest: {
             number?: string | null;
         };
@@ -1813,9 +1927,16 @@ export interface components {
             packageVolumeLiters?: number | null;
             /** Format: int32 */
             packagesQuantity?: number | null;
+            /** Format: uuid */
+            fieldId?: string | null;
         };
         EnrichChemicalRequest: {
             name?: string | null;
+        };
+        FieldDto: {
+            /** Format: uuid */
+            id?: string;
+            number?: string | null;
         };
         HistoryDetailDto: {
             /** Format: uuid */
@@ -1839,6 +1960,9 @@ export interface components {
             /** Format: uuid */
             cropId?: string | null;
             cropName?: string | null;
+            /** Format: uuid */
+            fieldId?: string | null;
+            fieldNumber?: string | null;
             comment?: string | null;
             sources?: components["schemas"]["HistoryDetailSourceDto"][] | null;
         };
@@ -1869,6 +1993,9 @@ export interface components {
             /** Format: uuid */
             cropId?: string | null;
             cropName?: string | null;
+            /** Format: uuid */
+            fieldId?: string | null;
+            fieldNumber?: string | null;
             comment?: string | null;
         };
         IncomeRequest: {
@@ -2023,6 +2150,8 @@ export interface components {
             /** Format: date-time */
             occurredAt?: string | null;
             comment?: string | null;
+            /** Format: uuid */
+            fieldId?: string | null;
         };
         OutcomeResultDto: {
             /** Format: double */
@@ -2094,6 +2223,9 @@ export interface components {
         };
         UpdateCropRequest: {
             name?: string | null;
+        };
+        UpdateFieldRequest: {
+            number?: string | null;
         };
         UpdateSettingsRequest: {
             /** Format: double */

@@ -27,7 +27,8 @@ public sealed record OutcomeRequest(
     OutcomeSourceDto? Source,
     bool AllowOpenNewPackage,
     DateTimeOffset? OccurredAt,
-    string? Comment);
+    string? Comment,
+    Guid? FieldId = null);
 
 public sealed record OutcomeStepDto(
     MovementSourceType SourceType,

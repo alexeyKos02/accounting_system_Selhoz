@@ -25,3 +25,14 @@ public sealed class WarehouseConfiguration : IEntityTypeConfiguration<Warehouse>
         b.HasIndex(x => x.Number).IsUnique();
     }
 }
+
+public sealed class FieldConfiguration : IEntityTypeConfiguration<Field>
+{
+    public void Configure(EntityTypeBuilder<Field> b)
+    {
+        b.ToTable("fields");
+        b.HasKey(x => x.Id);
+        b.Property(x => x.Number).HasMaxLength(100).IsRequired();
+        b.HasIndex(x => x.Number).IsUnique();
+    }
+}

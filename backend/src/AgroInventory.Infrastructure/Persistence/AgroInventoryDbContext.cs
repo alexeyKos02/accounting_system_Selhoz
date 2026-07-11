@@ -17,6 +17,7 @@ public class AgroInventoryDbContext : DbContext, IApplicationDbContext
     public DbSet<Crop> Crops => Set<Crop>();
     public DbSet<ChemicalCrop> ChemicalCrops => Set<ChemicalCrop>();
     public DbSet<Warehouse> Warehouses => Set<Warehouse>();
+    public DbSet<Field> Fields => Set<Field>();
     public DbSet<ChemicalStockBalance> ChemicalStockBalances => Set<ChemicalStockBalance>();
     public DbSet<PackageGroup> PackageGroups => Set<PackageGroup>();
     public DbSet<OpenedPackage> OpenedPackages => Set<OpenedPackage>();

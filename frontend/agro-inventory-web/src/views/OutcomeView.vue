@@ -4,6 +4,7 @@ import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
 import { inventoryApi } from '../api/inventory'
 import { chemicalsApi } from '../api/chemicals'
+import { fieldsApi } from '../api/reference'
 import { useReference } from '../composables/useReference'
 import type { OutcomePreviewResponse, OutcomeRequest } from '../api/inventory'
 import type { WarehouseStockDto } from '../api/types'
@@ -18,6 +19,8 @@ const ref_ = useReference()
 const chemicalId = ref<string | null>((route.query.chemicalId as string) ?? null)
 const warehouseId = ref<string | null>(null)
 const cropId = ref<string | null>(null)
+const fieldId = ref<string | null>(null)
+const newField = ref('')
 const quantity = ref<number | null>(null)
 const mode = ref<'auto' | 'manual'>('auto')
 const sourceKey = ref<string | null>(null) // "type:id"
@@ -73,6 +76,7 @@ function baseRequest(allowOpen: boolean): OutcomeRequest {
     chemicalId: chemicalId.value!,
     warehouseId: warehouseId.value!,
     cropId: cropId.value!,
+    fieldId: fieldId.value || null,
     quantityLiters: quantity.value!,
     source: buildSource(),
     allowOpenNewPackage: allowOpen,
@@ -135,10 +139,22 @@ async function commit(allowOpen: boolean) {
   }
 }
 
+async function quickAddField() {
+  const n = newField.value.trim()
+  if (!n) return
+  try {
+    const f = await fieldsApi.create(n)
+    newField.value = ''
+    await ref_.reloadFields()
+    fieldId.value = f.id ?? null
+  } catch (e) { fail(e, 'Не удалось добавить поле') }
+}
+
 function addAnother() {
   done.value = false
   warehouseId.value = null
   cropId.value = null
+  fieldId.value = null
   quantity.value = null
   mode.value = 'auto'
   sourceKey.value = null
@@ -193,6 +209,15 @@ onMounted(async () => { await ref_.load(); await loadStock() })
         <PvSelect v-model="cropId" :options="ref_.cropOptions.value" option-label="label"
           option-value="value" filter placeholder="Выберите культуру" />
       </label>
+
+      <label class="field"><span>Номер поля</span>
+        <PvSelect v-model="fieldId" :options="ref_.fieldOptions.value" option-label="label"
+          option-value="value" filter show-clear placeholder="Выберите поле" />
+      </label>
+      <div class="quick">
+        <PvInputText v-model="newField" placeholder="Быстро добавить поле" @keyup.enter="quickAddField" />
+        <PvButton icon="pi pi-plus" text @click="quickAddField" />
+      </div>
 
       <label class="field"><span>Количество, л *</span>
         <PvInputText v-model.number="quantity" type="number" min="0" />
@@ -256,6 +281,7 @@ onMounted(async () => { await ref_.load(); await loadStock() })
 .field { display: flex; flex-direction: column; gap: 0.25rem; margin-bottom: 1rem; }
 .field > span { font-weight: 600; font-size: 0.9rem; }
 .row { display: flex; gap: 0.5rem; align-items: center; }
+.quick { display: flex; gap: 0.5rem; align-items: center; margin: -0.5rem 0 1rem; }
 .result { display: flex; flex-direction: column; gap: 1rem; }
 .stock { background: rgba(0,0,0,0.04); border-radius: 8px; padding: 0.6rem 0.8rem; margin-bottom: 1rem; display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; }
 .plan { margin-bottom: 1rem; }

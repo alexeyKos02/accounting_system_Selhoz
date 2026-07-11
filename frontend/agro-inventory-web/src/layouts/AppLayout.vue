@@ -19,6 +19,7 @@ const secondary = [
   { to: '/corrections', key: 'nav.corrections' },
   { to: '/crops', key: 'nav.crops' },
   { to: '/warehouses', key: 'nav.warehouses' },
+  { to: '/fields', key: 'nav.fields' },
   { to: '/archive', key: 'nav.archive' },
   { to: '/audit-log', key: 'nav.auditLog' },
   { to: '/backups', key: 'nav.backups' },

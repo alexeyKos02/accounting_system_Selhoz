@@ -1,5 +1,5 @@
 import { apiGet, apiPost, apiPut } from './http'
-import type { CropDto, WarehouseDto } from './types'
+import type { CropDto, WarehouseDto, FieldDto } from './types'
 
 // Культуры (ТЗ §7.3)
 export const cropsApi = {
@@ -13,4 +13,11 @@ export const warehousesApi = {
   list: () => apiGet<WarehouseDto[]>('/warehouses'),
   create: (number: string) => apiPost<WarehouseDto>('/warehouses', { number }),
   update: (id: string, number: string) => apiPut<WarehouseDto>(`/warehouses/${id}`, { number }),
+}
+
+// Поля/участки (справочник для списания)
+export const fieldsApi = {
+  list: () => apiGet<FieldDto[]>('/fields'),
+  create: (number: string) => apiPost<FieldDto>('/fields', { number }),
+  update: (id: string, number: string) => apiPut<FieldDto>(`/fields/${id}`, { number }),
 }

@@ -37,6 +37,20 @@ public sealed partial class InventoryService
             movement.CropId = cropId;
         }
 
+        // Поле — для списания (необязательно). Guid.Empty очищает.
+        if (movement.MovementType == MovementType.Outcome && request.FieldId is { } fieldId)
+        {
+            if (fieldId == Guid.Empty)
+            {
+                movement.FieldId = null;
+            }
+            else
+            {
+                await EnsureFieldAsync(fieldId, ct);
+                movement.FieldId = fieldId;
+            }
+        }
+
         ApplyEditedQuantity(movement, request);
         ApplyEffect(movement, stock, now);
 
@@ -190,6 +204,6 @@ public sealed partial class InventoryService
     private static object Snapshot(InventoryMovement m) => new
     {
         m.MovementType, m.QuantityLiters, m.UnitType, m.PackageVolumeLiters, m.PackagesQuantity,
-        m.CropId, m.OccurredAt, m.Comment, m.WarehouseId, m.ChemicalId, m.IsDeleted,
+        m.CropId, m.FieldId, m.OccurredAt, m.Comment, m.WarehouseId, m.ChemicalId, m.IsDeleted,
     };
 }

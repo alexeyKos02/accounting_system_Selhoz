@@ -9,7 +9,8 @@ public sealed record HistoryQuery(
     Guid? ChemicalId = null,
     MovementType? MovementType = null,
     Guid? WarehouseId = null,
-    Guid? CropId = null);
+    Guid? CropId = null,
+    Guid? FieldId = null);
 
 /// <summary>Строка истории (ТЗ §19.2).</summary>
 public sealed record HistoryItemDto(
@@ -23,6 +24,8 @@ public sealed record HistoryItemDto(
     string WarehouseNumber,
     Guid? CropId,
     string? CropName,
+    Guid? FieldId,
+    string? FieldNumber,
     string? Comment);
 
 public sealed record HistoryDetailSourceDto(
@@ -47,6 +50,8 @@ public sealed record HistoryDetailDto(
     string WarehouseNumber,
     Guid? CropId,
     string? CropName,
+    Guid? FieldId,
+    string? FieldNumber,
     string? Comment,
     IReadOnlyList<HistoryDetailSourceDto> Sources);
 
@@ -61,4 +66,5 @@ public sealed record EditMovementRequest(
     decimal? QuantityLiters,
     UnitType? Unit,
     decimal? PackageVolumeLiters,
-    int? PackagesQuantity);
+    int? PackagesQuantity,
+    Guid? FieldId = null);

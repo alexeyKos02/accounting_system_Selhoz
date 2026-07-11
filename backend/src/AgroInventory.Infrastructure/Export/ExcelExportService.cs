@@ -46,7 +46,7 @@ public sealed class ExcelExportService : IExcelExportService
 
         using var workbook = new XLWorkbook();
         var sheet = workbook.Worksheets.Add("История");
-        WriteHeader(sheet, "Дата", "Тип", "Химия", "Кол-во, л", "Склад", "Культура", "Комментарий");
+        WriteHeader(sheet, "Дата", "Тип", "Химия", "Кол-во, л", "Склад", "Культура", "Поле", "Комментарий");
 
         var row = 2;
         foreach (var item in items)
@@ -58,11 +58,12 @@ public sealed class ExcelExportService : IExcelExportService
             sheet.Cell(row, 4).Value = item.QuantityLiters;
             sheet.Cell(row, 5).Value = $"Склад {item.WarehouseNumber}";
             sheet.Cell(row, 6).Value = item.CropName ?? string.Empty;
-            sheet.Cell(row, 7).Value = item.Comment ?? string.Empty;
+            sheet.Cell(row, 7).Value = item.FieldNumber ?? string.Empty;
+            sheet.Cell(row, 8).Value = item.Comment ?? string.Empty;
             row++;
         }
 
-        return Finish(workbook, sheet, lastColumn: 7);
+        return Finish(workbook, sheet, lastColumn: 8);
     }
 
     private static void WriteHeader(IXLWorksheet sheet, params string[] titles)

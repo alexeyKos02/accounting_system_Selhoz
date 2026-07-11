@@ -14,6 +14,7 @@ export interface HistoryFilters {
   movementType?: number
   warehouseId?: string
   cropId?: string
+  fieldId?: string
 }
 
 function toQuery(params: Record<string, unknown>): string {

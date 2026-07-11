@@ -14,6 +14,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/audit-log', name: 'audit-log', component: () => import('../views/AuditLogView.vue') },
   { path: '/crops', name: 'crops', component: () => import('../views/CropsView.vue') },
   { path: '/warehouses', name: 'warehouses', component: () => import('../views/WarehousesView.vue') },
+  { path: '/fields', name: 'fields', component: () => import('../views/FieldsView.vue') },
   { path: '/archive', name: 'archive', component: () => import('../views/ArchiveView.vue') },
   { path: '/backups', name: 'backups', component: () => import('../views/BackupsView.vue') },
   { path: '/settings', name: 'settings', component: () => import('../views/SettingsView.vue') },

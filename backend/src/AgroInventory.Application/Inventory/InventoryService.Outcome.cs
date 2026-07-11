@@ -33,6 +33,7 @@ public sealed partial class InventoryService
         await EnsureActiveChemicalAsync(request.ChemicalId, ct);
         await EnsureWarehouseAsync(request.WarehouseId, ct);
         await EnsureCropAsync(request.CropId, ct); // культура обязательна при списании (ТЗ §11.1)
+        if (request.FieldId is { } fieldId) await EnsureFieldAsync(fieldId, ct); // поле — необязательно
 
         var stock = await LoadStockAsync(request.ChemicalId, request.WarehouseId, ct);
         var plan = StockEngine.PlanOutcome(BuildState(stock), request.QuantityLiters, ToSource(request.Source));
@@ -56,6 +57,7 @@ public sealed partial class InventoryService
             QuantityLiters = plan.RequestedLiters,
             UnitType = UnitType.Liter,
             CropId = request.CropId,
+            FieldId = request.FieldId,
             OccurredAt = request.OccurredAt ?? now,
             Comment = string.IsNullOrWhiteSpace(request.Comment) ? null : request.Comment.Trim(),
             CreatedByUserId = SystemUserId,

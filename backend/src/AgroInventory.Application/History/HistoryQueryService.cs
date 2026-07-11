@@ -29,6 +29,8 @@ public sealed class HistoryQueryService
                 m.Warehouse.Number,
                 m.CropId,
                 m.Crop != null ? m.Crop.Name : null,
+                m.FieldId,
+                m.Field != null ? m.Field.Number : null,
                 m.Comment))
             .ToListAsync(ct);
     }
@@ -42,7 +44,8 @@ public sealed class HistoryQueryService
                 x.Id, x.OccurredAt, x.MovementType, x.ChemicalId, ChemicalName = x.Chemical.Name,
                 x.QuantityLiters, x.UnitType, x.PackageVolumeLiters, x.PackagesQuantity,
                 x.WarehouseId, WarehouseNumber = x.Warehouse.Number,
-                x.CropId, CropName = x.Crop != null ? x.Crop.Name : null, x.Comment,
+                x.CropId, CropName = x.Crop != null ? x.Crop.Name : null,
+                x.FieldId, FieldNumber = x.Field != null ? x.Field.Number : null, x.Comment,
                 Sources = x.Details.Select(d => new HistoryDetailSourceDto(
                     d.SourceType, d.UnitType, d.PackageVolumeLiters, d.QuantityLiters, d.PackagesQuantity)).ToList(),
             })
@@ -52,7 +55,7 @@ public sealed class HistoryQueryService
         return new HistoryDetailDto(
             m.Id, m.OccurredAt, m.MovementType, m.ChemicalId, m.ChemicalName, m.QuantityLiters,
             m.UnitType, m.PackageVolumeLiters, m.PackagesQuantity, m.WarehouseId, m.WarehouseNumber,
-            m.CropId, m.CropName, m.Comment, m.Sources);
+            m.CropId, m.CropName, m.FieldId, m.FieldNumber, m.Comment, m.Sources);
     }
 
     private static IQueryable<InventoryMovement> Filter(IQueryable<InventoryMovement> q, HistoryQuery f)
@@ -64,6 +67,7 @@ public sealed class HistoryQueryService
         if (f.MovementType is { } type) q = q.Where(m => m.MovementType == type);
         if (f.WarehouseId is { } wh) q = q.Where(m => m.WarehouseId == wh);
         if (f.CropId is { } crop) q = q.Where(m => m.CropId == crop);
+        if (f.FieldId is { } field) q = q.Where(m => m.FieldId == field);
         return q;
     }
 }

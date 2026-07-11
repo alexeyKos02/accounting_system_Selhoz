@@ -27,6 +27,10 @@ public class InventoryMovement
     public Guid? CropId { get; set; }
     public Crop? Crop { get; set; }
 
+    /// <summary>Поле/участок — для списания (необязательно, ТЗ §11).</summary>
+    public Guid? FieldId { get; set; }
+    public Field? Field { get; set; }
+
     public DateTimeOffset OccurredAt { get; set; }
     public string? Comment { get; set; }
 

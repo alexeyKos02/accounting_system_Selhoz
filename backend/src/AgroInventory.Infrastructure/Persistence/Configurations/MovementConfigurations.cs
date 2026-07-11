@@ -23,6 +23,7 @@ public sealed class InventoryMovementConfiguration : IEntityTypeConfiguration<In
         b.HasOne(x => x.Chemical).WithMany().HasForeignKey(x => x.ChemicalId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne(x => x.Warehouse).WithMany().HasForeignKey(x => x.WarehouseId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne(x => x.Crop).WithMany().HasForeignKey(x => x.CropId).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne(x => x.Field).WithMany().HasForeignKey(x => x.FieldId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne(x => x.CreatedByUser).WithMany().HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
 
         b.HasMany(x => x.Details)

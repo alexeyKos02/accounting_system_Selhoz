@@ -64,6 +64,8 @@ public sealed class DashboardService
                 m.Warehouse.Number,
                 m.CropId,
                 m.Crop != null ? m.Crop.Name : null,
+                m.FieldId,
+                m.Field != null ? m.Field.Number : null,
                 m.Comment))
             .ToListAsync(ct);
 

@@ -139,6 +139,12 @@ public sealed partial class InventoryService
             throw NotFoundException.For("Культура", id);
     }
 
+    private async Task EnsureFieldAsync(Guid id, CancellationToken ct)
+    {
+        if (!await _db.Fields.AnyAsync(f => f.Id == id, ct))
+            throw NotFoundException.For("Поле", id);
+    }
+
     private async Task<LoadedStock> LoadStockAsync(
         Guid chemicalId, Guid warehouseId, CancellationToken ct, bool createBalance = false)
     {

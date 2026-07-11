@@ -36,7 +36,7 @@ const typeOptions = [
 // Фильтры на мобилке прячем за кнопкой (как на странице «Химия»). На десктопе видны всегда.
 const filtersVisible = ref(false)
 const activeFiltersCount = computed(() =>
-  [filters.value.chemicalId, filters.value.movementType, filters.value.warehouseId, filters.value.cropId]
+  [filters.value.chemicalId, filters.value.movementType, filters.value.warehouseId, filters.value.cropId, filters.value.fieldId]
     .filter((v) => v !== undefined && v !== null && v !== '').length,
 )
 const filterBadge = computed(() => (activeFiltersCount.value ? String(activeFiltersCount.value) : undefined))
@@ -44,7 +44,10 @@ const filterBadge = computed(() => (activeFiltersCount.value ? String(activeFilt
 const detail = ref<HistoryDetailDto | null>(null)
 const detailDialog = ref(false)
 const editDialog = ref(false)
-const edit = ref({ occurredAtLocal: '', comment: '', quantityLiters: 0, packagesQuantity: 0, packageVolume: 0, cropId: '' as string | null })
+const edit = ref({ occurredAtLocal: '', comment: '', quantityLiters: 0, packagesQuantity: 0, packageVolume: 0, cropId: '' as string | null, fieldId: '' as string | null })
+
+// Пустой GUID = явная очистка поля при редактировании (backend отличает от «не менять»).
+const EMPTY_GUID = '00000000-0000-0000-0000-000000000000'
 
 let timer: ReturnType<typeof setTimeout> | undefined
 
@@ -93,6 +96,7 @@ function openEdit() {
     packagesQuantity: d.packagesQuantity ?? 0,
     packageVolume: d.packageVolumeLiters ?? 0,
     cropId: d.cropId ?? null,
+    fieldId: d.fieldId ?? null,
   }
   editDialog.value = true
 }
@@ -109,6 +113,7 @@ async function saveEdit() {
     occurredAt: edit.value.occurredAtLocal ? localToIso(edit.value.occurredAtLocal) : null,
     comment: edit.value.comment,
     cropId: d.movementType === MovementType.Outcome ? edit.value.cropId : null,
+    fieldId: d.movementType === MovementType.Outcome ? (edit.value.fieldId || EMPTY_GUID) : null,
     quantityLiters: null, unit: undefined, packageVolumeLiters: null, packagesQuantity: null,
   }
   if (isPackageIncome()) {
@@ -158,6 +163,7 @@ onMounted(async () => { await ref_.load(); await load() })
       <PvSelect v-model="filters.movementType" :options="typeOptions" option-label="label" option-value="value" show-clear placeholder="Тип" />
       <PvSelect v-model="filters.warehouseId" :options="ref_.warehouseOptions.value" option-label="label" option-value="value" show-clear placeholder="Склад" />
       <PvSelect v-model="filters.cropId" :options="ref_.cropOptions.value" option-label="label" option-value="value" filter show-clear placeholder="Культура" />
+      <PvSelect v-model="filters.fieldId" :options="ref_.fieldOptions.value" option-label="label" option-value="value" filter show-clear placeholder="Поле" />
     </div>
     </div>
 
@@ -172,6 +178,7 @@ onMounted(async () => { await ref_.load(); await load() })
         <PvColumn header="Кол-во, л"><template #body="{ data }">{{ data.quantityLiters }}</template></PvColumn>
         <PvColumn header="Склад"><template #body="{ data }">Склад {{ data.warehouseNumber }}</template></PvColumn>
         <PvColumn field="cropName" header="Культура" />
+        <PvColumn header="Поле"><template #body="{ data }">{{ data.fieldNumber ?? '—' }}</template></PvColumn>
         <PvColumn header="" style="width: 5rem"><template #body="{ data }">
           <PvButton icon="pi pi-info-circle" text rounded @click="openDetail(data)" />
         </template></PvColumn>
@@ -194,6 +201,7 @@ onMounted(async () => { await ref_.load(); await load() })
             <span class="history-card__qty">{{ item.quantityLiters }} л</span>
             <span>Склад {{ item.warehouseNumber }}</span>
             <span v-if="item.cropName">{{ item.cropName }}</span>
+            <span v-if="item.fieldNumber">Поле {{ item.fieldNumber }}</span>
           </div>
         </article>
         <div v-if="!items.length" class="empty">Операций нет</div>
@@ -206,6 +214,7 @@ onMounted(async () => { await ref_.load(); await load() })
         <div><b>{{ typeLabel(detail.movementType) }}</b> · {{ fmtDate(detail.occurredAt!) }}</div>
         <div>{{ detail.chemicalName }} — {{ detail.quantityLiters }} л · Склад {{ detail.warehouseNumber }}</div>
         <div v-if="detail.cropName">Культура: {{ detail.cropName }}</div>
+        <div v-if="detail.fieldNumber">Поле: {{ detail.fieldNumber }}</div>
         <div v-if="detail.comment">Комментарий: {{ detail.comment }}</div>
         <div v-if="detail.sources?.length" class="sources">
           <b>Источники:</b>
@@ -231,6 +240,9 @@ onMounted(async () => { await ref_.load(); await load() })
       <div v-else class="field"><span>Количество, л</span><PvInputText v-model.number="edit.quantityLiters" type="number" /></div>
       <div v-if="detail?.movementType === MovementType.Outcome" class="field"><span>Культура</span>
         <PvSelect v-model="edit.cropId" :options="ref_.cropOptions.value" option-label="label" option-value="value" filter />
+      </div>
+      <div v-if="detail?.movementType === MovementType.Outcome" class="field"><span>Номер поля</span>
+        <PvSelect v-model="edit.fieldId" :options="ref_.fieldOptions.value" option-label="label" option-value="value" filter show-clear placeholder="Не указано" />
       </div>
       <div class="field"><span>Комментарий</span><PvTextarea v-model="edit.comment" rows="2" auto-resize /></div>
       <template #footer>

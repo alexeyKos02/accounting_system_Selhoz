@@ -14,6 +14,7 @@ export default {
     auditLog: 'Audit log',
     crops: 'Культуры',
     warehouses: 'Склады',
+    fields: 'Поля',
     archive: 'Архив',
     backups: 'Бэкапы',
     settings: 'Настройки',
