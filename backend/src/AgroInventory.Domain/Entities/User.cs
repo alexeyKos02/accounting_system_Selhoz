@@ -1,17 +1,41 @@
+using AgroInventory.Domain.Enums;
+
 namespace AgroInventory.Domain.Entities;
 
 /// <summary>
-/// Пользователь (ТЗ §6). В MVP авторизации нет — все операции пишутся от системного
-/// пользователя (IsSystem = true). Сущность заложена под будущую авторизацию.
+/// Пользователь (ТЗ §1). Таблица `users`. Аутентификация (пароль/JWT/Identity) подключается на этапе B —
+/// поля PasswordHash/Email заложены здесь и пока могут быть пустыми у системного пользователя.
+/// Роли per-company хранятся в <see cref="CompanyMembership"/>; SystemAdmin — глобальный флаг.
 /// </summary>
 public class User
 {
     public Guid Id { get; set; }
-    public string Username { get; set; } = string.Empty;
-    public string DisplayName { get; set; } = string.Empty;
+
+    /// <summary>E-mail — логин пользователя (ТЗ §1). У системного пользователя может отсутствовать.</summary>
+    public string? Email { get; set; }
+
+    public string? PasswordHash { get; set; }
+
+    public string FirstName { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
+    public string? Phone { get; set; }
+
+    public UserStatus Status { get; set; } = UserStatus.Active;
+
+    /// <summary>Требуется смена временного пароля при первом входе (ТЗ §1).</summary>
+    public bool MustChangePassword { get; set; }
+
+    /// <summary>Глобальный системный администратор всего AgroInventory (ТЗ §4).</summary>
+    public bool IsSystemAdmin { get; set; }
+
+    /// <summary>Служебный пользователь для системных записей/аудита (не логинится).</summary>
     public bool IsSystem { get; set; }
+
+    /// <summary>Отображаемое имя для аудита/списков (обычно «Имя Фамилия»).</summary>
+    public string DisplayName { get; set; } = string.Empty;
+
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
 
-    public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+    public ICollection<CompanyMembership> Memberships { get; set; } = new List<CompanyMembership>();
 }

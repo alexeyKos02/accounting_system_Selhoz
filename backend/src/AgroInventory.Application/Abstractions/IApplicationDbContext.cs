@@ -22,8 +22,9 @@ public interface IApplicationDbContext
     DbSet<InventoryMovementDetail> InventoryMovementDetails { get; }
     DbSet<AuditLog> AuditLogs { get; }
     DbSet<User> Users { get; }
-    DbSet<Role> Roles { get; }
-    DbSet<Permission> Permissions { get; }
+    DbSet<Company> Companies { get; }
+    DbSet<CompanyMembership> CompanyMemberships { get; }
+    DbSet<MembershipAccessScope> MembershipAccessScopes { get; }
     DbSet<AppSettings> AppSettings { get; }
 
     Task<int> SaveChangesAsync(CancellationToken ct = default);

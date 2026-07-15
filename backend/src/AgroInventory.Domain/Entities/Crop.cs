@@ -4,6 +4,15 @@ namespace AgroInventory.Domain.Entities;
 public class Crop
 {
     public Guid Id { get; set; }
+
+    /// <summary>
+    /// Хозяйство-владелец культуры (ТЗ §8). NULL — системная культура, общая для всех хозяйств.
+    /// </summary>
+    public Guid? CompanyId { get; set; }
+
+    /// <summary>Системная культура (общая для всех). Пользовательские принадлежат хозяйству.</summary>
+    public bool IsSystem { get; set; }
+
     public string Name { get; set; } = string.Empty;
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }

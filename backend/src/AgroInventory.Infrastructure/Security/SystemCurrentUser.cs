@@ -10,4 +10,7 @@ namespace AgroInventory.Infrastructure.Security;
 public sealed class SystemCurrentUser : ICurrentUser
 {
     public Guid UserId => SystemIds.SystemUserId;
+
+    /// <summary>До авторизации все записи привязываются к дефолтному хозяйству (ТЗ §25).</summary>
+    public Guid CompanyId => SystemIds.DefaultCompanyId;
 }

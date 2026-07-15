@@ -33,7 +33,15 @@ public sealed class FieldService
             throw new ConflictException($"Поле «{number}» уже существует.");
 
         var now = _clock.GetUtcNow();
-        var field = new Field { Id = Guid.NewGuid(), Number = number, CreatedAt = now, UpdatedAt = now };
+        // company_id — из контекста записи (ТЗ §7, §25); до авторизации это дефолтное хозяйство.
+        var field = new Field
+        {
+            Id = Guid.NewGuid(),
+            CompanyId = Domain.Constants.SystemIds.DefaultCompanyId,
+            Number = number,
+            CreatedAt = now,
+            UpdatedAt = now,
+        };
         _db.Fields.Add(field);
         await _db.SaveChangesAsync(ct);
         return new FieldDto(field.Id, field.Number);

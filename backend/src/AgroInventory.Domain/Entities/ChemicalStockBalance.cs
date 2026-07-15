@@ -8,6 +8,10 @@ namespace AgroInventory.Domain.Entities;
 public class ChemicalStockBalance
 {
     public Guid Id { get; set; }
+
+    /// <summary>Хозяйство (ТЗ §13). Остаток хранится отдельно для каждого хозяйства и склада.</summary>
+    public Guid CompanyId { get; set; }
+
     public Guid ChemicalId { get; set; }
     public InventoryItem Chemical { get; set; } = null!;
 

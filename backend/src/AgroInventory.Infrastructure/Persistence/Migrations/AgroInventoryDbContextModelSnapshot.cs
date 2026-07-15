@@ -177,6 +177,10 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("chemical_id");
 
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("company_id");
+
                     b.Property<decimal>("LooseLiters")
                         .HasPrecision(18, 3)
                         .HasColumnType("numeric(18,3)")
@@ -198,6 +202,9 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("pk_chemical_stock_balances");
 
+                    b.HasIndex("CompanyId")
+                        .HasDatabaseName("ix_chemical_stock_balances_company_id");
+
                     b.HasIndex("WarehouseId")
                         .HasDatabaseName("ix_chemical_stock_balances_warehouse_id");
 
@@ -208,6 +215,156 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                     b.ToTable("chemical_stock_balances", (string)null);
                 });
 
+            modelBuilder.Entity("AgroInventory.Domain.Entities.Company", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Address")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("address");
+
+                    b.Property<string>("BinOrInn")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("bin_or_inn");
+
+                    b.Property<string>("Country")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("country");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by_user_id");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("description");
+
+                    b.Property<string>("LegalName")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("legal_name");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("name");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<string>("Timezone")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("timezone");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_companies");
+
+                    b.HasIndex("CreatedByUserId")
+                        .HasDatabaseName("ix_companies_created_by_user_id");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_companies_status");
+
+                    b.ToTable("companies", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000201"),
+                            Country = "KZ",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedByUserId = new Guid("00000000-0000-0000-0000-000000000001"),
+                            Name = "Хозяйство по умолчанию",
+                            Status = 0,
+                            Timezone = "Asia/Almaty",
+                            UpdatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        });
+                });
+
+            modelBuilder.Entity("AgroInventory.Domain.Entities.CompanyMembership", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("company_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by_user_id");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("integer")
+                        .HasColumnName("role");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_company_memberships");
+
+                    b.HasIndex("CompanyId")
+                        .HasDatabaseName("ix_company_memberships_company_id");
+
+                    b.HasIndex("CreatedByUserId")
+                        .HasDatabaseName("ix_company_memberships_created_by_user_id");
+
+                    b.HasIndex("UserId", "CompanyId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_company_memberships_user_id_company_id");
+
+                    b.ToTable("company_memberships", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000202"),
+                            CompanyId = new Guid("00000000-0000-0000-0000-000000000201"),
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedByUserId = new Guid("00000000-0000-0000-0000-000000000001"),
+                            Role = 1,
+                            Status = 0,
+                            UpdatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            UserId = new Guid("00000000-0000-0000-0000-000000000001")
+                        });
+                });
+
             modelBuilder.Entity("AgroInventory.Domain.Entities.Crop", b =>
                 {
                     b.Property<Guid>("Id")
@@ -215,9 +372,17 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<Guid?>("CompanyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("company_id");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
+
+                    b.Property<bool>("IsSystem")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_system");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -232,9 +397,9 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("pk_crops");
 
-                    b.HasIndex("Name")
+                    b.HasIndex("CompanyId", "Name")
                         .IsUnique()
-                        .HasDatabaseName("ix_crops_name");
+                        .HasDatabaseName("ix_crops_company_id_name");
 
                     b.ToTable("crops", (string)null);
                 });
@@ -245,6 +410,10 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("company_id");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -263,9 +432,9 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("pk_fields");
 
-                    b.HasIndex("Number")
+                    b.HasIndex("CompanyId", "Number")
                         .IsUnique()
-                        .HasDatabaseName("ix_fields_number");
+                        .HasDatabaseName("ix_fields_company_id_number");
 
                     b.ToTable("fields", (string)null);
                 });
@@ -276,6 +445,10 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("company_id");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -305,6 +478,9 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_inventory_items");
+
+                    b.HasIndex("CompanyId")
+                        .HasDatabaseName("ix_inventory_items_company_id");
 
                     b.HasIndex("ItemType")
                         .HasDatabaseName("ix_inventory_items_item_type");
@@ -336,6 +512,10 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)")
                         .HasColumnName("comment");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("company_id");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -393,6 +573,9 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_inventory_movements");
+
+                    b.HasIndex("CompanyId")
+                        .HasDatabaseName("ix_inventory_movements_company_id");
 
                     b.HasIndex("CreatedByUserId")
                         .HasDatabaseName("ix_inventory_movements_created_by_user_id");
@@ -464,6 +647,47 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                     b.ToTable("inventory_movement_details", (string)null);
                 });
 
+            modelBuilder.Entity("AgroInventory.Domain.Entities.MembershipAccessScope", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("MembershipId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("membership_id");
+
+                    b.Property<Guid?>("ScopeEntityId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("scope_entity_id");
+
+                    b.Property<int>("ScopeType")
+                        .HasColumnType("integer")
+                        .HasColumnName("scope_type");
+
+                    b.HasKey("Id")
+                        .HasName("pk_membership_access_scopes");
+
+                    b.HasIndex("MembershipId", "ScopeType")
+                        .HasDatabaseName("ix_membership_access_scopes_membership_id_scope_type");
+
+                    b.ToTable("membership_access_scopes", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000203"),
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            MembershipId = new Guid("00000000-0000-0000-0000-000000000202"),
+                            ScopeType = 0
+                        });
+                });
+
             modelBuilder.Entity("AgroInventory.Domain.Entities.OpenedPackage", b =>
                 {
                     b.Property<Guid>("Id")
@@ -474,6 +698,10 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("ChemicalId")
                         .HasColumnType("uuid")
                         .HasColumnName("chemical_id");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("company_id");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -508,6 +736,9 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("pk_opened_packages");
 
+                    b.HasIndex("CompanyId")
+                        .HasDatabaseName("ix_opened_packages_company_id");
+
                     b.HasIndex("WarehouseId")
                         .HasDatabaseName("ix_opened_packages_warehouse_id");
 
@@ -527,6 +758,10 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("ChemicalId")
                         .HasColumnType("uuid")
                         .HasColumnName("chemical_id");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("company_id");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -556,6 +791,9 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("pk_package_groups");
 
+                    b.HasIndex("CompanyId")
+                        .HasDatabaseName("ix_package_groups_company_id");
+
                     b.HasIndex("WarehouseId")
                         .HasDatabaseName("ix_package_groups_warehouse_id");
 
@@ -563,139 +801,6 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_package_groups_chemical_id_warehouse_id");
 
                     b.ToTable("package_groups", (string)null);
-                });
-
-            modelBuilder.Entity("AgroInventory.Domain.Entities.Permission", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("code");
-
-                    b.HasKey("Id")
-                        .HasName("pk_permissions");
-
-                    b.HasIndex("Code")
-                        .IsUnique()
-                        .HasDatabaseName("ix_permissions_code");
-
-                    b.ToTable("permissions", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("00000000-0000-0000-0000-000000000101"),
-                            Code = "manage_settings"
-                        },
-                        new
-                        {
-                            Id = new Guid("00000000-0000-0000-0000-000000000102"),
-                            Code = "restore_backup"
-                        },
-                        new
-                        {
-                            Id = new Guid("00000000-0000-0000-0000-000000000103"),
-                            Code = "manage_users"
-                        },
-                        new
-                        {
-                            Id = new Guid("00000000-0000-0000-0000-000000000104"),
-                            Code = "manage_inventory"
-                        },
-                        new
-                        {
-                            Id = new Guid("00000000-0000-0000-0000-000000000105"),
-                            Code = "view_audit_log"
-                        });
-                });
-
-            modelBuilder.Entity("AgroInventory.Domain.Entities.Role", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("code");
-
-                    b.Property<string>("DisplayName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("display_name");
-
-                    b.HasKey("Id")
-                        .HasName("pk_roles");
-
-                    b.HasIndex("Code")
-                        .IsUnique()
-                        .HasDatabaseName("ix_roles_code");
-
-                    b.ToTable("roles", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("00000000-0000-0000-0000-000000000002"),
-                            Code = "admin",
-                            DisplayName = "Администратор"
-                        });
-                });
-
-            modelBuilder.Entity("AgroInventory.Domain.Entities.RolePermission", b =>
-                {
-                    b.Property<Guid>("RoleId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("role_id");
-
-                    b.Property<Guid>("PermissionId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("permission_id");
-
-                    b.HasKey("RoleId", "PermissionId")
-                        .HasName("pk_role_permissions");
-
-                    b.HasIndex("PermissionId")
-                        .HasDatabaseName("ix_role_permissions_permission_id");
-
-                    b.ToTable("role_permissions", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            RoleId = new Guid("00000000-0000-0000-0000-000000000002"),
-                            PermissionId = new Guid("00000000-0000-0000-0000-000000000101")
-                        },
-                        new
-                        {
-                            RoleId = new Guid("00000000-0000-0000-0000-000000000002"),
-                            PermissionId = new Guid("00000000-0000-0000-0000-000000000102")
-                        },
-                        new
-                        {
-                            RoleId = new Guid("00000000-0000-0000-0000-000000000002"),
-                            PermissionId = new Guid("00000000-0000-0000-0000-000000000103")
-                        },
-                        new
-                        {
-                            RoleId = new Guid("00000000-0000-0000-0000-000000000002"),
-                            PermissionId = new Guid("00000000-0000-0000-0000-000000000104")
-                        },
-                        new
-                        {
-                            RoleId = new Guid("00000000-0000-0000-0000-000000000002"),
-                            PermissionId = new Guid("00000000-0000-0000-0000-000000000105")
-                        });
                 });
 
             modelBuilder.Entity("AgroInventory.Domain.Entities.User", b =>
@@ -711,30 +816,63 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("DisplayName")
                         .IsRequired()
+                        .HasMaxLength(400)
+                        .HasColumnType("character varying(400)")
+                        .HasColumnName("display_name");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("email");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
-                        .HasColumnName("display_name");
+                        .HasColumnName("first_name");
 
                     b.Property<bool>("IsSystem")
                         .HasColumnType("boolean")
                         .HasColumnName("is_system");
 
+                    b.Property<bool>("IsSystemAdmin")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_system_admin");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("last_name");
+
+                    b.Property<bool>("MustChangePassword")
+                        .HasColumnType("boolean")
+                        .HasColumnName("must_change_password");
+
+                    b.Property<string>("PasswordHash")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("password_hash");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("phone");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
-                    b.Property<string>("Username")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("username");
-
                     b.HasKey("Id")
                         .HasName("pk_users");
 
-                    b.HasIndex("Username")
+                    b.HasIndex("Email")
                         .IsUnique()
-                        .HasDatabaseName("ix_users_username");
+                        .HasDatabaseName("ix_users_email");
 
                     b.ToTable("users", (string)null);
 
@@ -744,35 +882,13 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                             Id = new Guid("00000000-0000-0000-0000-000000000001"),
                             CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             DisplayName = "System",
+                            FirstName = "System",
                             IsSystem = true,
-                            UpdatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            Username = "system"
-                        });
-                });
-
-            modelBuilder.Entity("AgroInventory.Domain.Entities.UserRole", b =>
-                {
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("user_id");
-
-                    b.Property<Guid>("RoleId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("role_id");
-
-                    b.HasKey("UserId", "RoleId")
-                        .HasName("pk_user_roles");
-
-                    b.HasIndex("RoleId")
-                        .HasDatabaseName("ix_user_roles_role_id");
-
-                    b.ToTable("user_roles", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            UserId = new Guid("00000000-0000-0000-0000-000000000001"),
-                            RoleId = new Guid("00000000-0000-0000-0000-000000000002")
+                            IsSystemAdmin = true,
+                            LastName = "",
+                            MustChangePassword = false,
+                            Status = 0,
+                            UpdatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
                         });
                 });
 
@@ -782,6 +898,10 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("company_id");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -800,9 +920,9 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("pk_warehouses");
 
-                    b.HasIndex("Number")
+                    b.HasIndex("CompanyId", "Number")
                         .IsUnique()
-                        .HasDatabaseName("ix_warehouses_number");
+                        .HasDatabaseName("ix_warehouses_company_id_number");
 
                     b.ToTable("warehouses", (string)null);
                 });
@@ -861,6 +981,13 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_chemical_stock_balances_inventory_items_chemical_id");
 
+                    b.HasOne("AgroInventory.Domain.Entities.Company", null)
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_chemical_stock_balances_companies_company_id");
+
                     b.HasOne("AgroInventory.Domain.Entities.Warehouse", "Warehouse")
                         .WithMany()
                         .HasForeignKey("WarehouseId")
@@ -873,8 +1000,72 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                     b.Navigation("Warehouse");
                 });
 
+            modelBuilder.Entity("AgroInventory.Domain.Entities.Company", b =>
+                {
+                    b.HasOne("AgroInventory.Domain.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_companies_users_created_by_user_id");
+                });
+
+            modelBuilder.Entity("AgroInventory.Domain.Entities.CompanyMembership", b =>
+                {
+                    b.HasOne("AgroInventory.Domain.Entities.Company", "Company")
+                        .WithMany("Memberships")
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_company_memberships_companies_company_id");
+
+                    b.HasOne("AgroInventory.Domain.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_company_memberships_users_created_by_user_id");
+
+                    b.HasOne("AgroInventory.Domain.Entities.User", "User")
+                        .WithMany("Memberships")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_company_memberships_users_user_id");
+
+                    b.Navigation("Company");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("AgroInventory.Domain.Entities.Crop", b =>
+                {
+                    b.HasOne("AgroInventory.Domain.Entities.Company", null)
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_crops_companies_company_id");
+                });
+
+            modelBuilder.Entity("AgroInventory.Domain.Entities.Field", b =>
+                {
+                    b.HasOne("AgroInventory.Domain.Entities.Company", null)
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_fields_companies_company_id");
+                });
+
             modelBuilder.Entity("AgroInventory.Domain.Entities.InventoryItem", b =>
                 {
+                    b.HasOne("AgroInventory.Domain.Entities.Company", null)
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_inventory_items_companies_company_id");
+
                     b.HasOne("AgroInventory.Domain.Entities.InventoryItem", "MergedIntoItem")
                         .WithMany()
                         .HasForeignKey("MergedIntoItemId")
@@ -892,6 +1083,13 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_inventory_movements_inventory_items_chemical_id");
+
+                    b.HasOne("AgroInventory.Domain.Entities.Company", null)
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_inventory_movements_companies_company_id");
 
                     b.HasOne("AgroInventory.Domain.Entities.User", "CreatedByUser")
                         .WithMany()
@@ -942,6 +1140,18 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                     b.Navigation("Movement");
                 });
 
+            modelBuilder.Entity("AgroInventory.Domain.Entities.MembershipAccessScope", b =>
+                {
+                    b.HasOne("AgroInventory.Domain.Entities.CompanyMembership", "Membership")
+                        .WithMany("AccessScopes")
+                        .HasForeignKey("MembershipId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_membership_access_scopes_company_memberships_membership_id");
+
+                    b.Navigation("Membership");
+                });
+
             modelBuilder.Entity("AgroInventory.Domain.Entities.OpenedPackage", b =>
                 {
                     b.HasOne("AgroInventory.Domain.Entities.InventoryItem", "Chemical")
@@ -950,6 +1160,13 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_opened_packages_inventory_items_chemical_id");
+
+                    b.HasOne("AgroInventory.Domain.Entities.Company", null)
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_opened_packages_companies_company_id");
 
                     b.HasOne("AgroInventory.Domain.Entities.Warehouse", "Warehouse")
                         .WithMany()
@@ -972,6 +1189,13 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_package_groups_inventory_items_chemical_id");
 
+                    b.HasOne("AgroInventory.Domain.Entities.Company", null)
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_package_groups_companies_company_id");
+
                     b.HasOne("AgroInventory.Domain.Entities.Warehouse", "Warehouse")
                         .WithMany()
                         .HasForeignKey("WarehouseId")
@@ -984,46 +1208,24 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                     b.Navigation("Warehouse");
                 });
 
-            modelBuilder.Entity("AgroInventory.Domain.Entities.RolePermission", b =>
+            modelBuilder.Entity("AgroInventory.Domain.Entities.Warehouse", b =>
                 {
-                    b.HasOne("AgroInventory.Domain.Entities.Permission", "Permission")
-                        .WithMany("RolePermissions")
-                        .HasForeignKey("PermissionId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                    b.HasOne("AgroInventory.Domain.Entities.Company", null)
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("fk_role_permissions_permissions_permission_id");
-
-                    b.HasOne("AgroInventory.Domain.Entities.Role", "Role")
-                        .WithMany("RolePermissions")
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_role_permissions_roles_role_id");
-
-                    b.Navigation("Permission");
-
-                    b.Navigation("Role");
+                        .HasConstraintName("fk_warehouses_companies_company_id");
                 });
 
-            modelBuilder.Entity("AgroInventory.Domain.Entities.UserRole", b =>
+            modelBuilder.Entity("AgroInventory.Domain.Entities.Company", b =>
                 {
-                    b.HasOne("AgroInventory.Domain.Entities.Role", "Role")
-                        .WithMany("UserRoles")
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_user_roles_roles_role_id");
+                    b.Navigation("Memberships");
+                });
 
-                    b.HasOne("AgroInventory.Domain.Entities.User", "User")
-                        .WithMany("UserRoles")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_user_roles_users_user_id");
-
-                    b.Navigation("Role");
-
-                    b.Navigation("User");
+            modelBuilder.Entity("AgroInventory.Domain.Entities.CompanyMembership", b =>
+                {
+                    b.Navigation("AccessScopes");
                 });
 
             modelBuilder.Entity("AgroInventory.Domain.Entities.Crop", b =>
@@ -1043,21 +1245,9 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                     b.Navigation("Details");
                 });
 
-            modelBuilder.Entity("AgroInventory.Domain.Entities.Permission", b =>
-                {
-                    b.Navigation("RolePermissions");
-                });
-
-            modelBuilder.Entity("AgroInventory.Domain.Entities.Role", b =>
-                {
-                    b.Navigation("RolePermissions");
-
-                    b.Navigation("UserRoles");
-                });
-
             modelBuilder.Entity("AgroInventory.Domain.Entities.User", b =>
                 {
-                    b.Navigation("UserRoles");
+                    b.Navigation("Memberships");
                 });
 #pragma warning restore 612, 618
         }

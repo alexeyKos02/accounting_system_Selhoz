@@ -104,6 +104,7 @@ public sealed partial class InventoryService
             var movement = new InventoryMovement
             {
                 Id = Guid.NewGuid(),
+                CompanyId = CompanyId,
                 ChemicalId = entry.ChemicalId,
                 WarehouseId = request.WarehouseId,
                 MovementType = MovementType.Correction,

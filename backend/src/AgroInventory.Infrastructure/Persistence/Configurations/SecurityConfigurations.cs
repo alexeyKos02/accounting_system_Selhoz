@@ -1,5 +1,6 @@
 using AgroInventory.Domain.Constants;
 using AgroInventory.Domain.Entities;
+using AgroInventory.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -11,16 +12,29 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
     {
         b.ToTable("users");
         b.HasKey(x => x.Id);
-        b.Property(x => x.Username).HasMaxLength(100).IsRequired();
-        b.Property(x => x.DisplayName).HasMaxLength(200).IsRequired();
-        b.HasIndex(x => x.Username).IsUnique();
+        b.Property(x => x.Email).HasMaxLength(256);
+        b.Property(x => x.PasswordHash).HasMaxLength(512);
+        b.Property(x => x.FirstName).HasMaxLength(200);
+        b.Property(x => x.LastName).HasMaxLength(200);
+        b.Property(x => x.Phone).HasMaxLength(50);
+        b.Property(x => x.DisplayName).HasMaxLength(400).IsRequired();
+        b.Property(x => x.Status).HasConversion<int>();
 
-        // Системный пользователь: все операции и audit log в MVP пишутся от него (ТЗ §6).
+        // E-mail уникален среди пользователей с указанным e-mail (у системного он NULL).
+        b.HasIndex(x => x.Email).IsUnique();
+
+        // Системный пользователь: от него пишутся системные операции и audit log.
+        // Он же — глобальный SystemAdmin. Не логинится (PasswordHash/Email пусты).
         b.HasData(new User
         {
             Id = SystemIds.SystemUserId,
-            Username = "system",
+            Email = null,
+            FirstName = "System",
+            LastName = string.Empty,
             DisplayName = "System",
+            Status = UserStatus.Active,
+            MustChangePassword = false,
+            IsSystemAdmin = true,
             IsSystem = true,
             CreatedAt = SystemIds.SeedTimestamp,
             UpdatedAt = SystemIds.SeedTimestamp,
@@ -28,72 +42,93 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
     }
 }
 
-public sealed class RoleConfiguration : IEntityTypeConfiguration<Role>
+public sealed class CompanyConfiguration : IEntityTypeConfiguration<Company>
 {
-    public void Configure(EntityTypeBuilder<Role> b)
+    public void Configure(EntityTypeBuilder<Company> b)
     {
-        b.ToTable("roles");
+        b.ToTable("companies");
         b.HasKey(x => x.Id);
-        b.Property(x => x.Code).HasMaxLength(100).IsRequired();
-        b.Property(x => x.DisplayName).HasMaxLength(200).IsRequired();
-        b.HasIndex(x => x.Code).IsUnique();
+        b.Property(x => x.Name).HasMaxLength(300).IsRequired();
+        b.Property(x => x.LegalName).HasMaxLength(300);
+        b.Property(x => x.BinOrInn).HasMaxLength(50);
+        b.Property(x => x.Country).HasMaxLength(100).IsRequired();
+        b.Property(x => x.Timezone).HasMaxLength(100).IsRequired();
+        b.Property(x => x.Address).HasMaxLength(1000);
+        b.Property(x => x.Description).HasMaxLength(2000);
+        b.Property(x => x.Status).HasConversion<int>();
 
-        b.HasData(new Role
+        b.HasIndex(x => x.Status);
+
+        b.HasOne<User>().WithMany().HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
+
+        // Дефолтное хозяйство для greenfield-старта (ТЗ §25). К нему привязываются
+        // справочники/операции по умолчанию до полноценной авторизации.
+        b.HasData(new Company
         {
-            Id = SystemIds.AdminRoleId,
-            Code = "admin",
-            DisplayName = "Администратор",
+            Id = SystemIds.DefaultCompanyId,
+            Name = "Хозяйство по умолчанию",
+            Country = "KZ",
+            Timezone = "Asia/Almaty",
+            Status = CompanyStatus.Active,
+            CreatedByUserId = SystemIds.SystemUserId,
+            CreatedAt = SystemIds.SeedTimestamp,
+            UpdatedAt = SystemIds.SeedTimestamp,
         });
     }
 }
 
-public sealed class PermissionConfiguration : IEntityTypeConfiguration<Permission>
+public sealed class CompanyMembershipConfiguration : IEntityTypeConfiguration<CompanyMembership>
 {
-    public void Configure(EntityTypeBuilder<Permission> b)
+    public void Configure(EntityTypeBuilder<CompanyMembership> b)
     {
-        b.ToTable("permissions");
+        b.ToTable("company_memberships");
         b.HasKey(x => x.Id);
-        b.Property(x => x.Code).HasMaxLength(100).IsRequired();
-        b.HasIndex(x => x.Code).IsUnique();
+        b.Property(x => x.Role).HasConversion<int>();
+        b.Property(x => x.Status).HasConversion<int>();
 
-        b.HasData(Permissions.All.Select(code => new Permission
+        // Один пользователь — не более одного членства в конкретном хозяйстве.
+        b.HasIndex(x => new { x.UserId, x.CompanyId }).IsUnique();
+        b.HasIndex(x => x.CompanyId);
+
+        b.HasOne(x => x.User).WithMany(u => u.Memberships).HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+        b.HasOne(x => x.Company).WithMany(c => c.Memberships).HasForeignKey(x => x.CompanyId).OnDelete(DeleteBehavior.Cascade);
+        b.HasOne<User>().WithMany().HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
+
+        // Членство системного пользователя в дефолтном хозяйстве (роль Owner).
+        b.HasData(new CompanyMembership
         {
-            Id = SystemIds.PermissionIds[code],
-            Code = code,
-        }));
+            Id = SystemIds.SystemMembershipId,
+            UserId = SystemIds.SystemUserId,
+            CompanyId = SystemIds.DefaultCompanyId,
+            Role = AppRole.Owner,
+            Status = MembershipStatus.Active,
+            CreatedByUserId = SystemIds.SystemUserId,
+            CreatedAt = SystemIds.SeedTimestamp,
+            UpdatedAt = SystemIds.SeedTimestamp,
+        });
     }
 }
 
-public sealed class UserRoleConfiguration : IEntityTypeConfiguration<UserRole>
+public sealed class MembershipAccessScopeConfiguration : IEntityTypeConfiguration<MembershipAccessScope>
 {
-    public void Configure(EntityTypeBuilder<UserRole> b)
+    public void Configure(EntityTypeBuilder<MembershipAccessScope> b)
     {
-        b.ToTable("user_roles");
-        b.HasKey(x => new { x.UserId, x.RoleId });
+        b.ToTable("membership_access_scopes");
+        b.HasKey(x => x.Id);
+        b.Property(x => x.ScopeType).HasConversion<int>();
 
-        b.HasOne(x => x.User).WithMany(u => u.UserRoles).HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
-        b.HasOne(x => x.Role).WithMany(r => r.UserRoles).HasForeignKey(x => x.RoleId).OnDelete(DeleteBehavior.Cascade);
+        b.HasIndex(x => new { x.MembershipId, x.ScopeType });
 
-        // Системный пользователь получает роль администратора (все права).
-        b.HasData(new UserRole { UserId = SystemIds.SystemUserId, RoleId = SystemIds.AdminRoleId });
-    }
-}
+        b.HasOne(x => x.Membership).WithMany(m => m.AccessScopes).HasForeignKey(x => x.MembershipId).OnDelete(DeleteBehavior.Cascade);
 
-public sealed class RolePermissionConfiguration : IEntityTypeConfiguration<RolePermission>
-{
-    public void Configure(EntityTypeBuilder<RolePermission> b)
-    {
-        b.ToTable("role_permissions");
-        b.HasKey(x => new { x.RoleId, x.PermissionId });
-
-        b.HasOne(x => x.Role).WithMany(r => r.RolePermissions).HasForeignKey(x => x.RoleId).OnDelete(DeleteBehavior.Cascade);
-        b.HasOne(x => x.Permission).WithMany(p => p.RolePermissions).HasForeignKey(x => x.PermissionId).OnDelete(DeleteBehavior.Cascade);
-
-        // Админ-роль получает все права.
-        b.HasData(Permissions.All.Select(code => new RolePermission
+        // Область доступа членства системного пользователя — всё хозяйство (scope_type = company).
+        b.HasData(new MembershipAccessScope
         {
-            RoleId = SystemIds.AdminRoleId,
-            PermissionId = SystemIds.PermissionIds[code],
-        }));
+            Id = SystemIds.SystemMembershipScopeId,
+            MembershipId = SystemIds.SystemMembershipId,
+            ScopeType = AccessScopeType.Company,
+            ScopeEntityId = null,
+            CreatedAt = SystemIds.SeedTimestamp,
+        });
     }
 }

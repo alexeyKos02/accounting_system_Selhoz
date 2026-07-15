@@ -9,6 +9,10 @@ namespace AgroInventory.Domain.Entities;
 public class InventoryMovement
 {
     public Guid Id { get; set; }
+
+    /// <summary>Хозяйство (ТЗ §14). Все связанные сущности операции — из одного хозяйства.</summary>
+    public Guid CompanyId { get; set; }
+
     public Guid ChemicalId { get; set; }
     public InventoryItem Chemical { get; set; } = null!;
 

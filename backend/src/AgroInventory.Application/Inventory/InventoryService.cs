@@ -41,6 +41,7 @@ public sealed partial class InventoryService
         var movement = new InventoryMovement
         {
             Id = Guid.NewGuid(),
+            CompanyId = CompanyId,
             ChemicalId = request.ChemicalId,
             WarehouseId = request.WarehouseId,
             MovementType = MovementType.Income,
@@ -73,6 +74,7 @@ public sealed partial class InventoryService
                 group = new PackageGroup
                 {
                     Id = Guid.NewGuid(),
+                    CompanyId = CompanyId,
                     ChemicalId = request.ChemicalId,
                     WarehouseId = request.WarehouseId,
                     UnitType = request.Unit,
@@ -115,6 +117,12 @@ public sealed partial class InventoryService
 
     private Guid SystemUserId => Domain.Constants.SystemIds.SystemUserId;
 
+    /// <summary>
+    /// Хозяйство-контекст для штампа company_id на новых записях (ТЗ §13, §25).
+    /// До авторизации — дефолтное хозяйство; на этапе C заменяется на выбранное пользователем.
+    /// </summary>
+    private Guid CompanyId => Domain.Constants.SystemIds.DefaultCompanyId;
+
     private async Task EnsureActiveChemicalAsync(Guid id, CancellationToken ct)
     {
         var status = await _db.InventoryItems
@@ -156,6 +164,7 @@ public sealed partial class InventoryService
             balance = new ChemicalStockBalance
             {
                 Id = Guid.NewGuid(),
+                CompanyId = CompanyId,
                 ChemicalId = chemicalId,
                 WarehouseId = warehouseId,
                 LooseLiters = 0,

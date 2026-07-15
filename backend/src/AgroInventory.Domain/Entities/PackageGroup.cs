@@ -9,6 +9,10 @@ namespace AgroInventory.Domain.Entities;
 public class PackageGroup
 {
     public Guid Id { get; set; }
+
+    /// <summary>Хозяйство (ТЗ §13).</summary>
+    public Guid CompanyId { get; set; }
+
     public Guid ChemicalId { get; set; }
     public InventoryItem Chemical { get; set; } = null!;
 

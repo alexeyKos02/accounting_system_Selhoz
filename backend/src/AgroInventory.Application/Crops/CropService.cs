@@ -33,7 +33,16 @@ public sealed class CropService
             throw new ConflictException($"Культура «{name}» уже существует.");
 
         var now = _clock.GetUtcNow();
-        var crop = new Crop { Id = Guid.NewGuid(), Name = name, CreatedAt = now, UpdatedAt = now };
+        // Пользовательская культура принадлежит хозяйству (ТЗ §8); системные (общие) заводятся отдельно.
+        var crop = new Crop
+        {
+            Id = Guid.NewGuid(),
+            CompanyId = Domain.Constants.SystemIds.DefaultCompanyId,
+            IsSystem = false,
+            Name = name,
+            CreatedAt = now,
+            UpdatedAt = now,
+        };
         _db.Crops.Add(crop);
         await _db.SaveChangesAsync(ct);
         return new CropDto(crop.Id, crop.Name);

@@ -19,7 +19,9 @@ public sealed class InventoryMovementConfiguration : IEntityTypeConfiguration<In
         b.HasIndex(x => new { x.ChemicalId, x.WarehouseId });
         b.HasIndex(x => x.OccurredAt);
         b.HasIndex(x => x.IsDeleted);
+        b.HasIndex(x => x.CompanyId);
 
+        b.HasOne<Company>().WithMany().HasForeignKey(x => x.CompanyId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne(x => x.Chemical).WithMany().HasForeignKey(x => x.ChemicalId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne(x => x.Warehouse).WithMany().HasForeignKey(x => x.WarehouseId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne(x => x.Crop).WithMany().HasForeignKey(x => x.CropId).OnDelete(DeleteBehavior.Restrict);

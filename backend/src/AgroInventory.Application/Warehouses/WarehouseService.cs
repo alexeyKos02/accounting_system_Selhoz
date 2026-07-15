@@ -33,7 +33,15 @@ public sealed class WarehouseService
             throw new ConflictException($"Склад «{number}» уже существует.");
 
         var now = _clock.GetUtcNow();
-        var warehouse = new Warehouse { Id = Guid.NewGuid(), Number = number, CreatedAt = now, UpdatedAt = now };
+        // company_id — из контекста записи (ТЗ §11, §25); до авторизации это дефолтное хозяйство.
+        var warehouse = new Warehouse
+        {
+            Id = Guid.NewGuid(),
+            CompanyId = Domain.Constants.SystemIds.DefaultCompanyId,
+            Number = number,
+            CreatedAt = now,
+            UpdatedAt = now,
+        };
         _db.Warehouses.Add(warehouse);
         await _db.SaveChangesAsync(ct);
         return new WarehouseDto(warehouse.Id, warehouse.Number);

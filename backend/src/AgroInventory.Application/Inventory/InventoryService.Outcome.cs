@@ -51,6 +51,7 @@ public sealed partial class InventoryService
         var movement = new InventoryMovement
         {
             Id = Guid.NewGuid(),
+            CompanyId = CompanyId,
             ChemicalId = request.ChemicalId,
             WarehouseId = request.WarehouseId,
             MovementType = MovementType.Outcome,
@@ -102,6 +103,7 @@ public sealed partial class InventoryService
                         var newOpened = new OpenedPackage
                         {
                             Id = Guid.NewGuid(),
+                            CompanyId = movement.CompanyId,
                             ChemicalId = movement.ChemicalId,
                             WarehouseId = movement.WarehouseId,
                             UnitType = step.UnitType ?? group.UnitType,

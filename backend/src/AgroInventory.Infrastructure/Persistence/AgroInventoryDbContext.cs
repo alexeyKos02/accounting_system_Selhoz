@@ -25,10 +25,9 @@ public class AgroInventoryDbContext : DbContext, IApplicationDbContext
     public DbSet<InventoryMovementDetail> InventoryMovementDetails => Set<InventoryMovementDetail>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<User> Users => Set<User>();
-    public DbSet<Role> Roles => Set<Role>();
-    public DbSet<Permission> Permissions => Set<Permission>();
-    public DbSet<UserRole> UserRoles => Set<UserRole>();
-    public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
+    public DbSet<Company> Companies => Set<Company>();
+    public DbSet<CompanyMembership> CompanyMemberships => Set<CompanyMembership>();
+    public DbSet<MembershipAccessScope> MembershipAccessScopes => Set<MembershipAccessScope>();
     public DbSet<AppSettings> AppSettings => Set<AppSettings>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

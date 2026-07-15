@@ -7,4 +7,11 @@ namespace AgroInventory.Application.Abstractions;
 public interface ICurrentUser
 {
     Guid UserId { get; }
+
+    /// <summary>
+    /// Хозяйство — контекст текущей операции записи (ТЗ §15). Пока авторизации нет,
+    /// это дефолтное хозяйство; после этапа B — выбранное хозяйство из HTTP-контекста.
+    /// Новые записи справочников/операций штампуются этим CompanyId.
+    /// </summary>
+    Guid CompanyId { get; }
 }

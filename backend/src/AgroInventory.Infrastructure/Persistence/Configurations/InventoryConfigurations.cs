@@ -17,6 +17,9 @@ public sealed class InventoryItemConfiguration : IEntityTypeConfiguration<Invent
         b.HasIndex(x => x.Status);
         b.HasIndex(x => x.ItemType);
         b.HasIndex(x => x.Name);
+        b.HasIndex(x => x.CompanyId);
+
+        b.HasOne<Company>().WithMany().HasForeignKey(x => x.CompanyId).OnDelete(DeleteBehavior.Restrict);
 
         b.HasOne(x => x.MergedIntoItem)
             .WithMany()

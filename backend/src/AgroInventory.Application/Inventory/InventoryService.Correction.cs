@@ -62,6 +62,7 @@ public sealed partial class InventoryService
         var movement = new InventoryMovement
         {
             Id = Guid.NewGuid(),
+            CompanyId = CompanyId,
             ChemicalId = request.ChemicalId,
             WarehouseId = request.WarehouseId,
             MovementType = MovementType.Correction,
@@ -162,6 +163,7 @@ public sealed partial class InventoryService
             var group = new PackageGroup
             {
                 Id = Guid.NewGuid(),
+                CompanyId = stock.Balance.CompanyId,
                 ChemicalId = stock.Balance.ChemicalId,
                 WarehouseId = stock.Balance.WarehouseId,
                 UnitType = g.UnitType,
@@ -179,6 +181,7 @@ public sealed partial class InventoryService
             var opened = new OpenedPackage
             {
                 Id = Guid.NewGuid(),
+                CompanyId = stock.Balance.CompanyId,
                 ChemicalId = stock.Balance.ChemicalId,
                 WarehouseId = stock.Balance.WarehouseId,
                 UnitType = o.UnitType,

@@ -9,6 +9,10 @@ namespace AgroInventory.Domain.Entities;
 public class InventoryItem
 {
     public Guid Id { get; set; }
+
+    /// <summary>Хозяйство-владелец позиции (ТЗ §12). Складская позиция принадлежит одному хозяйству.</summary>
+    public Guid CompanyId { get; set; }
+
     public ItemType ItemType { get; set; }
     public string Name { get; set; } = string.Empty;
     public ItemStatus Status { get; set; } = ItemStatus.Active;

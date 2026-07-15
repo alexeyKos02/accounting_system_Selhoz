@@ -11,7 +11,12 @@ public sealed class CropConfiguration : IEntityTypeConfiguration<Crop>
         b.ToTable("crops");
         b.HasKey(x => x.Id);
         b.Property(x => x.Name).HasMaxLength(200).IsRequired();
-        b.HasIndex(x => x.Name).IsUnique();
+
+        // CompanyId nullable: NULL — системная культура, общая для всех хозяйств (ТЗ §8).
+        // Имя уникально в пределах хозяйства (у системных — среди системных).
+        b.HasIndex(x => new { x.CompanyId, x.Name }).IsUnique();
+
+        b.HasOne<Company>().WithMany().HasForeignKey(x => x.CompanyId).OnDelete(DeleteBehavior.Restrict);
     }
 }
 
@@ -22,7 +27,11 @@ public sealed class WarehouseConfiguration : IEntityTypeConfiguration<Warehouse>
         b.ToTable("warehouses");
         b.HasKey(x => x.Id);
         b.Property(x => x.Number).HasMaxLength(100).IsRequired();
-        b.HasIndex(x => x.Number).IsUnique();
+
+        // Номер склада уникален в пределах хозяйства (ТЗ §11).
+        b.HasIndex(x => new { x.CompanyId, x.Number }).IsUnique();
+
+        b.HasOne<Company>().WithMany().HasForeignKey(x => x.CompanyId).OnDelete(DeleteBehavior.Restrict);
     }
 }
 
@@ -33,6 +42,10 @@ public sealed class FieldConfiguration : IEntityTypeConfiguration<Field>
         b.ToTable("fields");
         b.HasKey(x => x.Id);
         b.Property(x => x.Number).HasMaxLength(100).IsRequired();
-        b.HasIndex(x => x.Number).IsUnique();
+
+        // Номер поля уникален в пределах хозяйства (ТЗ §7).
+        b.HasIndex(x => new { x.CompanyId, x.Number }).IsUnique();
+
+        b.HasOne<Company>().WithMany().HasForeignKey(x => x.CompanyId).OnDelete(DeleteBehavior.Restrict);
     }
 }
