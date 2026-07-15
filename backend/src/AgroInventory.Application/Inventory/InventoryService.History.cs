@@ -22,6 +22,9 @@ public sealed partial class InventoryService
         var stock = await LoadStockAsync(movement.ChemicalId, movement.WarehouseId, ct, createBalance: true);
         var old = Snapshot(movement);
 
+        if (movement.MovementType == MovementType.Transfer)
+            throw new ConflictException("Перемещения редактируются отдельной операцией. Создайте обратное перемещение при ошибке.");
+
         // Откатываем старый эффект, применяем новые значения.
         ReverseEffect(movement, stock);
 
@@ -72,6 +75,9 @@ public sealed partial class InventoryService
 
         var stock = await LoadStockAsync(movement.ChemicalId, movement.WarehouseId, ct, createBalance: true);
         var old = Snapshot(movement);
+
+        if (movement.MovementType == MovementType.Transfer)
+            throw new ConflictException("Перемещения нельзя удалить из истории. Создайте обратное перемещение при ошибке.");
 
         ReverseEffect(movement, stock);
         movement.IsDeleted = true;

@@ -2,6 +2,7 @@ using AgroInventory.Application.Abstractions;
 using AgroInventory.Application.Common;
 using AgroInventory.Application.Security;
 using AgroInventory.Domain.Entities;
+using AgroInventory.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace AgroInventory.Application.Fields;
@@ -12,15 +13,17 @@ public sealed class FieldService
     private readonly IApplicationDbContext _db;
     private readonly ICurrentUser _currentUser;
     private readonly CompanyContextService _companyContext;
+    private readonly IAuditLogger _audit;
     private readonly TimeProvider _clock;
 
     public FieldService(
         IApplicationDbContext db, ICurrentUser currentUser,
-        CompanyContextService companyContext, TimeProvider clock)
+        CompanyContextService companyContext, IAuditLogger audit, TimeProvider clock)
     {
         _db = db;
         _currentUser = currentUser;
         _companyContext = companyContext;
+        _audit = audit;
         _clock = clock;
     }
 
@@ -41,6 +44,14 @@ public sealed class FieldService
                 f.CurrentCropId,
                 f.CurrentCrop != null ? f.CurrentCrop.Name : null))
             .ToListAsync(ct);
+    }
+
+    public async Task<FieldDto> GetAsync(Guid id, CancellationToken ct = default)
+    {
+        var access = await _companyContext.RequireAsync(ct);
+        if (!access.HasFullScope)
+            access.RequireField(id);
+        return await GetByIdAsync(id, ct);
     }
 
     public async Task<FieldDto> CreateAsync(CreateFieldRequest request, CancellationToken ct = default)
@@ -69,6 +80,8 @@ public sealed class FieldService
             UpdatedAt = now,
         };
         _db.Fields.Add(field);
+        _audit.Log(AuditAction.Create, "Field", field.Id, null,
+            new { field.Number, field.AreaHectares, field.CurrentCropId });
         await _db.SaveChangesAsync(ct);
         return await GetByIdAsync(field.Id, ct);
     }
@@ -89,10 +102,13 @@ public sealed class FieldService
         if (request.CurrentCropId is { } cropId && !await _db.Crops.AnyAsync(c => c.Id == cropId, ct))
             throw NotFoundException.For("Культура", cropId);
 
+        var old = new { field.Number, field.AreaHectares, field.CurrentCropId };
         field.Number = number;
         field.AreaHectares = request.AreaHectares;
         field.CurrentCropId = request.CurrentCropId;
         field.UpdatedAt = _clock.GetUtcNow();
+        _audit.Log(AuditAction.Update, "Field", field.Id, old,
+            new { field.Number, field.AreaHectares, field.CurrentCropId });
         await _db.SaveChangesAsync(ct);
         return await GetByIdAsync(field.Id, ct);
     }

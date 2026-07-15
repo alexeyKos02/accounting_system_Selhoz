@@ -12,6 +12,8 @@ public sealed record AuditQuery(
 
 public sealed record AuditLogDto(
     Guid Id,
+    Guid? CompanyId,
+    string? CompanyName,
     DateTimeOffset CreatedAt,
     Guid UserId,
     string UserName,

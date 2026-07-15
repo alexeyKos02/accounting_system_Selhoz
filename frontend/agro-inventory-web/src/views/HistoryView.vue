@@ -31,6 +31,7 @@ const typeOptions = [
   { label: 'Приход', value: MovementType.Income },
   { label: 'Списание', value: MovementType.Outcome },
   { label: 'Корректировка', value: MovementType.Correction },
+  { label: 'Перемещение', value: MovementType.Transfer },
 ]
 
 // Фильтры на мобилке прячем за кнопкой (как на странице «Химия»). На десктопе видны всегда.
@@ -63,10 +64,10 @@ async function load() {
 watch(filters, () => { clearTimeout(timer); timer = setTimeout(load, 300) }, { deep: true })
 
 function typeLabel(t?: number) {
-  return t === MovementType.Income ? 'Приход' : t === MovementType.Outcome ? 'Списание' : 'Корректировка'
+  return t === MovementType.Income ? 'Приход' : t === MovementType.Outcome ? 'Списание' : t === MovementType.Transfer ? 'Перемещение' : 'Корректировка'
 }
 function typeSeverity(t?: number) {
-  return t === MovementType.Income ? 'success' : t === MovementType.Outcome ? 'warn' : 'info'
+  return t === MovementType.Income ? 'success' : t === MovementType.Outcome ? 'warn' : t === MovementType.Transfer ? 'secondary' : 'info'
 }
 function fmtDate(iso: string) { return new Date(iso).toLocaleString('ru-RU') }
 function fail(e: unknown, fb: string) {
@@ -173,10 +174,14 @@ onMounted(async () => { await ref_.load(); await load() })
         <PvColumn header="Дата"><template #body="{ data }">{{ fmtDate(data.occurredAt) }}</template></PvColumn>
         <PvColumn header="Тип"><template #body="{ data }">
           <PvTag :value="typeLabel(data.movementType)" :severity="typeSeverity(data.movementType)" />
+          <PvTag v-if="data.fieldTreatmentId" value="Обработка поля" severity="info" class="ml" />
         </template></PvColumn>
         <PvColumn field="chemicalName" header="Химия" />
         <PvColumn header="Кол-во, л"><template #body="{ data }">{{ data.quantityLiters }}</template></PvColumn>
-        <PvColumn header="Склад"><template #body="{ data }">Склад {{ data.warehouseNumber }}</template></PvColumn>
+        <PvColumn header="Склад"><template #body="{ data }">
+          <span v-if="data.movementType === MovementType.Transfer">Склад {{ data.warehouseNumber }} → {{ data.targetWarehouseNumber }}</span>
+          <span v-else>Склад {{ data.warehouseNumber }}</span>
+        </template></PvColumn>
         <PvColumn field="cropName" header="Культура" />
         <PvColumn header="Поле"><template #body="{ data }">{{ data.fieldNumber ?? '—' }}</template></PvColumn>
         <PvColumn header="" style="width: 5rem"><template #body="{ data }">
@@ -199,9 +204,11 @@ onMounted(async () => { await ref_.load(); await load() })
           <div class="history-card__name">{{ item.chemicalName }}</div>
           <div class="history-card__meta">
             <span class="history-card__qty">{{ item.quantityLiters }} л</span>
-            <span>Склад {{ item.warehouseNumber }}</span>
+            <span v-if="item.movementType === MovementType.Transfer">Склад {{ item.warehouseNumber }} → {{ item.targetWarehouseNumber }}</span>
+            <span v-else>Склад {{ item.warehouseNumber }}</span>
             <span v-if="item.cropName">{{ item.cropName }}</span>
             <span v-if="item.fieldNumber">Поле {{ item.fieldNumber }}</span>
+            <span v-if="item.fieldTreatmentId" class="history-card__link">Обработка поля</span>
           </div>
         </article>
         <div v-if="!items.length" class="empty">Операций нет</div>
@@ -212,7 +219,11 @@ onMounted(async () => { await ref_.load(); await load() })
     <PvDialog v-model:visible="detailDialog" header="Операция" modal :style="{ width: '30rem' }">
       <div v-if="detail" class="detail">
         <div><b>{{ typeLabel(detail.movementType) }}</b> · {{ fmtDate(detail.occurredAt!) }}</div>
-        <div>{{ detail.chemicalName }} — {{ detail.quantityLiters }} л · Склад {{ detail.warehouseNumber }}</div>
+        <PvTag v-if="detail.fieldTreatmentId" value="Создано обработкой поля" severity="info" class="fit" />
+        <div v-if="detail.movementType === MovementType.Transfer">
+          {{ detail.chemicalName }} — {{ detail.quantityLiters }} л · Склад {{ detail.warehouseNumber }} → {{ detail.targetWarehouseNumber }}
+        </div>
+        <div v-else>{{ detail.chemicalName }} — {{ detail.quantityLiters }} л · Склад {{ detail.warehouseNumber }}</div>
         <div v-if="detail.cropName">Культура: {{ detail.cropName }}</div>
         <div v-if="detail.fieldNumber">Поле: {{ detail.fieldNumber }}</div>
         <div v-if="detail.comment">Комментарий: {{ detail.comment }}</div>
@@ -222,8 +233,8 @@ onMounted(async () => { await ref_.load(); await load() })
         </div>
       </div>
       <template #footer>
-        <PvButton label="Удалить" text severity="danger" @click="remove(detail!)" />
-        <PvButton label="Редактировать" outlined @click="openEdit" />
+        <PvButton v-if="detail?.movementType !== MovementType.Transfer" label="Удалить" text severity="danger" @click="remove(detail!)" />
+        <PvButton v-if="detail?.movementType !== MovementType.Transfer" label="Редактировать" outlined @click="openEdit" />
         <PvButton label="Закрыть" text @click="detailDialog = false" />
       </template>
     </PvDialog>
@@ -258,6 +269,8 @@ onMounted(async () => { await ref_.load(); await load() })
 .head__actions { display: flex; gap: 0.5rem; align-items: center; }
 .filters { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 .mt { margin-top: 1rem; }
+.ml { margin-left: 0.35rem; }
+.fit { width: fit-content; }
 .empty { padding: 1rem; color: #6b7280; }
 /* Кнопка-фильтр и карточки — только на мобилке. */
 .filter-toggle { display: none; }
@@ -291,6 +304,7 @@ onMounted(async () => { await ref_.load(); await load() })
   .history-card__name { font-weight: 700; color: #374151; }
   .history-card__meta { display: flex; flex-wrap: wrap; gap: 0.35rem 0.75rem; color: #4b5563; font-size: 0.9rem; }
   .history-card__qty { font-weight: 600; color: #111827; }
+  .history-card__link { color: #15803d; font-weight: 600; }
 }
 .detail { display: flex; flex-direction: column; gap: 0.4rem; }
 .sources ul { margin: 0.25rem 0; padding-left: 1.25rem; }

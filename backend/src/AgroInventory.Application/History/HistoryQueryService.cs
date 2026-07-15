@@ -27,10 +27,16 @@ public sealed class HistoryQueryService
                 m.QuantityLiters,
                 m.WarehouseId,
                 m.Warehouse.Number,
+                m.TargetWarehouseId,
+                m.TargetWarehouse != null ? m.TargetWarehouse.Number : null,
                 m.CropId,
                 m.Crop != null ? m.Crop.Name : null,
                 m.FieldId,
                 m.Field != null ? m.Field.Number : null,
+                _db.FieldTreatments
+                    .Where(t => t.MovementId == m.Id)
+                    .Select(t => (Guid?)t.Id)
+                    .FirstOrDefault(),
                 m.Comment))
             .ToListAsync(ct);
     }
@@ -44,8 +50,14 @@ public sealed class HistoryQueryService
                 x.Id, x.OccurredAt, x.MovementType, x.ChemicalId, ChemicalName = x.Chemical.Name,
                 x.QuantityLiters, x.UnitType, x.PackageVolumeLiters, x.PackagesQuantity,
                 x.WarehouseId, WarehouseNumber = x.Warehouse.Number,
+                x.TargetWarehouseId, TargetWarehouseNumber = x.TargetWarehouse != null ? x.TargetWarehouse.Number : null,
                 x.CropId, CropName = x.Crop != null ? x.Crop.Name : null,
-                x.FieldId, FieldNumber = x.Field != null ? x.Field.Number : null, x.Comment,
+                x.FieldId, FieldNumber = x.Field != null ? x.Field.Number : null,
+                FieldTreatmentId = _db.FieldTreatments
+                    .Where(t => t.MovementId == x.Id)
+                    .Select(t => (Guid?)t.Id)
+                    .FirstOrDefault(),
+                x.Comment,
                 Sources = x.Details.Select(d => new HistoryDetailSourceDto(
                     d.SourceType, d.UnitType, d.PackageVolumeLiters, d.QuantityLiters, d.PackagesQuantity)).ToList(),
             })
@@ -55,7 +67,8 @@ public sealed class HistoryQueryService
         return new HistoryDetailDto(
             m.Id, m.OccurredAt, m.MovementType, m.ChemicalId, m.ChemicalName, m.QuantityLiters,
             m.UnitType, m.PackageVolumeLiters, m.PackagesQuantity, m.WarehouseId, m.WarehouseNumber,
-            m.CropId, m.CropName, m.FieldId, m.FieldNumber, m.Comment, m.Sources);
+            m.TargetWarehouseId, m.TargetWarehouseNumber, m.CropId, m.CropName, m.FieldId, m.FieldNumber,
+            m.FieldTreatmentId, m.Comment, m.Sources);
     }
 
     private static IQueryable<InventoryMovement> Filter(IQueryable<InventoryMovement> q, HistoryQuery f)

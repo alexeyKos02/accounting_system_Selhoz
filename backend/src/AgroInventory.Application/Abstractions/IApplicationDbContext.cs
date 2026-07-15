@@ -16,6 +16,8 @@ public interface IApplicationDbContext
     DbSet<ChemicalCrop> ChemicalCrops { get; }
     DbSet<Warehouse> Warehouses { get; }
     DbSet<Field> Fields { get; }
+    DbSet<FieldSeason> FieldSeasons { get; }
+    DbSet<FieldTreatment> FieldTreatments { get; }
     DbSet<ChemicalStockBalance> ChemicalStockBalances { get; }
     DbSet<PackageGroup> PackageGroups { get; }
     DbSet<OpenedPackage> OpenedPackages { get; }

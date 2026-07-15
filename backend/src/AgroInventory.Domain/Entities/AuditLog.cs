@@ -10,6 +10,9 @@ namespace AgroInventory.Domain.Entities;
 public class AuditLog
 {
     public Guid Id { get; set; }
+    public Guid? CompanyId { get; set; }
+    public Company? Company { get; set; }
+
     public Guid UserId { get; set; }
     public User User { get; set; } = null!;
 

@@ -33,6 +33,8 @@ public static class DependencyInjection
         services.AddScoped<CropService>();
         services.AddScoped<WarehouseService>();
         services.AddScoped<FieldService>();
+        services.AddScoped<FieldSeasonService>();
+        services.AddScoped<FieldTreatmentService>();
         services.AddScoped<ChemicalService>();
         services.AddScoped<InventoryService>();
         services.AddScoped<ReceiptQueryService>();

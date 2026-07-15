@@ -59,6 +59,8 @@ public sealed partial class InventoryService
             request.Comment,
             now);
         Recompute(stock);
+        _audit.Log(AuditAction.Create, "InventoryMovement", movement.Id, null,
+            new { movement.MovementType, movement.ChemicalId, movement.WarehouseId, movement.QuantityLiters, movement.OccurredAt });
         await _db.SaveChangesAsync(ct);
 
         return new IncomeResultDto(stock.Balance!.TotalLiters, movement.Id);

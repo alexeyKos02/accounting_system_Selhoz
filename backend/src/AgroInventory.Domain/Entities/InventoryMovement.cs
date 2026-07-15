@@ -19,6 +19,10 @@ public class InventoryMovement
     public Guid WarehouseId { get; set; }
     public Warehouse Warehouse { get; set; } = null!;
 
+    /// <summary>Склад назначения для перемещения между складами.</summary>
+    public Guid? TargetWarehouseId { get; set; }
+    public Warehouse? TargetWarehouse { get; set; }
+
     public MovementType MovementType { get; set; }
 
     /// <summary>Величина операции в литрах (для income/outcome/correction).</summary>

@@ -17,6 +17,7 @@ public sealed class InventoryMovementConfiguration : IEntityTypeConfiguration<In
         b.Property(x => x.Comment).HasMaxLength(2000);
 
         b.HasIndex(x => new { x.ChemicalId, x.WarehouseId });
+        b.HasIndex(x => x.TargetWarehouseId);
         b.HasIndex(x => x.OccurredAt);
         b.HasIndex(x => x.IsDeleted);
         b.HasIndex(x => x.CompanyId);
@@ -24,6 +25,7 @@ public sealed class InventoryMovementConfiguration : IEntityTypeConfiguration<In
         b.HasOne<Company>().WithMany().HasForeignKey(x => x.CompanyId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne(x => x.Chemical).WithMany().HasForeignKey(x => x.ChemicalId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne(x => x.Warehouse).WithMany().HasForeignKey(x => x.WarehouseId).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne(x => x.TargetWarehouse).WithMany().HasForeignKey(x => x.TargetWarehouseId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne(x => x.Crop).WithMany().HasForeignKey(x => x.CropId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne(x => x.Field).WithMany().HasForeignKey(x => x.FieldId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne(x => x.CreatedByUser).WithMany().HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);

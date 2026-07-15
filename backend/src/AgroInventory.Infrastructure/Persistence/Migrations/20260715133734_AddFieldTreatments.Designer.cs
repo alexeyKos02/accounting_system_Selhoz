@@ -3,6 +3,7 @@ using System;
 using AgroInventory.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AgroInventory.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AgroInventoryDbContext))]
-    partial class AgroInventoryDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260715133734_AddFieldTreatments")]
+    partial class AddFieldTreatments
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -68,10 +71,6 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("action");
 
-                    b.Property<Guid?>("CompanyId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("company_id");
-
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -103,9 +102,6 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("Action")
                         .HasDatabaseName("ix_audit_logs_action");
-
-                    b.HasIndex("CompanyId")
-                        .HasDatabaseName("ix_audit_logs_company_id");
 
                     b.HasIndex("CreatedAt")
                         .HasDatabaseName("ix_audit_logs_created_at");
@@ -513,70 +509,6 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                     b.ToTable("fields", (string)null);
                 });
 
-            modelBuilder.Entity("AgroInventory.Domain.Entities.FieldSeason", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("Comment")
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)")
-                        .HasColumnName("comment");
-
-                    b.Property<Guid>("CompanyId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("company_id");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<Guid>("CropId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("crop_id");
-
-                    b.Property<Guid>("FieldId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("field_id");
-
-                    b.Property<DateTimeOffset?>("FinishedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("finished_at");
-
-                    b.Property<string>("Name")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("name");
-
-                    b.Property<DateTimeOffset?>("StartedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("started_at");
-
-                    b.Property<DateTimeOffset>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.Property<int>("Year")
-                        .HasColumnType("integer")
-                        .HasColumnName("year");
-
-                    b.HasKey("Id")
-                        .HasName("pk_field_seasons");
-
-                    b.HasIndex("CompanyId")
-                        .HasDatabaseName("ix_field_seasons_company_id");
-
-                    b.HasIndex("CropId")
-                        .HasDatabaseName("ix_field_seasons_crop_id");
-
-                    b.HasIndex("FieldId", "Year")
-                        .HasDatabaseName("ix_field_seasons_field_id_year");
-
-                    b.ToTable("field_seasons", (string)null);
-                });
-
             modelBuilder.Entity("AgroInventory.Domain.Entities.FieldTreatment", b =>
                 {
                     b.Property<Guid>("Id")
@@ -801,10 +733,6 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("unit_type");
 
-                    b.Property<Guid?>("TargetWarehouseId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("target_warehouse_id");
-
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
@@ -833,9 +761,6 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("OccurredAt")
                         .HasDatabaseName("ix_inventory_movements_occurred_at");
-
-                    b.HasIndex("TargetWarehouseId")
-                        .HasDatabaseName("ix_inventory_movements_target_warehouse_id");
 
                     b.HasIndex("WarehouseId")
                         .HasDatabaseName("ix_inventory_movements_warehouse_id");
@@ -1216,20 +1141,12 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("AgroInventory.Domain.Entities.AuditLog", b =>
                 {
-                    b.HasOne("AgroInventory.Domain.Entities.Company", "Company")
-                        .WithMany()
-                        .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_audit_logs_companies_company_id");
-
                     b.HasOne("AgroInventory.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_audit_logs_users_user_id");
-
-                    b.Navigation("Company");
 
                     b.Navigation("User");
                 });
@@ -1358,34 +1275,6 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_fields_crops_current_crop_id");
 
                     b.Navigation("CurrentCrop");
-                });
-
-            modelBuilder.Entity("AgroInventory.Domain.Entities.FieldSeason", b =>
-                {
-                    b.HasOne("AgroInventory.Domain.Entities.Company", null)
-                        .WithMany()
-                        .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_field_seasons_companies_company_id");
-
-                    b.HasOne("AgroInventory.Domain.Entities.Crop", "Crop")
-                        .WithMany()
-                        .HasForeignKey("CropId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_field_seasons_crops_crop_id");
-
-                    b.HasOne("AgroInventory.Domain.Entities.Field", "Field")
-                        .WithMany()
-                        .HasForeignKey("FieldId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_field_seasons_fields_field_id");
-
-                    b.Navigation("Crop");
-
-                    b.Navigation("Field");
                 });
 
             modelBuilder.Entity("AgroInventory.Domain.Entities.FieldTreatment", b =>
@@ -1520,12 +1409,6 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_inventory_movements_warehouses_warehouse_id");
 
-                    b.HasOne("AgroInventory.Domain.Entities.Warehouse", "TargetWarehouse")
-                        .WithMany()
-                        .HasForeignKey("TargetWarehouseId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_inventory_movements_warehouses_target_warehouse_id");
-
                     b.Navigation("Chemical");
 
                     b.Navigation("CreatedByUser");
@@ -1533,8 +1416,6 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                     b.Navigation("Crop");
 
                     b.Navigation("Field");
-
-                    b.Navigation("TargetWarehouse");
 
                     b.Navigation("Warehouse");
                 });

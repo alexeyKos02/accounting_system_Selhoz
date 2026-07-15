@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
 import { cropsApi, fieldsApi } from '../api/reference'
 import type { CropDto, FieldDto } from '../api/types'
 import { ApiError } from '../api/http'
 
 const toast = useToast()
+const router = useRouter()
 const fields = ref<FieldDto[]>([])
 const crops = ref<CropDto[]>([])
 const loading = ref(false)
@@ -62,6 +64,10 @@ function openEdit(field: FieldDto) {
   editDialog.value = true
 }
 
+function openDetail(field: FieldDto) {
+  if (field.id) router.push({ name: 'field-detail', params: { id: field.id } })
+}
+
 async function saveEdit() {
   if (!editId.value) return
   const number = editNumber.value.trim()
@@ -101,7 +107,7 @@ onMounted(async () => {
       <PvButton label="Добавить" icon="pi pi-plus" :loading="saving" @click="add" />
     </div>
 
-    <PvDataTable :value="fields" :loading="loading" data-key="id" class="mt">
+    <PvDataTable :value="fields" :loading="loading" data-key="id" class="mt clickable-table" @row-click="openDetail($event.data)">
       <PvColumn field="number" header="Номер" />
       <PvColumn header="Площадь">
         <template #body="{ data }">
@@ -117,7 +123,7 @@ onMounted(async () => {
       </PvColumn>
       <PvColumn header="" style="width: 6rem">
         <template #body="{ data }">
-          <PvButton icon="pi pi-pencil" text rounded @click="openEdit(data)" />
+          <PvButton icon="pi pi-pencil" text rounded @click.stop="openEdit(data)" />
         </template>
       </PvColumn>
     </PvDataTable>
@@ -150,6 +156,8 @@ onMounted(async () => {
 <style scoped>
 .field-form { display: grid; grid-template-columns: minmax(10rem, 1fr) minmax(8rem, 12rem) minmax(12rem, 1fr) auto; gap: 0.5rem; align-items: center; }
 .mt { margin-top: 1rem; }
+.clickable-table :deep(.p-datatable-tbody > tr) { cursor: pointer; }
+.clickable-table :deep(.p-datatable-tbody > tr:hover) { background: #f8fafc; }
 .w-full { width: 100%; }
 .muted { color: #6b7280; }
 .dialog-fields { display: flex; flex-direction: column; gap: 0.75rem; }

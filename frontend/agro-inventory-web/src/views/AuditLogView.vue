@@ -46,7 +46,7 @@ onMounted(load)
 
 <template>
   <section class="page">
-    <h1 class="page__title">Audit log</h1>
+    <h1 class="page__title">Журнал изменений</h1>
 
     <div class="filters">
       <PvSelect v-model="filters.action" :options="actionOptions" option-label="label" option-value="value" show-clear placeholder="Действие" />
@@ -55,6 +55,7 @@ onMounted(load)
 
     <PvDataTable :value="items" :loading="loading" data-key="id" class="mt">
       <PvColumn header="Дата"><template #body="{ data }">{{ fmtDate(data.createdAt) }}</template></PvColumn>
+      <PvColumn header="Хозяйство"><template #body="{ data }">{{ data.companyName ?? '—' }}</template></PvColumn>
       <PvColumn header="Действие"><template #body="{ data }"><PvTag :value="actionLabel(data.action)" /></template></PvColumn>
       <PvColumn header="Сущность"><template #body="{ data }">{{ entityLabel(data.entityType) }}</template></PvColumn>
       <PvColumn field="userName" header="Пользователь" />

@@ -22,10 +22,13 @@ public sealed record HistoryItemDto(
     decimal QuantityLiters,
     Guid WarehouseId,
     string WarehouseNumber,
+    Guid? TargetWarehouseId,
+    string? TargetWarehouseNumber,
     Guid? CropId,
     string? CropName,
     Guid? FieldId,
     string? FieldNumber,
+    Guid? FieldTreatmentId,
     string? Comment);
 
 public sealed record HistoryDetailSourceDto(
@@ -48,10 +51,13 @@ public sealed record HistoryDetailDto(
     int? PackagesQuantity,
     Guid WarehouseId,
     string WarehouseNumber,
+    Guid? TargetWarehouseId,
+    string? TargetWarehouseNumber,
     Guid? CropId,
     string? CropName,
     Guid? FieldId,
     string? FieldNumber,
+    Guid? FieldTreatmentId,
     string? Comment,
     IReadOnlyList<HistoryDetailSourceDto> Sources);
 

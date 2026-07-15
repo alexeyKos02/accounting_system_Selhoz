@@ -78,6 +78,17 @@ public sealed partial class InventoryService
 
         _db.InventoryMovements.Add(movement);
         Recompute(stock);
+        _audit.Log(AuditAction.Create, "InventoryMovement", movement.Id, null,
+            new
+            {
+                movement.MovementType,
+                movement.ChemicalId,
+                movement.WarehouseId,
+                movement.CropId,
+                movement.FieldId,
+                movement.QuantityLiters,
+                movement.OccurredAt
+            });
         await _db.SaveChangesAsync(ct);
 
         return new OutcomeResultDto(plan.FulfilledLiters, stock.Balance?.TotalLiters ?? 0, movement.Id);

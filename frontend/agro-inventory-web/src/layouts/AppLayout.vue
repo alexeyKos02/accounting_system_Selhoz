@@ -16,9 +16,12 @@ const route = useRoute()
 // Разделы, доступные в режиме «Все хозяйства» (ТЗ §15): агрегированная химия (§17) и глобальные
 // админ-страницы, не зависящие от хозяйства. Прочие (приход/склады/дашборд и т.п.) требуют выбора
 // конкретного хозяйства; общий дашборд и др. общие экраны — позже (этап G).
-const allModeRoutes = ['dashboard', 'chemicals', 'receipts', 'canonical-chemicals', 'users', 'backups', 'audit-log', 'settings']
+const allModeRoutes = computed(() => [
+  'dashboard', 'chemicals', 'receipts', 'canonical-chemicals', 'users', 'backups', 'settings',
+  ...(auth.isSystemAdmin ? ['audit-log'] : []),
+])
 const showAllModePlaceholder = computed(() =>
-  ctx.isAllCompaniesMode && !allModeRoutes.includes(route.name as string))
+  ctx.isAllCompaniesMode && !allModeRoutes.value.includes(route.name as string))
 
 // Пункт навигации виден, если у пользователя есть право (или он SystemAdmin). ТЗ §5.
 type NavItem = { to: string; key: string; icon?: string; perm?: string; systemAdmin?: boolean }
@@ -34,22 +37,24 @@ const primaryAll: NavItem[] = [
 const secondaryAll: NavItem[] = [
   { to: '/inventory-check', key: 'nav.inventoryCheck', perm: Permissions.InventoryView },
   { to: '/receipts', key: 'nav.receipts', perm: Permissions.ReceiptsView },
+  { to: '/transfers', key: 'nav.transfers', perm: Permissions.TransfersView },
   { to: '/corrections', key: 'nav.corrections', perm: Permissions.AdjustmentsCreate },
   { to: '/crops', key: 'nav.crops', perm: Permissions.InventoryView },
   { to: '/warehouses', key: 'nav.warehouses', perm: Permissions.WarehousesView },
   { to: '/fields', key: 'nav.fields', perm: Permissions.FieldsView },
+  { to: '/field-treatments', key: 'nav.fieldTreatments', perm: Permissions.TreatmentsView },
   { to: '/members', key: 'nav.members', perm: Permissions.UsersView },
   { to: '/users', key: 'nav.users', systemAdmin: true },
   { to: '/canonical-chemicals', key: 'nav.canonicalChemicals', systemAdmin: true },
   { to: '/archive', key: 'nav.archive', perm: Permissions.InventoryView },
-  { to: '/audit-log', key: 'nav.auditLog', systemAdmin: true },
+  { to: '/audit-log', key: 'nav.auditLog', perm: Permissions.AuditView },
   { to: '/backups', key: 'nav.backups', systemAdmin: true },
   { to: '/settings', key: 'nav.settings' },
 ]
 
 function visible(i: NavItem) {
   if (i.systemAdmin) return auth.isSystemAdmin
-  if (i.perm) return ctx.has(i.perm)
+  if (i.perm) return auth.isSystemAdmin || ctx.has(i.perm)
   return true
 }
 

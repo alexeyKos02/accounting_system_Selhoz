@@ -51,3 +51,46 @@ public sealed class FieldConfiguration : IEntityTypeConfiguration<Field>
         b.HasOne(x => x.CurrentCrop).WithMany().HasForeignKey(x => x.CurrentCropId).OnDelete(DeleteBehavior.Restrict);
     }
 }
+
+public sealed class FieldTreatmentConfiguration : IEntityTypeConfiguration<FieldTreatment>
+{
+    public void Configure(EntityTypeBuilder<FieldTreatment> b)
+    {
+        b.ToTable("field_treatments");
+        b.HasKey(x => x.Id);
+        b.Property(x => x.QuantityLiters).HasPrecision(18, 3);
+        b.Property(x => x.RateLitersPerHectare).HasPrecision(18, 3);
+        b.Property(x => x.Comment).HasMaxLength(2000);
+
+        b.HasIndex(x => x.CompanyId);
+        b.HasIndex(x => x.FieldId);
+        b.HasIndex(x => x.TreatedAt);
+        b.HasIndex(x => x.MovementId).IsUnique();
+
+        b.HasOne<Company>().WithMany().HasForeignKey(x => x.CompanyId).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne(x => x.Field).WithMany().HasForeignKey(x => x.FieldId).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne(x => x.Chemical).WithMany().HasForeignKey(x => x.ChemicalId).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne(x => x.Warehouse).WithMany().HasForeignKey(x => x.WarehouseId).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne(x => x.Crop).WithMany().HasForeignKey(x => x.CropId).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne(x => x.Movement).WithMany().HasForeignKey(x => x.MovementId).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne(x => x.CreatedByUser).WithMany().HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
+public sealed class FieldSeasonConfiguration : IEntityTypeConfiguration<FieldSeason>
+{
+    public void Configure(EntityTypeBuilder<FieldSeason> b)
+    {
+        b.ToTable("field_seasons");
+        b.HasKey(x => x.Id);
+        b.Property(x => x.Name).HasMaxLength(200);
+        b.Property(x => x.Comment).HasMaxLength(2000);
+
+        b.HasIndex(x => x.CompanyId);
+        b.HasIndex(x => new { x.FieldId, x.Year });
+
+        b.HasOne<Company>().WithMany().HasForeignKey(x => x.CompanyId).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne(x => x.Field).WithMany().HasForeignKey(x => x.FieldId).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne(x => x.Crop).WithMany().HasForeignKey(x => x.CropId).OnDelete(DeleteBehavior.Restrict);
+    }
+}

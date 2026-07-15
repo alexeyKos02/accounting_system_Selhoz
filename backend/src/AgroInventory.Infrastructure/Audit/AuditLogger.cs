@@ -33,6 +33,7 @@ public sealed class AuditLogger : IAuditLogger
         _db.AuditLogs.Add(new AuditLog
         {
             Id = Guid.NewGuid(),
+            CompanyId = _currentUser.SelectedCompanyId,
             UserId = _currentUser.UserId,
             Action = action,
             EntityType = entityType,

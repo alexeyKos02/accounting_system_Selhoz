@@ -30,6 +30,8 @@ public class AgroInventoryDbContext : DbContext, IApplicationDbContext
     public DbSet<ChemicalCrop> ChemicalCrops => Set<ChemicalCrop>();
     public DbSet<Warehouse> Warehouses => Set<Warehouse>();
     public DbSet<Field> Fields => Set<Field>();
+    public DbSet<FieldSeason> FieldSeasons => Set<FieldSeason>();
+    public DbSet<FieldTreatment> FieldTreatments => Set<FieldTreatment>();
     public DbSet<ChemicalStockBalance> ChemicalStockBalances => Set<ChemicalStockBalance>();
     public DbSet<PackageGroup> PackageGroups => Set<PackageGroup>();
     public DbSet<OpenedPackage> OpenedPackages => Set<OpenedPackage>();
@@ -53,6 +55,8 @@ public class AgroInventoryDbContext : DbContext, IApplicationDbContext
         modelBuilder.Entity<InventoryItem>().HasQueryFilter(x => x.CompanyId == _tenantId);
         modelBuilder.Entity<Warehouse>().HasQueryFilter(x => x.CompanyId == _tenantId);
         modelBuilder.Entity<Field>().HasQueryFilter(x => x.CompanyId == _tenantId);
+        modelBuilder.Entity<FieldSeason>().HasQueryFilter(x => x.CompanyId == _tenantId);
+        modelBuilder.Entity<FieldTreatment>().HasQueryFilter(x => x.CompanyId == _tenantId);
         modelBuilder.Entity<ChemicalStockBalance>().HasQueryFilter(x => x.CompanyId == _tenantId);
         modelBuilder.Entity<PackageGroup>().HasQueryFilter(x => x.CompanyId == _tenantId);
         modelBuilder.Entity<OpenedPackage>().HasQueryFilter(x => x.CompanyId == _tenantId);

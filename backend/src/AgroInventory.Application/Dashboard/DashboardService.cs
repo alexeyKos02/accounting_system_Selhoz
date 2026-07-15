@@ -69,10 +69,16 @@ public sealed class DashboardService
                 m.QuantityLiters,
                 m.WarehouseId,
                 m.Warehouse.Number,
+                m.TargetWarehouseId,
+                m.TargetWarehouse != null ? m.TargetWarehouse.Number : null,
                 m.CropId,
                 m.Crop != null ? m.Crop.Name : null,
                 m.FieldId,
                 m.Field != null ? m.Field.Number : null,
+                _db.FieldTreatments
+                    .Where(t => t.MovementId == m.Id)
+                    .Select(t => (Guid?)t.Id)
+                    .FirstOrDefault(),
                 m.Comment))
             .ToListAsync(ct);
 
@@ -157,14 +163,21 @@ public sealed class DashboardService
                 m.QuantityLiters,
                 m.WarehouseId,
                 m.Warehouse.Number,
+                m.TargetWarehouseId,
+                m.TargetWarehouse != null ? m.TargetWarehouse.Number : null,
                 m.CropId,
                 m.Crop != null ? m.Crop.Name : null,
                 m.FieldId,
                 m.Field != null ? m.Field.Number : null,
+                _db.FieldTreatments
+                    .Where(t => t.MovementId == m.Id)
+                    .Select(t => (Guid?)t.Id)
+                    .FirstOrDefault(),
                 m.Comment))
             .ToListAsync(ct);
         movements = movements
-            .Where(m => accessByCompany[m.CompanyId].CanAccessWarehouse(m.WarehouseId))
+            .Where(m => accessByCompany[m.CompanyId].CanAccessWarehouse(m.WarehouseId)
+                        && (m.TargetWarehouseId is null || accessByCompany[m.CompanyId].CanAccessWarehouse(m.TargetWarehouseId.Value)))
             .ToList();
 
         var stockByChemical = stockRows
@@ -220,10 +233,13 @@ public sealed class DashboardService
                 m.QuantityLiters,
                 m.WarehouseId,
                 m.WarehouseNumber,
+                m.TargetWarehouseId,
+                m.TargetWarehouseNumber,
                 m.CropId,
                 m.CropName,
                 m.FieldId,
                 m.FieldNumber,
+                m.FieldTreatmentId,
                 m.Comment))
             .ToList();
 
@@ -266,9 +282,12 @@ public sealed class DashboardService
         decimal QuantityLiters,
         Guid WarehouseId,
         string WarehouseNumber,
+        Guid? TargetWarehouseId,
+        string? TargetWarehouseNumber,
         Guid? CropId,
         string? CropName,
         Guid? FieldId,
         string? FieldNumber,
+        Guid? FieldTreatmentId,
         string? Comment);
 }

@@ -2,10 +2,18 @@ import { apiGet, apiPut, apiDelete } from './http'
 import type { components } from './schema'
 
 type S = components['schemas']
-export type HistoryItemDto = S['HistoryItemDto']
-export type HistoryDetailDto = S['HistoryDetailDto']
+export type HistoryItemDto = S['HistoryItemDto'] & {
+  targetWarehouseId?: string | null
+  targetWarehouseNumber?: string | null
+  fieldTreatmentId?: string | null
+}
+export type HistoryDetailDto = S['HistoryDetailDto'] & {
+  targetWarehouseId?: string | null
+  targetWarehouseNumber?: string | null
+  fieldTreatmentId?: string | null
+}
 export type EditMovementRequest = S['EditMovementRequest']
-export type AuditLogDto = S['AuditLogDto']
+export type AuditLogDto = S['AuditLogDto'] & { companyId?: string | null; companyName?: string | null }
 
 export interface HistoryFilters {
   dateFrom?: string
@@ -45,7 +53,7 @@ export const auditApi = {
   list: (f: AuditFilters = {}) => apiGet<AuditLogDto[]>(`/audit-log${toQuery(f as Record<string, unknown>)}`),
 }
 
-// MovementType: 1 income, 2 outcome, 3 correction
-export const MovementType = { Income: 1, Outcome: 2, Correction: 3 } as const
+// MovementType: 1 income, 2 outcome, 3 correction, 4 transfer
+export const MovementType = { Income: 1, Outcome: 2, Correction: 3, Transfer: 4 } as const
 // AuditAction: 1 create, 2 update, 3 delete, 4 restore, 5 archive, 6 merge
 export const AuditAction = { Create: 1, Update: 2, Delete: 3, Restore: 4, Archive: 5, Merge: 6 } as const

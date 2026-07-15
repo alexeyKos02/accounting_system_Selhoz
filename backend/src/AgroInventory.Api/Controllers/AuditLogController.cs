@@ -6,13 +6,12 @@ using Microsoft.AspNetCore.Mvc;
 namespace AgroInventory.Api.Controllers;
 
 /// <summary>
-/// Журнал аудита (ТЗ §21). Пока audit_logs без company_id (ТЗ §23 — этап I), запись нельзя
-/// фильтровать по хозяйству, поэтому чтение временно ограничено SystemAdmin, чтобы избежать
-/// межхозяйственной утечки. Аудит для Owner/CompanyAdmin в рамках хозяйства — этап I.
+/// Журнал аудита (ТЗ §21): SystemAdmin видит общий журнал, пользователь с audit.view —
+/// только записи выбранного хозяйства.
 /// </summary>
 [ApiController]
 [Route("api/audit-log")]
-[Authorize(Policy = AuthorizationPolicies.SystemAdmin)]
+[Authorize]
 public sealed class AuditLogController : ControllerBase
 {
     private readonly AuditQueryService _service;

@@ -85,6 +85,34 @@ public sealed record OutcomePreviewResponse(
 
 public sealed record OutcomeResultDto(decimal WrittenOffLiters, decimal TotalLiters, Guid MovementId);
 
+// ---------- Перемещение между складами (этап I) ----------
+
+public sealed record TransferRequest(
+    Guid ChemicalId,
+    Guid SourceWarehouseId,
+    Guid TargetWarehouseId,
+    decimal QuantityLiters,
+    bool AllowOpenNewPackage,
+    DateTimeOffset? OccurredAt,
+    string? Comment);
+
+public sealed record TransferResultDto(
+    Guid MovementId,
+    decimal SourceTotalLiters,
+    decimal TargetTotalLiters);
+
+public sealed record TransferItemDto(
+    Guid Id,
+    DateTimeOffset OccurredAt,
+    Guid ChemicalId,
+    string ChemicalName,
+    Guid SourceWarehouseId,
+    string SourceWarehouseNumber,
+    Guid TargetWarehouseId,
+    string TargetWarehouseNumber,
+    decimal QuantityLiters,
+    string? Comment);
+
 // ---------- Корректировка (ТЗ §13) ----------
 
 public enum CorrectionMode { SetActual = 0, AdjustByDelta = 1, DetailedInventory = 2 }

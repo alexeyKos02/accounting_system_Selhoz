@@ -16,10 +16,12 @@ public sealed class AuditLogConfiguration : IEntityTypeConfiguration<AuditLog>
         b.Property(x => x.OldValues).HasColumnType("jsonb");
         b.Property(x => x.NewValues).HasColumnType("jsonb");
 
+        b.HasIndex(x => x.CompanyId);
         b.HasIndex(x => x.CreatedAt);
         b.HasIndex(x => x.EntityType);
         b.HasIndex(x => x.Action);
 
+        b.HasOne(x => x.Company).WithMany().HasForeignKey(x => x.CompanyId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
     }
 }

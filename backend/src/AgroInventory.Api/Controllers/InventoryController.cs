@@ -39,6 +39,16 @@ public sealed class InventoryController : ControllerBase
     public async Task<OutcomeResultDto> Outcome(OutcomeRequest request, CancellationToken ct) =>
         await _service.OutcomeAsync(request, ct);
 
+    [HttpGet("transfers")]
+    [RequireCompany(Permissions.TransfersView)]
+    public async Task<IReadOnlyList<TransferItemDto>> Transfers(CancellationToken ct) =>
+        await _service.GetTransfersAsync(ct);
+
+    [HttpPost("transfers")]
+    [RequireCompany(Permissions.TransfersCreate)]
+    public async Task<TransferResultDto> Transfer(TransferRequest request, CancellationToken ct) =>
+        await _service.TransferAsync(request, ct);
+
     /// <summary>Предпросмотр корректировки: было/станет/разница (ТЗ §13.6).</summary>
     [HttpPost("correction/preview")]
     [RequireCompany(Permissions.InventoryView)]

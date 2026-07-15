@@ -19,12 +19,17 @@ public sealed class FieldsController : ControllerBase
     public async Task<IReadOnlyList<FieldDto>> GetAll(CancellationToken ct) =>
         await _service.GetAllAsync(ct);
 
+    [HttpGet("{id:guid}")]
+    [RequireCompany(Permissions.FieldsView)]
+    public async Task<FieldDto> GetById(Guid id, CancellationToken ct) =>
+        await _service.GetAsync(id, ct);
+
     [HttpPost]
     [RequireCompany(Permissions.FieldsManage)]
     public async Task<ActionResult<FieldDto>> Create(CreateFieldRequest request, CancellationToken ct)
     {
         var field = await _service.CreateAsync(request, ct);
-        return CreatedAtAction(nameof(GetAll), new { id = field.Id }, field);
+        return CreatedAtAction(nameof(GetById), new { id = field.Id }, field);
     }
 
     [HttpPut("{id:guid}")]
