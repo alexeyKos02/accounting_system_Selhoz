@@ -8,6 +8,7 @@ export default {
     chemicals: 'Химия',
     income: 'Приход',
     outcome: 'Списание',
+    receipts: 'Приходы',
     corrections: 'Корректировка',
     inventoryCheck: 'Инвентаризация склада',
     history: 'История',

@@ -35,6 +35,7 @@ public static class DependencyInjection
         services.AddScoped<FieldService>();
         services.AddScoped<ChemicalService>();
         services.AddScoped<InventoryService>();
+        services.AddScoped<ReceiptQueryService>();
         services.AddScoped<HistoryQueryService>();
         services.AddScoped<AuditQueryService>();
         services.AddScoped<DashboardService>();
