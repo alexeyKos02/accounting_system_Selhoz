@@ -34,8 +34,9 @@ public static class DependencyInjection
                 .UseSnakeCaseNamingConvention());
 
         services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<AgroInventoryDbContext>());
-        services.AddSingleton<ICurrentUser, SystemCurrentUser>();
         services.AddScoped<IAuditLogger, AuditLogger>();
+
+        AddAuth(services, configuration);
 
         services.AddScoped<IDatabaseHealthService, DatabaseHealthService>();
 
@@ -44,6 +45,27 @@ public static class DependencyInjection
         AddGpt(services, configuration);
 
         return services;
+    }
+
+    /// <summary>
+    /// Аутентификация (ТЗ §1): хэшер паролей, JWT-сервис, текущий пользователь из HTTP-контекста,
+    /// первичный bootstrap администратора. Схема JwtBearer настраивается в Api (там пакет).
+    /// </summary>
+    private static void AddAuth(IServiceCollection services, IConfiguration configuration)
+    {
+        var authOptions = new AuthOptions();
+        configuration.GetSection(AuthOptions.SectionName).Bind(authOptions);
+        services.AddSingleton(authOptions);
+
+        var bootstrapOptions = new AdminBootstrapOptions();
+        configuration.GetSection(AdminBootstrapOptions.SectionName).Bind(bootstrapOptions);
+        services.AddSingleton(bootstrapOptions);
+
+        services.AddHttpContextAccessor();
+        services.AddScoped<ICurrentUser, HttpCurrentUser>();
+        services.AddSingleton<IPasswordHasher, PasswordHasherAdapter>();
+        services.AddSingleton<IJwtTokenService, JwtTokenService>();
+        services.AddScoped<AuthBootstrapper>();
     }
 
     /// <summary>

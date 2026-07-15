@@ -33,6 +33,16 @@ public sealed class ExceptionHandlingMiddleware
             };
             await Write(context, problem, StatusCodes.Status400BadRequest);
         }
+        catch (UnauthorizedException ex)
+        {
+            await Write(context, Problem(ex.Message, StatusCodes.Status401Unauthorized, "Не авторизован"),
+                StatusCodes.Status401Unauthorized);
+        }
+        catch (ForbiddenException ex)
+        {
+            await Write(context, Problem(ex.Message, StatusCodes.Status403Forbidden, "Доступ запрещён"),
+                StatusCodes.Status403Forbidden);
+        }
         catch (NotFoundException ex)
         {
             await Write(context, Problem(ex.Message, StatusCodes.Status404NotFound, "Не найдено"),

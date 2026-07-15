@@ -1,4 +1,5 @@
 using AgroInventory.Application.Audit;
+using AgroInventory.Application.Auth;
 using AgroInventory.Application.Chemicals;
 using AgroInventory.Application.Crops;
 using AgroInventory.Application.Dashboard;
@@ -22,6 +23,8 @@ public static class DependencyInjection
     {
         services.AddSingleton(TimeProvider.System);
 
+        services.AddScoped<AuthService>();
+        services.AddScoped<AdminUserService>();
         services.AddScoped<CropService>();
         services.AddScoped<WarehouseService>();
         services.AddScoped<FieldService>();

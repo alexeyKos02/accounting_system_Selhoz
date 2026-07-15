@@ -1,7 +1,13 @@
+using System.Text;
+using AgroInventory.Api.Security;
 using AgroInventory.Application;
 using AgroInventory.Infrastructure;
 using AgroInventory.Infrastructure.Persistence;
+using AgroInventory.Infrastructure.Security;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,12 +24,25 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(o =>
 {
-    o.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    o.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "AgroInventory API",
         Version = "v1",
-        Description = "Учёт складских остатков агрохимии (MVP)."
+        Description = "Учёт складских остатков агрохимии."
     });
+
+    // Bearer-авторизация в Swagger UI: кнопка Authorize для JWT (ТЗ §1).
+    var scheme = new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" },
+    };
+    o.AddSecurityDefinition("Bearer", scheme);
+    o.AddSecurityRequirement(new OpenApiSecurityRequirement { [scheme] = Array.Empty<string>() });
 });
 
 // CORS для фронтенда (GitHub Pages + локальная разработка).
@@ -37,6 +56,32 @@ builder.Services.AddCors(options =>
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
+// Аутентификация JWT Bearer (ТЗ §1). Параметры — из секции Jwt (ключ подписи в проде из env).
+var authOptions = new AuthOptions();
+builder.Configuration.GetSection(AuthOptions.SectionName).Bind(authOptions);
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(o =>
+    {
+        o.MapInboundClaims = false; // не переименовывать "sub"/"email" в длинные URI-claim'ы
+        o.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = authOptions.Issuer,
+            ValidateAudience = true,
+            ValidAudience = authOptions.Audience,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authOptions.SigningKey)),
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.FromSeconds(30),
+        };
+    });
+
+builder.Services.AddAuthorization(o =>
+    o.AddPolicy(AuthorizationPolicies.SystemAdmin, p =>
+        p.RequireClaim(JwtClaimNames.IsSystemAdmin, "true")));
+
 var app = builder.Build();
 
 // Применяем миграции при старте (удобно для Railway). Ошибку не роняем — приложение должно
@@ -47,6 +92,10 @@ if (app.Configuration.GetValue("Database:MigrateOnStartup", true))
     {
         using var scope = app.Services.CreateScope();
         scope.ServiceProvider.GetRequiredService<AgroInventoryDbContext>().Database.Migrate();
+
+        // Первичный системный администратор (ТЗ §25.2). Идемпотентно.
+        scope.ServiceProvider.GetRequiredService<AuthBootstrapper>()
+            .EnsureSeedAdminAsync().GetAwaiter().GetResult();
     }
     catch (Exception ex)
     {
@@ -67,8 +116,7 @@ app.UseMiddleware<AgroInventory.Api.Middleware.ExceptionHandlingMiddleware>();
 
 app.UseCors(CorsPolicy);
 
-// Заготовка под будущую авторизацию (ТЗ §6, §31.9): пока пропускаем всё.
-// AddAuthentication/AddAuthorization с реальными схемами добавятся при вводе авторизации.
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

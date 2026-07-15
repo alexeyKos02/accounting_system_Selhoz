@@ -22,6 +22,7 @@ public interface IApplicationDbContext
     DbSet<InventoryMovementDetail> InventoryMovementDetails { get; }
     DbSet<AuditLog> AuditLogs { get; }
     DbSet<User> Users { get; }
+    DbSet<RefreshToken> RefreshTokens { get; }
     DbSet<Company> Companies { get; }
     DbSet<CompanyMembership> CompanyMemberships { get; }
     DbSet<MembershipAccessScope> MembershipAccessScopes { get; }

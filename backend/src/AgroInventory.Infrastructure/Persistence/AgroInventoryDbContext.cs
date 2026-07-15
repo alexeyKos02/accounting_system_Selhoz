@@ -25,6 +25,7 @@ public class AgroInventoryDbContext : DbContext, IApplicationDbContext
     public DbSet<InventoryMovementDetail> InventoryMovementDetails => Set<InventoryMovementDetail>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<User> Users => Set<User>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<Company> Companies => Set<Company>();
     public DbSet<CompanyMembership> CompanyMemberships => Set<CompanyMembership>();
     public DbSet<MembershipAccessScope> MembershipAccessScopes => Set<MembershipAccessScope>();

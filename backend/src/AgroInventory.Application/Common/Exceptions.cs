@@ -15,6 +15,18 @@ public sealed class ConflictException : Exception
     public ConflictException(string message) : base(message) { }
 }
 
+/// <summary>Не аутентифицирован / неверные учётные данные → HTTP 401.</summary>
+public sealed class UnauthorizedException : Exception
+{
+    public UnauthorizedException(string message) : base(message) { }
+}
+
+/// <summary>Нет прав на действие → HTTP 403.</summary>
+public sealed class ForbiddenException : Exception
+{
+    public ForbiddenException(string message) : base(message) { }
+}
+
 /// <summary>Ошибка валидации входных данных → HTTP 400. Ключ — поле, значения — сообщения.</summary>
 public sealed class ValidationException : Exception
 {
