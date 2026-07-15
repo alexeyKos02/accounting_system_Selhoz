@@ -18,6 +18,7 @@ const routes: RouteRecordRaw[] = [
       { path: 'chemicals/create', name: 'chemical-create', component: () => import('../views/ChemicalCreateView.vue') },
       { path: 'chemicals/:id', name: 'chemical-detail', component: () => import('../views/ChemicalDetailView.vue'), props: true },
       { path: 'income', name: 'income', component: () => import('../views/IncomeView.vue') },
+      { path: 'income/bulk', name: 'income-bulk', component: () => import('../views/BulkIncomeView.vue') },
       { path: 'outcome', name: 'outcome', component: () => import('../views/OutcomeView.vue') },
       { path: 'corrections', name: 'corrections', component: () => import('../views/CorrectionsView.vue') },
       { path: 'inventory-check', name: 'inventory-check', component: () => import('../views/InventoryCheckView.vue') },

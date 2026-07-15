@@ -19,6 +19,15 @@ public sealed class InventoryController : ControllerBase
     public async Task<IncomeResultDto> Income(IncomeRequest request, CancellationToken ct) =>
         await _service.IncomeAsync(request, ct);
 
+    [HttpGet("income/bulk/options")]
+    public async Task<BulkIncomeOptionsDto> BulkIncomeOptions(
+        [FromQuery] Guid canonicalChemicalId, CancellationToken ct) =>
+        await _service.GetBulkIncomeOptionsAsync(canonicalChemicalId, ct);
+
+    [HttpPost("income/bulk")]
+    public async Task<BulkIncomeResultDto> BulkIncome(BulkIncomeRequest request, CancellationToken ct) =>
+        await _service.BulkIncomeAsync(request, ct);
+
     /// <summary>План списания без сохранения — для предупреждений и «Показать план» (ТЗ §11.10).</summary>
     [HttpPost("outcome/preview")]
     [RequireCompany(Permissions.WriteoffsView)]

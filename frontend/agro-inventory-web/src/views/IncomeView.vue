@@ -142,8 +142,12 @@ onMounted(async () => {
   <section class="page form">
     <div class="head">
       <h1 class="page__title">Приход химии</h1>
-      <PvButton v-if="gptConfigured && !done" label="Распознать (ИИ)" icon="pi pi-sparkles"
-        outlined @click="gptDialog = true" />
+      <div class="head__actions">
+        <PvButton label="В несколько хозяйств" icon="pi pi-building" outlined
+          @click="router.push({ name: 'income-bulk' })" />
+        <PvButton v-if="gptConfigured && !done" label="Распознать (ИИ)" icon="pi pi-sparkles"
+          outlined @click="gptDialog = true" />
+      </div>
     </div>
 
     <GptParseDialog v-model:visible="gptDialog" @apply="applySuggestion" />
@@ -203,6 +207,7 @@ onMounted(async () => {
 <style scoped>
 .form { max-width: 620px; }
 .head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.head__actions { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
 .field { display: flex; flex-direction: column; gap: 0.25rem; margin-bottom: 1rem; }
 .field > span { font-weight: 600; font-size: 0.9rem; }
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
@@ -213,6 +218,8 @@ onMounted(async () => {
 
 /* Мобилка: числовые поля не должны распирать экран (min-width инпутов) */
 @media (max-width: 640px) {
+  .head { align-items: flex-start; flex-direction: column; }
+  .head__actions { justify-content: flex-start; }
   .grid2 { grid-template-columns: 1fr; }
   .grid2 :deep(.p-inputtext) { min-width: 0; width: 100%; }
   /* iOS Safari: нативный datetime-local имеет большую min-width — сдавливаем до контейнера */

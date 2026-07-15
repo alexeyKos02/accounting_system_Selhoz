@@ -15,6 +15,39 @@ public sealed record IncomeRequest(
 
 public sealed record IncomeResultDto(decimal TotalLiters, Guid MovementId);
 
+// ---------- Приход сразу в несколько хозяйств (этап F) ----------
+
+public sealed record BulkIncomeCompanyOptionDto(
+    Guid CompanyId,
+    string CompanyName,
+    Guid? ChemicalId,
+    string? ChemicalName,
+    IReadOnlyList<BulkIncomeWarehouseOptionDto> Warehouses,
+    string? BlockedReason);
+
+public sealed record BulkIncomeWarehouseOptionDto(Guid WarehouseId, string WarehouseNumber);
+
+public sealed record BulkIncomeOptionsDto(IReadOnlyList<BulkIncomeCompanyOptionDto> Companies);
+
+public sealed record BulkIncomeLineRequest(Guid CompanyId, Guid WarehouseId, decimal Quantity);
+
+public sealed record BulkIncomeRequest(
+    Guid CanonicalChemicalId,
+    UnitType Unit,
+    decimal? PackageVolumeLiters,
+    DateTimeOffset? OccurredAt,
+    string? Comment,
+    IReadOnlyList<BulkIncomeLineRequest> Lines);
+
+public sealed record BulkIncomeLineResultDto(
+    Guid CompanyId,
+    Guid ChemicalId,
+    Guid WarehouseId,
+    decimal TotalLiters,
+    Guid MovementId);
+
+public sealed record BulkIncomeResultDto(IReadOnlyList<BulkIncomeLineResultDto> Lines);
+
 // ---------- Списание (ТЗ §11) ----------
 
 public sealed record OutcomeSourceDto(MovementSourceType Type, Guid? Id);
