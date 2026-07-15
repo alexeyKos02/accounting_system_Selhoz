@@ -42,10 +42,12 @@ public sealed class FieldConfiguration : IEntityTypeConfiguration<Field>
         b.ToTable("fields");
         b.HasKey(x => x.Id);
         b.Property(x => x.Number).HasMaxLength(100).IsRequired();
+        b.Property(x => x.AreaHectares).HasPrecision(18, 3);
 
         // Номер поля уникален в пределах хозяйства (ТЗ §7).
         b.HasIndex(x => new { x.CompanyId, x.Number }).IsUnique();
 
         b.HasOne<Company>().WithMany().HasForeignKey(x => x.CompanyId).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne(x => x.CurrentCrop).WithMany().HasForeignKey(x => x.CurrentCropId).OnDelete(DeleteBehavior.Restrict);
     }
 }

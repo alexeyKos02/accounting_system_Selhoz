@@ -34,7 +34,12 @@ public sealed class FieldService
 
         return await query
             .OrderBy(f => f.Number)
-            .Select(f => new FieldDto(f.Id, f.Number))
+            .Select(f => new FieldDto(
+                f.Id,
+                f.Number,
+                f.AreaHectares,
+                f.CurrentCropId,
+                f.CurrentCrop != null ? f.CurrentCrop.Name : null))
             .ToListAsync(ct);
     }
 
@@ -46,6 +51,10 @@ public sealed class FieldService
 
         if (await _db.Fields.AnyAsync(f => f.Number.ToLower() == number.ToLower(), ct))
             throw new ConflictException($"Поле «{number}» уже существует.");
+        if (request.AreaHectares is < 0)
+            throw new ValidationException(nameof(request.AreaHectares), "Площадь не может быть отрицательной.");
+        if (request.CurrentCropId is { } cropId && !await _db.Crops.AnyAsync(c => c.Id == cropId, ct))
+            throw NotFoundException.For("Культура", cropId);
 
         var now = _clock.GetUtcNow();
         // company_id — выбранное хозяйство (валидировано CompanyContextService, ТЗ §7, §24).
@@ -54,12 +63,14 @@ public sealed class FieldService
             Id = Guid.NewGuid(),
             CompanyId = _currentUser.CompanyId,
             Number = number,
+            AreaHectares = request.AreaHectares,
+            CurrentCropId = request.CurrentCropId,
             CreatedAt = now,
             UpdatedAt = now,
         };
         _db.Fields.Add(field);
         await _db.SaveChangesAsync(ct);
-        return new FieldDto(field.Id, field.Number);
+        return await GetByIdAsync(field.Id, ct);
     }
 
     public async Task<FieldDto> UpdateAsync(Guid id, UpdateFieldRequest request, CancellationToken ct = default)
@@ -73,10 +84,29 @@ public sealed class FieldService
 
         if (await _db.Fields.AnyAsync(f => f.Id != id && f.Number.ToLower() == number.ToLower(), ct))
             throw new ConflictException($"Поле «{number}» уже существует.");
+        if (request.AreaHectares is < 0)
+            throw new ValidationException(nameof(request.AreaHectares), "Площадь не может быть отрицательной.");
+        if (request.CurrentCropId is { } cropId && !await _db.Crops.AnyAsync(c => c.Id == cropId, ct))
+            throw NotFoundException.For("Культура", cropId);
 
         field.Number = number;
+        field.AreaHectares = request.AreaHectares;
+        field.CurrentCropId = request.CurrentCropId;
         field.UpdatedAt = _clock.GetUtcNow();
         await _db.SaveChangesAsync(ct);
-        return new FieldDto(field.Id, field.Number);
+        return await GetByIdAsync(field.Id, ct);
+    }
+
+    private async Task<FieldDto> GetByIdAsync(Guid id, CancellationToken ct)
+    {
+        return await _db.Fields
+            .Where(f => f.Id == id)
+            .Select(f => new FieldDto(
+                f.Id,
+                f.Number,
+                f.AreaHectares,
+                f.CurrentCropId,
+                f.CurrentCrop != null ? f.CurrentCrop.Name : null))
+            .FirstAsync(ct);
     }
 }

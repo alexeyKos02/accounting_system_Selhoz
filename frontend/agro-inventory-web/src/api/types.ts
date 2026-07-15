@@ -5,7 +5,11 @@ type S = components['schemas']
 
 export type CropDto = S['CropDto']
 export type WarehouseDto = S['WarehouseDto']
-export type FieldDto = S['FieldDto']
+export type FieldDto = S['FieldDto'] & {
+  areaHectares?: number | null
+  currentCropId?: string | null
+  currentCropName?: string | null
+}
 export type ChemicalListItemDto = S['ChemicalListItemDto']
 export type ChemicalDetailDto = S['ChemicalDetailDto']
 export type ArchivedChemicalDto = S['ArchivedChemicalDto']

@@ -18,6 +18,8 @@ export const warehousesApi = {
 // Поля/участки (справочник для списания)
 export const fieldsApi = {
   list: () => apiGet<FieldDto[]>('/fields'),
-  create: (number: string) => apiPost<FieldDto>('/fields', { number }),
-  update: (id: string, number: string) => apiPut<FieldDto>(`/fields/${id}`, { number }),
+  create: (body: { number: string; areaHectares?: number | null; currentCropId?: string | null }) =>
+    apiPost<FieldDto>('/fields', body),
+  update: (id: string, body: { number: string; areaHectares?: number | null; currentCropId?: string | null }) =>
+    apiPut<FieldDto>(`/fields/${id}`, body),
 }

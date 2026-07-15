@@ -143,7 +143,7 @@ async function quickAddField() {
   const n = newField.value.trim()
   if (!n) return
   try {
-    const f = await fieldsApi.create(n)
+    const f = await fieldsApi.create({ number: n })
     newField.value = ''
     await ref_.reloadFields()
     fieldId.value = f.id ?? null

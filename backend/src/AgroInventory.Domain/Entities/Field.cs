@@ -9,6 +9,9 @@ public class Field
     public Guid CompanyId { get; set; }
 
     public string Number { get; set; } = string.Empty;
+    public decimal? AreaHectares { get; set; }
+    public Guid? CurrentCropId { get; set; }
+    public Crop? CurrentCrop { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
 }
