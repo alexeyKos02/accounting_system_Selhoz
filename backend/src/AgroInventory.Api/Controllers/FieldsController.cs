@@ -1,4 +1,6 @@
+using AgroInventory.Api.Security;
 using AgroInventory.Application.Fields;
+using AgroInventory.Domain.Constants;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AgroInventory.Api.Controllers;
@@ -13,10 +15,12 @@ public sealed class FieldsController : ControllerBase
     public FieldsController(FieldService service) => _service = service;
 
     [HttpGet]
+    [RequireCompany(Permissions.FieldsView)]
     public async Task<IReadOnlyList<FieldDto>> GetAll(CancellationToken ct) =>
         await _service.GetAllAsync(ct);
 
     [HttpPost]
+    [RequireCompany(Permissions.FieldsManage)]
     public async Task<ActionResult<FieldDto>> Create(CreateFieldRequest request, CancellationToken ct)
     {
         var field = await _service.CreateAsync(request, ct);
@@ -24,6 +28,7 @@ public sealed class FieldsController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [RequireCompany(Permissions.FieldsManage)]
     public async Task<FieldDto> Update(Guid id, UpdateFieldRequest request, CancellationToken ct) =>
         await _service.UpdateAsync(id, request, ct);
 }

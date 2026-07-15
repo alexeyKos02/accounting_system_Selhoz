@@ -1,5 +1,7 @@
+using AgroInventory.Api.Security;
 using AgroInventory.Application.Common;
 using AgroInventory.Application.Gpt;
+using AgroInventory.Domain.Constants;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AgroInventory.Api.Controllers;
@@ -23,10 +25,12 @@ public sealed class GptController : ControllerBase
     public IActionResult Status() => Ok(new { configured = _service.IsConfigured });
 
     [HttpPost("parse-text")]
+    [RequireCompany(Permissions.InventoryManage)]
     public async Task<OperationSuggestionDto> ParseText(ParseTextRequest request, CancellationToken ct) =>
         await _service.ParseTextAsync(request.Text, ct);
 
     [HttpPost("parse-photo")]
+    [RequireCompany(Permissions.InventoryManage)]
     public async Task<OperationSuggestionDto> ParsePhoto(IFormFile file, CancellationToken ct)
     {
         if (file is null || file.Length == 0)
@@ -42,6 +46,7 @@ public sealed class GptController : ControllerBase
     }
 
     [HttpPost("enrich-chemical")]
+    [RequireCompany(Permissions.InventoryManage)]
     public async Task<ChemicalEnrichmentDto> EnrichChemical(EnrichChemicalRequest request, CancellationToken ct) =>
         await _service.EnrichChemicalAsync(request.Name, ct);
 }

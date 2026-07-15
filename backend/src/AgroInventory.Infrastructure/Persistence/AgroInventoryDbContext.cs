@@ -1,4 +1,5 @@
 using AgroInventory.Application.Abstractions;
+using AgroInventory.Domain.Constants;
 using AgroInventory.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,10 +8,20 @@ namespace AgroInventory.Infrastructure.Persistence;
 /// <summary>
 /// Контекст БД. Имена таблиц/колонок — snake_case (EFCore.NamingConventions),
 /// чтобы совпадать со схемой из ТЗ. Реализует IApplicationDbContext для слоя Application.
+///
+/// Изоляция данных по хозяйствам (ТЗ §24): глобальные query-фильтры на company-owned сущностях
+/// автоматически ограничивают чтения текущим хозяйством (_tenantId). Доступ к самому хозяйству
+/// валидируется в CompanyContextService до выполнения запросов.
 /// </summary>
 public class AgroInventoryDbContext : DbContext, IApplicationDbContext
 {
-    public AgroInventoryDbContext(DbContextOptions<AgroInventoryDbContext> options) : base(options) { }
+    private readonly Guid _tenantId;
+
+    public AgroInventoryDbContext(DbContextOptions<AgroInventoryDbContext> options, ICurrentUser? currentUser = null)
+        : base(options)
+    {
+        _tenantId = currentUser?.CompanyId ?? SystemIds.DefaultCompanyId;
+    }
 
     public DbSet<InventoryItem> InventoryItems => Set<InventoryItem>();
     public DbSet<ChemicalDetails> ChemicalDetails => Set<ChemicalDetails>();
@@ -35,5 +46,17 @@ public class AgroInventoryDbContext : DbContext, IApplicationDbContext
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AgroInventoryDbContext).Assembly);
+
+        // Глобальные фильтры изоляции по хозяйству (ТЗ §24). Ссылка на _tenantId (поле контекста)
+        // переоценивается EF для каждого запроса, поэтому фильтр берёт текущее хозяйство запроса.
+        modelBuilder.Entity<InventoryItem>().HasQueryFilter(x => x.CompanyId == _tenantId);
+        modelBuilder.Entity<Warehouse>().HasQueryFilter(x => x.CompanyId == _tenantId);
+        modelBuilder.Entity<Field>().HasQueryFilter(x => x.CompanyId == _tenantId);
+        modelBuilder.Entity<ChemicalStockBalance>().HasQueryFilter(x => x.CompanyId == _tenantId);
+        modelBuilder.Entity<PackageGroup>().HasQueryFilter(x => x.CompanyId == _tenantId);
+        modelBuilder.Entity<OpenedPackage>().HasQueryFilter(x => x.CompanyId == _tenantId);
+        modelBuilder.Entity<InventoryMovement>().HasQueryFilter(x => x.CompanyId == _tenantId);
+        // Культуры: своё хозяйство + системные (общие) культуры (ТЗ §8).
+        modelBuilder.Entity<Crop>().HasQueryFilter(x => x.CompanyId == _tenantId || x.IsSystem);
     }
 }

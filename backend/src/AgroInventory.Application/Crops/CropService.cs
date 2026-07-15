@@ -9,11 +9,13 @@ namespace AgroInventory.Application.Crops;
 public sealed class CropService
 {
     private readonly IApplicationDbContext _db;
+    private readonly ICurrentUser _currentUser;
     private readonly TimeProvider _clock;
 
-    public CropService(IApplicationDbContext db, TimeProvider clock)
+    public CropService(IApplicationDbContext db, ICurrentUser currentUser, TimeProvider clock)
     {
         _db = db;
+        _currentUser = currentUser;
         _clock = clock;
     }
 
@@ -37,7 +39,7 @@ public sealed class CropService
         var crop = new Crop
         {
             Id = Guid.NewGuid(),
-            CompanyId = Domain.Constants.SystemIds.DefaultCompanyId,
+            CompanyId = _currentUser.CompanyId,
             IsSystem = false,
             Name = name,
             CreatedAt = now,

@@ -16,6 +16,7 @@ public sealed partial class InventoryService
     public async Task<InventoryCheckSheetDto> GetCheckSheetAsync(Guid warehouseId, CancellationToken ct = default)
     {
         await EnsureWarehouseAsync(warehouseId, ct);
+        await RequireWarehouseAccessAsync(warehouseId, ct); // область доступа (ТЗ §6)
         var number = await _db.Warehouses.Where(w => w.Id == warehouseId).Select(w => w.Number).FirstAsync(ct);
 
         var rows = await _db.ChemicalStockBalances
@@ -55,6 +56,7 @@ public sealed partial class InventoryService
         InventoryCheckRequest request, CancellationToken ct = default)
     {
         await EnsureWarehouseAsync(request.WarehouseId, ct);
+        await RequireWarehouseAccessAsync(request.WarehouseId, ct); // область доступа (ТЗ §6)
 
         if (request.Entries.Count == 0)
             throw new ValidationException(nameof(request.Entries), "Ведомость пуста.");
@@ -112,7 +114,7 @@ public sealed partial class InventoryService
                 UnitType = UnitType.Liter,
                 OccurredAt = occurredAt,
                 Comment = comment,
-                CreatedByUserId = SystemUserId,
+                CreatedByUserId = CurrentUserId,
                 CreatedAt = now,
                 UpdatedAt = now,
             };

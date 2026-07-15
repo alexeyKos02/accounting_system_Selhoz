@@ -15,12 +15,14 @@ public sealed partial class ChemicalService
     private const string EntityType = "InventoryItem";
 
     private readonly IApplicationDbContext _db;
+    private readonly ICurrentUser _currentUser;
     private readonly IAuditLogger _audit;
     private readonly TimeProvider _clock;
 
-    public ChemicalService(IApplicationDbContext db, IAuditLogger audit, TimeProvider clock)
+    public ChemicalService(IApplicationDbContext db, ICurrentUser currentUser, IAuditLogger audit, TimeProvider clock)
     {
         _db = db;
+        _currentUser = currentUser;
         _audit = audit;
         _clock = clock;
     }

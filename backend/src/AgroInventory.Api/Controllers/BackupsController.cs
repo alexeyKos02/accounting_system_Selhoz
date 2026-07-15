@@ -1,12 +1,15 @@
+using AgroInventory.Api.Security;
 using AgroInventory.Application.Abstractions;
 using AgroInventory.Application.Backups;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AgroInventory.Api.Controllers;
 
-/// <summary>Резервные копии БД: список, создание, скачивание, восстановление (ТЗ §24).</summary>
+/// <summary>Резервные копии БД: список, создание, скачивание, восстановление (ТЗ §24). Только SystemAdmin.</summary>
 [ApiController]
 [Route("api/backups")]
+[Authorize(Policy = AuthorizationPolicies.SystemAdmin)]
 public sealed class BackupsController : ControllerBase
 {
     private readonly IBackupService _service;

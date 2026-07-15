@@ -15,6 +15,7 @@ public sealed partial class InventoryService
     {
         await EnsureActiveChemicalAsync(request.ChemicalId, ct);
         await EnsureWarehouseAsync(request.WarehouseId, ct);
+        await RequireWarehouseAccessAsync(request.WarehouseId, ct); // область доступа (ТЗ §6)
 
         var stock = await LoadStockAsync(request.ChemicalId, request.WarehouseId, ct);
         var state = BuildState(stock);
@@ -30,6 +31,7 @@ public sealed partial class InventoryService
     {
         await EnsureActiveChemicalAsync(request.ChemicalId, ct);
         await EnsureWarehouseAsync(request.WarehouseId, ct);
+        await RequireWarehouseAccessAsync(request.WarehouseId, ct); // область доступа (ТЗ §6)
 
         var stock = await LoadStockAsync(request.ChemicalId, request.WarehouseId, ct, createBalance: true);
         var state = BuildState(stock);
@@ -70,7 +72,7 @@ public sealed partial class InventoryService
             UnitType = UnitType.Liter,
             OccurredAt = request.OccurredAt ?? now,
             Comment = string.IsNullOrWhiteSpace(request.Comment) ? null : request.Comment.Trim(),
-            CreatedByUserId = SystemUserId,
+            CreatedByUserId = CurrentUserId,
             CreatedAt = now,
             UpdatedAt = now,
         };

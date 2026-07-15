@@ -1,4 +1,5 @@
 using AgroInventory.Application.Abstractions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AgroInventory.Api.Controllers;
@@ -6,9 +7,11 @@ namespace AgroInventory.Api.Controllers;
 /// <summary>
 /// Health-эндпоинты (ТЗ §29). Используются фронтом, в т.ч. для аварийного экрана
 /// восстановления: если БД недоступна/без схемы или бэкапы доступны из S3 — фронт реагирует.
+/// Доступны без аутентификации (экран восстановления показывается до входа).
 /// </summary>
 [ApiController]
 [Route("api/health")]
+[AllowAnonymous]
 public sealed class HealthController : ControllerBase
 {
     private readonly IDatabaseHealthService _databaseHealth;

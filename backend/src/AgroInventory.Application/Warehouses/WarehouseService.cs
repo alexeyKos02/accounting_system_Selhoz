@@ -1,5 +1,6 @@
 using AgroInventory.Application.Abstractions;
 using AgroInventory.Application.Common;
+using AgroInventory.Application.Security;
 using AgroInventory.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,19 +10,33 @@ namespace AgroInventory.Application.Warehouses;
 public sealed class WarehouseService
 {
     private readonly IApplicationDbContext _db;
+    private readonly ICurrentUser _currentUser;
+    private readonly CompanyContextService _companyContext;
     private readonly TimeProvider _clock;
 
-    public WarehouseService(IApplicationDbContext db, TimeProvider clock)
+    public WarehouseService(
+        IApplicationDbContext db, ICurrentUser currentUser,
+        CompanyContextService companyContext, TimeProvider clock)
     {
         _db = db;
+        _currentUser = currentUser;
+        _companyContext = companyContext;
         _clock = clock;
     }
 
-    public async Task<IReadOnlyList<WarehouseDto>> GetAllAsync(CancellationToken ct = default) =>
-        await _db.Warehouses
+    public async Task<IReadOnlyList<WarehouseDto>> GetAllAsync(CancellationToken ct = default)
+    {
+        // Ограничение по области доступа (ТЗ §6): при неполном scope — только разрешённые склады.
+        var access = await _companyContext.RequireAsync(ct);
+        var query = _db.Warehouses.AsQueryable();
+        if (!access.HasFullScope)
+            query = query.Where(w => access.WarehouseIds.Contains(w.Id));
+
+        return await query
             .OrderBy(w => w.Number)
             .Select(w => new WarehouseDto(w.Id, w.Number))
             .ToListAsync(ct);
+    }
 
     public async Task<WarehouseDto> CreateAsync(CreateWarehouseRequest request, CancellationToken ct = default)
     {
@@ -33,11 +48,11 @@ public sealed class WarehouseService
             throw new ConflictException($"Склад «{number}» уже существует.");
 
         var now = _clock.GetUtcNow();
-        // company_id — из контекста записи (ТЗ §11, §25); до авторизации это дефолтное хозяйство.
+        // company_id — выбранное хозяйство (валидировано CompanyContextService, ТЗ §11, §24).
         var warehouse = new Warehouse
         {
             Id = Guid.NewGuid(),
-            CompanyId = Domain.Constants.SystemIds.DefaultCompanyId,
+            CompanyId = _currentUser.CompanyId,
             Number = number,
             CreatedAt = now,
             UpdatedAt = now,

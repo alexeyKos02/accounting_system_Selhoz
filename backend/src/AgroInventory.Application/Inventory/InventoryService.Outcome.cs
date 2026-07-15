@@ -16,6 +16,7 @@ public sealed partial class InventoryService
 
         await EnsureActiveChemicalAsync(request.ChemicalId, ct);
         await EnsureWarehouseAsync(request.WarehouseId, ct);
+        await RequireWarehouseAccessAsync(request.WarehouseId, ct); // область доступа (ТЗ §6)
 
         var stock = await LoadStockAsync(request.ChemicalId, request.WarehouseId, ct);
         var plan = StockEngine.PlanOutcome(BuildState(stock), request.QuantityLiters, ToSource(request.Source));
@@ -33,7 +34,14 @@ public sealed partial class InventoryService
         await EnsureActiveChemicalAsync(request.ChemicalId, ct);
         await EnsureWarehouseAsync(request.WarehouseId, ct);
         await EnsureCropAsync(request.CropId, ct); // культура обязательна при списании (ТЗ §11.1)
-        if (request.FieldId is { } fieldId) await EnsureFieldAsync(fieldId, ct); // поле — необязательно
+
+        // Для списания нужен доступ и к складу, и к полю (ТЗ §6).
+        await RequireWarehouseAccessAsync(request.WarehouseId, ct);
+        if (request.FieldId is { } fieldId)
+        {
+            await EnsureFieldAsync(fieldId, ct); // поле — необязательно
+            await RequireFieldAccessAsync(fieldId, ct);
+        }
 
         var stock = await LoadStockAsync(request.ChemicalId, request.WarehouseId, ct);
         var plan = StockEngine.PlanOutcome(BuildState(stock), request.QuantityLiters, ToSource(request.Source));
@@ -61,7 +69,7 @@ public sealed partial class InventoryService
             FieldId = request.FieldId,
             OccurredAt = request.OccurredAt ?? now,
             Comment = string.IsNullOrWhiteSpace(request.Comment) ? null : request.Comment.Trim(),
-            CreatedByUserId = SystemUserId,
+            CreatedByUserId = CurrentUserId,
             CreatedAt = now,
             UpdatedAt = now,
         };

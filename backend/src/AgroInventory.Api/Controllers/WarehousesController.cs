@@ -1,4 +1,6 @@
+using AgroInventory.Api.Security;
 using AgroInventory.Application.Warehouses;
+using AgroInventory.Domain.Constants;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AgroInventory.Api.Controllers;
@@ -13,10 +15,12 @@ public sealed class WarehousesController : ControllerBase
     public WarehousesController(WarehouseService service) => _service = service;
 
     [HttpGet]
+    [RequireCompany(Permissions.WarehousesView)]
     public async Task<IReadOnlyList<WarehouseDto>> GetAll(CancellationToken ct) =>
         await _service.GetAllAsync(ct);
 
     [HttpPost]
+    [RequireCompany(Permissions.WarehousesManage)]
     public async Task<ActionResult<WarehouseDto>> Create(CreateWarehouseRequest request, CancellationToken ct)
     {
         var warehouse = await _service.CreateAsync(request, ct);
@@ -24,6 +28,7 @@ public sealed class WarehousesController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [RequireCompany(Permissions.WarehousesManage)]
     public async Task<WarehouseDto> Update(Guid id, UpdateWarehouseRequest request, CancellationToken ct) =>
         await _service.UpdateAsync(id, request, ct);
 }

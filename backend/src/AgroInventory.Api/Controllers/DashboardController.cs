@@ -1,4 +1,6 @@
+using AgroInventory.Api.Security;
 using AgroInventory.Application.Dashboard;
+using AgroInventory.Domain.Constants;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AgroInventory.Api.Controllers;
@@ -13,5 +15,6 @@ public sealed class DashboardController : ControllerBase
     public DashboardController(DashboardService service) => _service = service;
 
     [HttpGet]
+    [RequireCompany(Permissions.ReportsView)]
     public async Task<DashboardDto> Get(CancellationToken ct) => await _service.GetAsync(ct);
 }

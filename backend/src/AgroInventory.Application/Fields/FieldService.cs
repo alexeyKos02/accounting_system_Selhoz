@@ -1,5 +1,6 @@
 using AgroInventory.Application.Abstractions;
 using AgroInventory.Application.Common;
+using AgroInventory.Application.Security;
 using AgroInventory.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,19 +10,33 @@ namespace AgroInventory.Application.Fields;
 public sealed class FieldService
 {
     private readonly IApplicationDbContext _db;
+    private readonly ICurrentUser _currentUser;
+    private readonly CompanyContextService _companyContext;
     private readonly TimeProvider _clock;
 
-    public FieldService(IApplicationDbContext db, TimeProvider clock)
+    public FieldService(
+        IApplicationDbContext db, ICurrentUser currentUser,
+        CompanyContextService companyContext, TimeProvider clock)
     {
         _db = db;
+        _currentUser = currentUser;
+        _companyContext = companyContext;
         _clock = clock;
     }
 
-    public async Task<IReadOnlyList<FieldDto>> GetAllAsync(CancellationToken ct = default) =>
-        await _db.Fields
+    public async Task<IReadOnlyList<FieldDto>> GetAllAsync(CancellationToken ct = default)
+    {
+        // Ограничение по области доступа (ТЗ §6): при неполном scope — только разрешённые поля.
+        var access = await _companyContext.RequireAsync(ct);
+        var query = _db.Fields.AsQueryable();
+        if (!access.HasFullScope)
+            query = query.Where(f => access.FieldIds.Contains(f.Id));
+
+        return await query
             .OrderBy(f => f.Number)
             .Select(f => new FieldDto(f.Id, f.Number))
             .ToListAsync(ct);
+    }
 
     public async Task<FieldDto> CreateAsync(CreateFieldRequest request, CancellationToken ct = default)
     {
@@ -33,11 +48,11 @@ public sealed class FieldService
             throw new ConflictException($"Поле «{number}» уже существует.");
 
         var now = _clock.GetUtcNow();
-        // company_id — из контекста записи (ТЗ §7, §25); до авторизации это дефолтное хозяйство.
+        // company_id — выбранное хозяйство (валидировано CompanyContextService, ТЗ §7, §24).
         var field = new Field
         {
             Id = Guid.NewGuid(),
-            CompanyId = Domain.Constants.SystemIds.DefaultCompanyId,
+            CompanyId = _currentUser.CompanyId,
             Number = number,
             CreatedAt = now,
             UpdatedAt = now,

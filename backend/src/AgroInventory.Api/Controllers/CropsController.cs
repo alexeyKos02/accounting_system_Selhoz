@@ -1,4 +1,6 @@
+using AgroInventory.Api.Security;
 using AgroInventory.Application.Crops;
+using AgroInventory.Domain.Constants;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AgroInventory.Api.Controllers;
@@ -13,10 +15,12 @@ public sealed class CropsController : ControllerBase
     public CropsController(CropService service) => _service = service;
 
     [HttpGet]
+    [RequireCompany(Permissions.InventoryView)]
     public async Task<IReadOnlyList<CropDto>> GetAll(CancellationToken ct) =>
         await _service.GetAllAsync(ct);
 
     [HttpPost]
+    [RequireCompany(Permissions.InventoryManage)]
     public async Task<ActionResult<CropDto>> Create(CreateCropRequest request, CancellationToken ct)
     {
         var crop = await _service.CreateAsync(request, ct);
@@ -24,6 +28,7 @@ public sealed class CropsController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [RequireCompany(Permissions.InventoryManage)]
     public async Task<CropDto> Update(Guid id, UpdateCropRequest request, CancellationToken ct) =>
         await _service.UpdateAsync(id, request, ct);
 }

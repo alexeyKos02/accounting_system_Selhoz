@@ -21,7 +21,7 @@ public sealed partial class ChemicalService
         var item = new InventoryItem
         {
             Id = Guid.NewGuid(),
-            CompanyId = Domain.Constants.SystemIds.DefaultCompanyId, // ТЗ §12, §25
+            CompanyId = _currentUser.CompanyId, // выбранное хозяйство (ТЗ §12, §24)
             ItemType = ItemType.Chemical,
             Status = ItemStatus.Active,
             Name = name,

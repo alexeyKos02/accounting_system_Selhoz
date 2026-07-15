@@ -23,8 +23,11 @@ public static class DependencyInjection
     {
         services.AddSingleton(TimeProvider.System);
 
+        services.AddScoped<Security.CompanyContextService>();
         services.AddScoped<AuthService>();
         services.AddScoped<AdminUserService>();
+        services.AddScoped<Companies.CompanyService>();
+        services.AddScoped<Companies.MembershipService>();
         services.AddScoped<CropService>();
         services.AddScoped<WarehouseService>();
         services.AddScoped<FieldService>();

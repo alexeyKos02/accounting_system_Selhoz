@@ -1,5 +1,7 @@
+using AgroInventory.Api.Security;
 using AgroInventory.Application.Export;
 using AgroInventory.Application.History;
+using AgroInventory.Domain.Constants;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AgroInventory.Api.Controllers;
@@ -7,6 +9,7 @@ namespace AgroInventory.Api.Controllers;
 /// <summary>Экспорт в Excel (.xlsx): остатки и история операций (ТЗ §25).</summary>
 [ApiController]
 [Route("api/export")]
+[RequireCompany(Permissions.InventoryView)]
 public sealed class ExportController : ControllerBase
 {
     private const string XlsxMime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";

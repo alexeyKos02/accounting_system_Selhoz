@@ -5,9 +5,9 @@ using Microsoft.AspNetCore.Http;
 namespace AgroInventory.Infrastructure.Security;
 
 /// <summary>
-/// Текущий пользователь из HTTP-контекста (ТЗ §1, §15). Если запрос не аутентифицирован —
-/// откат на системного пользователя/дефолтное хозяйство, чтобы ещё не защищённые (до этапа C)
-/// endpoints и фоновые задачи продолжали работать. Полная проверка членства/scope — этап C.
+/// Текущий пользователь из HTTP-контекста (ТЗ §1, §15, §24). UserId/IsSystemAdmin — из claim'ов
+/// access-токена; выбранное хозяйство — из заголовка X-Company-Id. Доступ к выбранному хозяйству
+/// проверяется в CompanyContextService; здесь только чтение сырых значений.
 /// </summary>
 public sealed class HttpCurrentUser : ICurrentUser
 {
@@ -27,12 +27,17 @@ public sealed class HttpCurrentUser : ICurrentUser
         }
     }
 
-    public Guid CompanyId
+    public bool IsSystemAdmin =>
+        _accessor.HttpContext?.User.FindFirst(JwtClaimNames.IsSystemAdmin)?.Value == "true";
+
+    public Guid? SelectedCompanyId
     {
         get
         {
             var header = _accessor.HttpContext?.Request.Headers[CompanyHeader].ToString();
-            return Guid.TryParse(header, out var id) ? id : SystemIds.DefaultCompanyId;
+            return Guid.TryParse(header, out var id) ? id : null;
         }
     }
+
+    public Guid CompanyId => SelectedCompanyId ?? SystemIds.DefaultCompanyId;
 }

@@ -1,5 +1,6 @@
 using AgroInventory.Application.Abstractions;
 using AgroInventory.Application.Common;
+using AgroInventory.Application.Security;
 using AgroInventory.Domain.Entities;
 using AgroInventory.Domain.Enums;
 using AgroInventory.Domain.Stock;
@@ -14,12 +15,18 @@ namespace AgroInventory.Application.Inventory;
 public sealed partial class InventoryService
 {
     private readonly IApplicationDbContext _db;
+    private readonly ICurrentUser _currentUser;
+    private readonly CompanyContextService _companyContext;
     private readonly IAuditLogger _audit;
     private readonly TimeProvider _clock;
 
-    public InventoryService(IApplicationDbContext db, IAuditLogger audit, TimeProvider clock)
+    public InventoryService(
+        IApplicationDbContext db, ICurrentUser currentUser,
+        CompanyContextService companyContext, IAuditLogger audit, TimeProvider clock)
     {
         _db = db;
+        _currentUser = currentUser;
+        _companyContext = companyContext;
         _audit = audit;
         _clock = clock;
     }
@@ -33,6 +40,7 @@ public sealed partial class InventoryService
 
         await EnsureActiveChemicalAsync(request.ChemicalId, ct);
         await EnsureWarehouseAsync(request.WarehouseId, ct);
+        await RequireWarehouseAccessAsync(request.WarehouseId, ct); // область доступа (ТЗ §6)
 
         var stock = await LoadStockAsync(request.ChemicalId, request.WarehouseId, ct, createBalance: true);
         var now = _clock.GetUtcNow();
@@ -48,7 +56,7 @@ public sealed partial class InventoryService
             CropId = null,
             OccurredAt = occurredAt,
             Comment = string.IsNullOrWhiteSpace(request.Comment) ? null : request.Comment.Trim(),
-            CreatedByUserId = SystemUserId,
+            CreatedByUserId = CurrentUserId,
             CreatedAt = now,
             UpdatedAt = now,
         };
@@ -115,13 +123,24 @@ public sealed partial class InventoryService
 
     // ---------- Общие помощники ----------
 
-    private Guid SystemUserId => Domain.Constants.SystemIds.SystemUserId;
+    private Guid CurrentUserId => _currentUser.UserId;
 
-    /// <summary>
-    /// Хозяйство-контекст для штампа company_id на новых записях (ТЗ §13, §25).
-    /// До авторизации — дефолтное хозяйство; на этапе C заменяется на выбранное пользователем.
-    /// </summary>
-    private Guid CompanyId => Domain.Constants.SystemIds.DefaultCompanyId;
+    /// <summary>Хозяйство-контекст для штампа company_id (выбранное хозяйство, ТЗ §13, §24).</summary>
+    private Guid CompanyId => _currentUser.CompanyId;
+
+    /// <summary>Проверяет доступ к складу в рамках области доступа членства (ТЗ §6).</summary>
+    private async Task RequireWarehouseAccessAsync(Guid warehouseId, CancellationToken ct)
+    {
+        var access = await _companyContext.RequireAsync(ct);
+        access.RequireWarehouse(warehouseId);
+    }
+
+    /// <summary>Проверяет доступ к полю в рамках области доступа членства (ТЗ §6).</summary>
+    private async Task RequireFieldAccessAsync(Guid fieldId, CancellationToken ct)
+    {
+        var access = await _companyContext.RequireAsync(ct);
+        access.RequireField(fieldId);
+    }
 
     private async Task EnsureActiveChemicalAsync(Guid id, CancellationToken ct)
     {

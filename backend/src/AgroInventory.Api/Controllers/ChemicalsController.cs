@@ -1,11 +1,14 @@
+using AgroInventory.Api.Security;
 using AgroInventory.Application.Chemicals;
+using AgroInventory.Domain.Constants;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AgroInventory.Api.Controllers;
 
-/// <summary>Химия (ТЗ §15–18, §29).</summary>
+/// <summary>Химия (ТЗ §15–18, §29). По умолчанию — просмотр; мутации требуют inventory.manage.</summary>
 [ApiController]
 [Route("api/chemicals")]
+[RequireCompany(Permissions.InventoryView)]
 public sealed class ChemicalsController : ControllerBase
 {
     private readonly ChemicalService _service;
@@ -35,6 +38,7 @@ public sealed class ChemicalsController : ControllerBase
         await _service.GetByIdAsync(id, ct);
 
     [HttpPost]
+    [RequireCompany(Permissions.InventoryManage)]
     public async Task<ActionResult<ChemicalDetailDto>> Create(CreateChemicalRequest request, CancellationToken ct)
     {
         var chemical = await _service.CreateAsync(request, ct);
@@ -42,11 +46,13 @@ public sealed class ChemicalsController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [RequireCompany(Permissions.InventoryManage)]
     public async Task<ChemicalDetailDto> Update(Guid id, UpdateChemicalRequest request, CancellationToken ct) =>
         await _service.UpdateAsync(id, request, ct);
 
     /// <summary>Архивировать (ТЗ §17.1). При остатке > 0 нужно подтверждение словом «АРХИВ».</summary>
     [HttpPost("{id:guid}/archive")]
+    [RequireCompany(Permissions.InventoryManage)]
     public async Task<IActionResult> Archive(Guid id, ArchiveChemicalRequest request, CancellationToken ct)
     {
         await _service.ArchiveAsync(id, request, ct);
@@ -54,6 +60,7 @@ public sealed class ChemicalsController : ControllerBase
     }
 
     [HttpPost("{id:guid}/restore")]
+    [RequireCompany(Permissions.InventoryManage)]
     public async Task<IActionResult> Restore(Guid id, CancellationToken ct)
     {
         await _service.RestoreAsync(id, ct);
@@ -62,6 +69,7 @@ public sealed class ChemicalsController : ControllerBase
 
     /// <summary>Объединить дубли (ТЗ §18.2).</summary>
     [HttpPost("merge")]
+    [RequireCompany(Permissions.InventoryManage)]
     public async Task<ChemicalDetailDto> Merge(MergeChemicalsRequest request, CancellationToken ct) =>
         await _service.MergeAsync(request, ct);
 }

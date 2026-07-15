@@ -20,7 +20,8 @@ builder.Configuration.AddJsonFile(
 
 const string CorsPolicy = "AgroInventoryFrontend";
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+    options.Filters.AddService<AgroInventory.Api.Security.CompanyAccessFilter>());
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(o =>
 {
@@ -79,8 +80,19 @@ builder.Services
     });
 
 builder.Services.AddAuthorization(o =>
+{
     o.AddPolicy(AuthorizationPolicies.SystemAdmin, p =>
-        p.RequireClaim(JwtClaimNames.IsSystemAdmin, "true")));
+        p.RequireClaim(JwtClaimNames.IsSystemAdmin, "true"));
+
+    // По умолчанию все endpoints требуют аутентификации (ТЗ §24). Открытые точки
+    // (вход, обновление токена, health) помечены [AllowAnonymous].
+    o.FallbackPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+});
+
+// Action-filter проверки доступа к хозяйству и прав по атрибуту [RequireCompany] (ТЗ §5, §24).
+builder.Services.AddScoped<AgroInventory.Api.Security.CompanyAccessFilter>();
 
 var app = builder.Build();
 
