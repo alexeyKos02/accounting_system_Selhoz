@@ -16,7 +16,7 @@ const route = useRoute()
 // Разделы, доступные в режиме «Все хозяйства» (ТЗ §15): агрегированная химия (§17) и глобальные
 // админ-страницы, не зависящие от хозяйства. Прочие (приход/склады/дашборд и т.п.) требуют выбора
 // конкретного хозяйства; общий дашборд и др. общие экраны — позже (этап G).
-const allModeRoutes = ['chemicals', 'receipts', 'canonical-chemicals', 'users', 'backups', 'audit-log', 'settings']
+const allModeRoutes = ['dashboard', 'chemicals', 'receipts', 'canonical-chemicals', 'users', 'backups', 'audit-log', 'settings']
 const showAllModePlaceholder = computed(() =>
   ctx.isAllCompaniesMode && !allModeRoutes.includes(route.name as string))
 

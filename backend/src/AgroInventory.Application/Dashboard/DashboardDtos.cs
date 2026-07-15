@@ -24,3 +24,41 @@ public sealed record DashboardDto(
     IReadOnlyList<DashboardStockDto> Empty,
     IReadOnlyList<DashboardStockDto> Low,
     IReadOnlyList<HistoryItemDto> RecentOperations);
+
+public sealed record AllCompaniesDashboardQuery(
+    DateTimeOffset? DateFrom = null,
+    DateTimeOffset? DateTo = null);
+
+public sealed record AllCompaniesDashboardCompanyDto(
+    Guid CompanyId,
+    string CompanyName,
+    int ActiveChemicals,
+    int Warehouses,
+    decimal TotalLiters,
+    decimal IncomeLiters,
+    decimal OutcomeLiters,
+    int LowCount,
+    int EmptyCount);
+
+public sealed record AllCompaniesDashboardAlertDto(
+    Guid CompanyId,
+    string CompanyName,
+    Guid ChemicalId,
+    string ChemicalName,
+    decimal TotalLiters,
+    StockStatus Status);
+
+public sealed record AllCompaniesDashboardDto(
+    int CompaniesCount,
+    int ActiveChemicals,
+    int Warehouses,
+    decimal TotalLiters,
+    decimal IncomeLiters,
+    decimal OutcomeLiters,
+    int LowCount,
+    int EmptyCount,
+    decimal LowStockThresholdLiters,
+    IReadOnlyList<AllCompaniesDashboardCompanyDto> Companies,
+    IReadOnlyList<AllCompaniesDashboardAlertDto> Low,
+    IReadOnlyList<AllCompaniesDashboardAlertDto> Empty,
+    IReadOnlyList<HistoryItemDto> RecentOperations);

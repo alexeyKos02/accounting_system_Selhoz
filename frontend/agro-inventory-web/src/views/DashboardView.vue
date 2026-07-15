@@ -2,25 +2,79 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { dashboardApi } from '../api/dashboard'
-import type { DashboardDto, DashboardStockDto } from '../api/dashboard'
+import type { AllCompaniesDashboardDto, AllCompaniesDashboardCompanyDto, DashboardDto, DashboardStockDto } from '../api/dashboard'
 import { MovementType } from '../api/history'
+import { useCompanyContextStore } from '../stores/companyContext'
 
 const router = useRouter()
+const ctx = useCompanyContextStore()
 const data = ref<DashboardDto | null>(null)
+const allData = ref<AllCompaniesDashboardDto | null>(null)
 const loading = ref(false)
 const quickOpen = ref(false)
+const period = ref<'today' | 'week' | 'month' | 'quarter' | 'year' | 'custom'>('month')
+const dateFrom = ref('')
+const dateTo = ref('')
 
 // История на дашборде: 10 записей на десктопе, 4 на мобилке.
 const recentDesktop = computed(() => (data.value?.recentOperations ?? []).slice(0, 10))
 const recentMobile = computed(() => (data.value?.recentOperations ?? []).slice(0, 4))
+const allRecentDesktop = computed(() => (allData.value?.recentOperations ?? []).slice(0, 10))
+const allRecentMobile = computed(() => (allData.value?.recentOperations ?? []).slice(0, 4))
 
 async function load() {
   loading.value = true
   try {
-    data.value = await dashboardApi.get()
+    if (ctx.isAllCompaniesMode) allData.value = await dashboardApi.getAll(periodFilters())
+    else data.value = await dashboardApi.get()
   } finally {
     loading.value = false
   }
+}
+
+function setPeriod(value: typeof period.value) {
+  period.value = value
+  const now = new Date()
+  const start = new Date(now)
+  const end = new Date(now)
+  if (value === 'today') {
+    start.setHours(0, 0, 0, 0)
+    end.setHours(23, 59, 59, 999)
+  } else if (value === 'week') {
+    start.setDate(now.getDate() - 6)
+    start.setHours(0, 0, 0, 0)
+    end.setHours(23, 59, 59, 999)
+  } else if (value === 'month') {
+    start.setMonth(now.getMonth() - 1)
+    start.setHours(0, 0, 0, 0)
+    end.setHours(23, 59, 59, 999)
+  } else if (value === 'quarter') {
+    start.setMonth(now.getMonth() - 3)
+    start.setHours(0, 0, 0, 0)
+    end.setHours(23, 59, 59, 999)
+  } else if (value === 'year') {
+    start.setFullYear(now.getFullYear() - 1)
+    start.setHours(0, 0, 0, 0)
+    end.setHours(23, 59, 59, 999)
+  } else {
+    load()
+    return
+  }
+  dateFrom.value = toDateInput(start)
+  dateTo.value = toDateInput(end)
+  load()
+}
+
+function periodFilters() {
+  return {
+    dateFrom: dateFrom.value ? new Date(`${dateFrom.value}T00:00:00`).toISOString() : undefined,
+    dateTo: dateTo.value ? new Date(`${dateTo.value}T23:59:59.999`).toISOString() : undefined,
+  }
+}
+
+function toDateInput(date: Date) {
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
 }
 
 function fmtNum(n?: number) {
@@ -42,6 +96,14 @@ function runQuickAction(to: string) {
   quickOpen.value = false
   router.push(to)
 }
+function openCompany(row: AllCompaniesDashboardCompanyDto) {
+  if (!row.companyId) return
+  ctx.selectCompany(row.companyId)
+  router.push({ name: 'dashboard' })
+}
+function onCompanyRowClick(event: { data: AllCompaniesDashboardCompanyDto }) {
+  openCompany(event.data)
+}
 
 const quick = [
   { label: 'Приход', icon: 'pi pi-plus-circle', to: '/income', color: 'green' },
@@ -50,13 +112,139 @@ const quick = [
   { label: 'Корректировка', icon: 'pi pi-sliders-h', to: '/corrections', color: 'violet' },
 ]
 
-onMounted(load)
+onMounted(() => {
+  if (ctx.isAllCompaniesMode) setPeriod('month')
+  else load()
+})
 </script>
 
 <template>
   <section class="page">
-    <h1 class="page__title">Дашборд</h1>
+    <div class="dashboard-head">
+      <h1 class="page__title">{{ ctx.isAllCompaniesMode ? 'Дашборд — все хозяйства' : 'Дашборд' }}</h1>
+    </div>
 
+    <template v-if="ctx.isAllCompaniesMode">
+      <div class="periods">
+        <PvButton label="Сегодня" size="small" :outlined="period !== 'today'" @click="setPeriod('today')" />
+        <PvButton label="Неделя" size="small" :outlined="period !== 'week'" @click="setPeriod('week')" />
+        <PvButton label="Месяц" size="small" :outlined="period !== 'month'" @click="setPeriod('month')" />
+        <PvButton label="Квартал" size="small" :outlined="period !== 'quarter'" @click="setPeriod('quarter')" />
+        <PvButton label="Год" size="small" :outlined="period !== 'year'" @click="setPeriod('year')" />
+        <PvButton label="Свой" size="small" :outlined="period !== 'custom'" @click="setPeriod('custom')" />
+      </div>
+      <div v-if="period === 'custom'" class="custom-period">
+        <input v-model="dateFrom" class="date-input" type="date" @change="load" />
+        <input v-model="dateTo" class="date-input" type="date" @change="load" />
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="stat__value">{{ allData?.companiesCount ?? 0 }}</div>
+          <div class="stat__label">Хозяйств</div>
+        </div>
+        <div class="stat">
+          <div class="stat__value">{{ fmtNum(allData?.totalLiters) }} л</div>
+          <div class="stat__label">Остаток сейчас</div>
+        </div>
+        <div class="stat">
+          <div class="stat__value">{{ fmtNum(allData?.incomeLiters) }} л</div>
+          <div class="stat__label">Приход за период</div>
+        </div>
+        <div class="stat">
+          <div class="stat__value">{{ fmtNum(allData?.outcomeLiters) }} л</div>
+          <div class="stat__label">Списание за период</div>
+        </div>
+        <div class="stat stat--warn" :class="{ 'stat--muted': !allData?.lowCount }">
+          <div class="stat__value">{{ allData?.lowCount ?? 0 }}</div>
+          <div class="stat__label">Малый остаток</div>
+        </div>
+        <div class="stat stat--danger" :class="{ 'stat--muted': !allData?.emptyCount }">
+          <div class="stat__value">{{ allData?.emptyCount ?? 0 }}</div>
+          <div class="stat__label">Закончилась</div>
+        </div>
+      </div>
+
+      <div class="columns">
+        <div class="block">
+          <div class="block__head"><i class="pi pi-times-circle" /> Закончилась</div>
+          <ul v-if="allData?.empty?.length" class="list">
+            <li v-for="c in allData.empty" :key="`${c.companyId}:${c.chemicalId}`">
+              <span class="name">{{ c.chemicalName }} · {{ c.companyName }}</span>
+              <PvTag value="0 л" severity="danger" />
+            </li>
+          </ul>
+          <div v-else class="empty">Всё в наличии</div>
+        </div>
+        <div class="block">
+          <div class="block__head"><i class="pi pi-exclamation-triangle" /> Малый остаток
+            <span v-if="allData" class="thr">(&lt; {{ fmtNum(allData.lowStockThresholdLiters) }} л)</span>
+          </div>
+          <ul v-if="allData?.low?.length" class="list">
+            <li v-for="c in allData.low" :key="`${c.companyId}:${c.chemicalId}`">
+              <span class="name">{{ c.chemicalName }} · {{ c.companyName }}</span>
+              <PvTag :value="`${fmtNum(c.totalLiters)} л`" severity="warn" />
+            </li>
+          </ul>
+          <div v-else class="empty">Нет позиций на исходе</div>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block__head"><i class="pi pi-building" /> Сравнение хозяйств</div>
+        <div class="ops-desktop">
+          <PvDataTable :value="allData?.companies ?? []" :loading="loading" data-key="companyId" size="small" @row-click="onCompanyRowClick">
+            <PvColumn field="companyName" header="Хозяйство" />
+            <PvColumn header="Остаток"><template #body="{ data: r }">{{ fmtNum(r.totalLiters) }} л</template></PvColumn>
+            <PvColumn header="Приход"><template #body="{ data: r }">{{ fmtNum(r.incomeLiters) }} л</template></PvColumn>
+            <PvColumn header="Списание"><template #body="{ data: r }">{{ fmtNum(r.outcomeLiters) }} л</template></PvColumn>
+            <PvColumn field="activeChemicals" header="Химии" />
+            <PvColumn field="warehouses" header="Складов" />
+            <template #empty><div class="empty">Нет данных</div></template>
+          </PvDataTable>
+        </div>
+        <div class="ops-cards">
+          <article v-for="row in allData?.companies ?? []" :key="row.companyId" class="ops-card" @click="openCompany(row)">
+            <div class="ops-card__row">
+              <strong>{{ row.companyName }}</strong>
+              <span class="ops-card__qty">{{ fmtNum(row.totalLiters) }} л</span>
+            </div>
+            <div class="ops-card__meta">Приход {{ fmtNum(row.incomeLiters) }} л · Списание {{ fmtNum(row.outcomeLiters) }} л</div>
+            <div class="ops-card__meta">Химии {{ row.activeChemicals }} · Складов {{ row.warehouses }}</div>
+          </article>
+          <div v-if="!(allData?.companies?.length)" class="empty">Нет данных</div>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block__head"><i class="pi pi-clock" /> Последние операции</div>
+        <div class="ops-desktop">
+          <PvDataTable :value="allRecentDesktop" :loading="loading" data-key="id" size="small">
+            <PvColumn header="Дата"><template #body="{ data: r }">{{ fmtDate(r.occurredAt) }}</template></PvColumn>
+            <PvColumn header="Тип"><template #body="{ data: r }">
+              <PvTag :value="typeLabel(r.movementType)" :severity="typeSeverity(r.movementType)" />
+            </template></PvColumn>
+            <PvColumn field="chemicalName" header="Химия" />
+            <PvColumn header="Кол-во, л"><template #body="{ data: r }">{{ fmtNum(r.quantityLiters) }}</template></PvColumn>
+            <PvColumn header="Склад"><template #body="{ data: r }">Склад {{ r.warehouseNumber }}</template></PvColumn>
+            <template #empty><div class="empty">Операций пока нет</div></template>
+          </PvDataTable>
+        </div>
+        <div class="ops-cards">
+          <div v-for="r in allRecentMobile" :key="r.id!" class="ops-card">
+            <div class="ops-card__row">
+              <PvTag :value="typeLabel(r.movementType)" :severity="typeSeverity(r.movementType)" />
+              <span class="ops-card__qty">{{ fmtNum(r.quantityLiters) }} л</span>
+            </div>
+            <div class="ops-card__name">{{ r.chemicalName }}</div>
+            <div class="ops-card__meta">{{ fmtDate(r.occurredAt!) }} · Склад {{ r.warehouseNumber }}</div>
+          </div>
+          <div v-if="!allRecentMobile.length" class="empty">Операций пока нет</div>
+        </div>
+      </div>
+    </template>
+
+    <template v-else>
     <!-- Быстрые действия: на десктопе кнопки остаются сверху, на телефоне используются в плавающем меню. -->
     <div class="quick">
       <button v-for="q in quick" :key="q.to" type="button" class="quick__card" :class="`quick__card--${q.color}`"
@@ -171,10 +359,21 @@ onMounted(load)
         <div v-if="!recentMobile.length" class="empty">Операций пока нет</div>
       </div>
     </div>
+    </template>
   </section>
 </template>
 
 <style scoped>
+.dashboard-head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.periods { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.75rem; }
+.custom-period { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.date-input {
+  min-height: 2.35rem;
+  padding: 0.5rem;
+  border: 1px solid var(--p-inputtext-border-color, #d1d5db);
+  border-radius: 6px;
+  font: inherit;
+}
 /* Десктоп: зелёные кнопки-контуры «иконка + текст» в ряд. */
 .quick { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem; }
 .quick__card {
@@ -194,6 +393,9 @@ onMounted(load)
 .quick-fab { display: none; }
 
 @media (max-width: 768px) {
+  .dashboard-head { align-items: flex-start; flex-direction: column; }
+  .periods { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 0.2rem; }
+  .date-input { width: 100%; min-width: 0; max-width: 100%; box-sizing: border-box; }
   .quick { display: none; }
   .quick-fab {
     display: flex;

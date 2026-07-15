@@ -17,4 +17,8 @@ public sealed class DashboardController : ControllerBase
     [HttpGet]
     [RequireCompany(Permissions.ReportsView)]
     public async Task<DashboardDto> Get(CancellationToken ct) => await _service.GetAsync(ct);
+
+    [HttpGet("all")]
+    public async Task<AllCompaniesDashboardDto> GetAll([FromQuery] AllCompaniesDashboardQuery query, CancellationToken ct) =>
+        await _service.GetAllAsync(query, ct);
 }
