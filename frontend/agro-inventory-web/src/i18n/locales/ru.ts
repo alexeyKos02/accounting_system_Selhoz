@@ -15,6 +15,8 @@ export default {
     crops: 'Культуры',
     warehouses: 'Склады',
     fields: 'Поля',
+    members: 'Пользователи хозяйства',
+    users: 'Аккаунты',
     archive: 'Архив',
     backups: 'Бэкапы',
     settings: 'Настройки',

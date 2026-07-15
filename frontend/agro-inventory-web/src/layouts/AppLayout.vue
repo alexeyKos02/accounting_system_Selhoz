@@ -1,31 +1,56 @@
 <script setup lang="ts">
-import { RouterView, RouterLink } from 'vue-router'
+import { computed } from 'vue'
+import { RouterView, RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useAuthStore } from '../stores/auth'
+import { useCompanyContextStore } from '../stores/companyContext'
+import { Permissions } from '../api/types'
+import CompanySwitcher from '../components/CompanySwitcher.vue'
 
 const { t } = useI18n()
+const auth = useAuthStore()
+const ctx = useCompanyContextStore()
+const router = useRouter()
 
-// Основная навигация. mobile/tablet-first: на узких экранах — нижняя панель,
-// на широких — боковое меню (ТЗ §5, §31.10).
-const primary = [
-  { to: '/', key: 'nav.dashboard', icon: 'pi-home' },
-  { to: '/chemicals', key: 'nav.chemicals', icon: 'pi-box' },
-  { to: '/income', key: 'nav.income', icon: 'pi-plus-circle' },
-  { to: '/outcome', key: 'nav.outcome', icon: 'pi-minus-circle' },
-  { to: '/history', key: 'nav.history', icon: 'pi-clock' },
+// Пункт навигации виден, если у пользователя есть право (или он SystemAdmin). ТЗ §5.
+type NavItem = { to: string; key: string; icon?: string; perm?: string; systemAdmin?: boolean }
+
+const primaryAll: NavItem[] = [
+  { to: '/', key: 'nav.dashboard', icon: 'pi-home', perm: Permissions.ReportsView },
+  { to: '/chemicals', key: 'nav.chemicals', icon: 'pi-box', perm: Permissions.InventoryView },
+  { to: '/income', key: 'nav.income', icon: 'pi-plus-circle', perm: Permissions.ReceiptsCreate },
+  { to: '/outcome', key: 'nav.outcome', icon: 'pi-minus-circle', perm: Permissions.WriteoffsCreate },
+  { to: '/history', key: 'nav.history', icon: 'pi-clock', perm: Permissions.InventoryView },
 ]
 
-const secondary = [
-  { to: '/inventory-check', key: 'nav.inventoryCheck' },
-  { to: '/corrections', key: 'nav.corrections' },
-  { to: '/crops', key: 'nav.crops' },
-  { to: '/warehouses', key: 'nav.warehouses' },
-  { to: '/fields', key: 'nav.fields' },
-  { to: '/archive', key: 'nav.archive' },
-  { to: '/audit-log', key: 'nav.auditLog' },
-  { to: '/backups', key: 'nav.backups' },
+const secondaryAll: NavItem[] = [
+  { to: '/inventory-check', key: 'nav.inventoryCheck', perm: Permissions.InventoryView },
+  { to: '/corrections', key: 'nav.corrections', perm: Permissions.AdjustmentsCreate },
+  { to: '/crops', key: 'nav.crops', perm: Permissions.InventoryView },
+  { to: '/warehouses', key: 'nav.warehouses', perm: Permissions.WarehousesView },
+  { to: '/fields', key: 'nav.fields', perm: Permissions.FieldsView },
+  { to: '/members', key: 'nav.members', perm: Permissions.UsersView },
+  { to: '/users', key: 'nav.users', systemAdmin: true },
+  { to: '/archive', key: 'nav.archive', perm: Permissions.InventoryView },
+  { to: '/audit-log', key: 'nav.auditLog', systemAdmin: true },
+  { to: '/backups', key: 'nav.backups', systemAdmin: true },
   { to: '/settings', key: 'nav.settings' },
-  { to: '/spare-parts', key: 'nav.spareParts' },
 ]
+
+function visible(i: NavItem) {
+  if (i.systemAdmin) return auth.isSystemAdmin
+  if (i.perm) return ctx.has(i.perm)
+  return true
+}
+
+const primary = computed(() => primaryAll.filter(visible))
+const secondary = computed(() => secondaryAll.filter(visible))
+
+async function logout() {
+  await auth.logout()
+  ctx.reset()
+  router.push({ name: 'login' })
+}
 </script>
 
 <template>
@@ -43,9 +68,23 @@ const secondary = [
       </nav>
     </aside>
 
-    <main class="layout__content">
-      <RouterView />
-    </main>
+    <div class="layout__main">
+      <header class="topbar">
+        <CompanySwitcher />
+        <div class="topbar__spacer" />
+        <div class="topbar__user">
+          <span class="topbar__name">{{ auth.displayName }}</span>
+          <RouterLink to="/change-password" class="topbar__action" title="Сменить пароль">
+            <i class="pi pi-key" />
+          </RouterLink>
+          <button class="topbar__action" title="Выйти" @click="logout"><i class="pi pi-sign-out" /></button>
+        </div>
+      </header>
+
+      <main class="layout__content">
+        <RouterView :key="ctx.selectedCompanyId ?? 'none'" />
+      </main>
+    </div>
 
     <!-- Нижняя навигация для телефонов -->
     <nav class="layout__bottombar">
@@ -84,20 +123,36 @@ const secondary = [
 }
 .layout__link.router-link-exact-active { background: rgba(59, 130, 246, 0.12); font-weight: 600; }
 .layout__divider { height: 1px; background: var(--p-content-border-color, #e5e7eb); margin: 0.5rem 0; }
+.layout__main { display: flex; flex-direction: column; min-width: 0; }
+.topbar {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.6rem 1.5rem;
+  border-bottom: 1px solid var(--p-content-border-color, #e5e7eb);
+  position: sticky; top: 0; z-index: 5;
+  background: var(--p-content-background, #fff);
+}
+.topbar__spacer { flex: 1; }
+.topbar__user { display: flex; align-items: center; gap: 0.5rem; }
+.topbar__name { font-size: 0.9rem; color: var(--p-text-muted-color, #6b7280); }
+.topbar__action {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 2rem; height: 2rem; border-radius: 8px;
+  border: none; background: transparent; color: inherit; cursor: pointer; text-decoration: none;
+}
+.topbar__action:hover { background: rgba(0,0,0,0.06); }
 .layout__content { padding: 1.5rem; }
 .layout__bottombar { display: none; }
 
 @media (max-width: 768px) {
   .layout { grid-template-columns: 1fr; }
   .layout__sidebar { display: none; }
-  /* Нижний отступ = высота панели + безопасная зона экрана. */
+  .topbar { padding: 0.6rem 1rem; }
   .layout__content { padding: 1rem 1rem calc(5.5rem + env(safe-area-inset-bottom)); }
   .layout__bottombar {
     display: flex; justify-content: space-around;
     position: fixed; bottom: 0; left: 0; right: 0;
     background: var(--p-content-background, #fff);
     border-top: 1px solid var(--p-content-border-color, #e5e7eb);
-    /* Приподнимаем панель над home-индикатором iPhone (safe area). */
     padding: 0.5rem 0 calc(0.5rem + env(safe-area-inset-bottom));
     z-index: 10;
   }

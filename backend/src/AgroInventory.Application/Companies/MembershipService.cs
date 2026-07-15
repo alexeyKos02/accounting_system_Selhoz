@@ -40,7 +40,7 @@ public sealed class MembershipService
         access.Require(Permissions.UsersView);
 
         return await _db.CompanyMemberships
-            .Where(m => m.CompanyId == companyId && m.Status != MembershipStatus.Removed)
+            .Where(m => m.CompanyId == companyId && m.Status != MembershipStatus.Removed && !m.User.IsSystem)
             .OrderBy(m => m.User.Email)
             .Select(m => new MemberDto(
                 m.Id, m.UserId, m.User.Email, m.User.DisplayName, m.Role, m.Status))

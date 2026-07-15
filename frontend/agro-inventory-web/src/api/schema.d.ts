@@ -4,6 +4,201 @@
  */
 
 export interface paths {
+    "/api/admin/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["AdminUserDto"][];
+                        "application/json": components["schemas"]["AdminUserDto"][];
+                        "text/json": components["schemas"]["AdminUserDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["CreateUserRequest"];
+                    "text/json": components["schemas"]["CreateUserRequest"];
+                    "application/*+json": components["schemas"]["CreateUserRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["AdminUserDto"];
+                        "application/json": components["schemas"]["AdminUserDto"];
+                        "text/json": components["schemas"]["AdminUserDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/users/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    userId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["UpdateUserRequest"];
+                    "text/json": components["schemas"]["UpdateUserRequest"];
+                    "application/*+json": components["schemas"]["UpdateUserRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["AdminUserDto"];
+                        "application/json": components["schemas"]["AdminUserDto"];
+                        "text/json": components["schemas"]["AdminUserDto"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/users/{userId}/block": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    userId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["BlockUserRequest"];
+                    "text/json": components["schemas"]["BlockUserRequest"];
+                    "application/*+json": components["schemas"]["BlockUserRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["AdminUserDto"];
+                        "application/json": components["schemas"]["AdminUserDto"];
+                        "text/json": components["schemas"]["AdminUserDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/users/{userId}/reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    userId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["ResetPasswordRequest"];
+                    "text/json": components["schemas"]["ResetPasswordRequest"];
+                    "application/*+json": components["schemas"]["ResetPasswordRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/audit-log": {
         parameters: {
             query?: never;
@@ -41,6 +236,203 @@ export interface paths {
         };
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["LoginRequest"];
+                    "text/json": components["schemas"]["LoginRequest"];
+                    "application/*+json": components["schemas"]["LoginRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["TokenResponse"];
+                        "application/json": components["schemas"]["TokenResponse"];
+                        "text/json": components["schemas"]["TokenResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["RefreshRequest"];
+                    "text/json": components["schemas"]["RefreshRequest"];
+                    "application/*+json": components["schemas"]["RefreshRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["TokenResponse"];
+                        "application/json": components["schemas"]["TokenResponse"];
+                        "text/json": components["schemas"]["TokenResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["LogoutRequest"];
+                    "text/json": components["schemas"]["LogoutRequest"];
+                    "application/*+json": components["schemas"]["LogoutRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/logout-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/change-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["ChangePasswordRequest"];
+                    "text/json": components["schemas"]["ChangePasswordRequest"];
+                    "application/*+json": components["schemas"]["ChangePasswordRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;
@@ -503,6 +895,342 @@ export interface paths {
                 };
             };
         };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/companies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["CompanyListItemDto"][];
+                        "application/json": components["schemas"]["CompanyListItemDto"][];
+                        "text/json": components["schemas"]["CompanyListItemDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["CreateCompanyRequest"];
+                    "text/json": components["schemas"]["CreateCompanyRequest"];
+                    "application/*+json": components["schemas"]["CreateCompanyRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["CompanyDto"];
+                        "application/json": components["schemas"]["CompanyDto"];
+                        "text/json": components["schemas"]["CompanyDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/companies/{companyId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    companyId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["CompanyDto"];
+                        "application/json": components["schemas"]["CompanyDto"];
+                        "text/json": components["schemas"]["CompanyDto"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    companyId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["UpdateCompanyRequest"];
+                    "text/json": components["schemas"]["UpdateCompanyRequest"];
+                    "application/*+json": components["schemas"]["UpdateCompanyRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["CompanyDto"];
+                        "application/json": components["schemas"]["CompanyDto"];
+                        "text/json": components["schemas"]["CompanyDto"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/companies/{companyId}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    companyId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["MemberDto"][];
+                        "application/json": components["schemas"]["MemberDto"][];
+                        "text/json": components["schemas"]["MemberDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    companyId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["AddMemberRequest"];
+                    "text/json": components["schemas"]["AddMemberRequest"];
+                    "application/*+json": components["schemas"]["AddMemberRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["MemberDto"];
+                        "application/json": components["schemas"]["MemberDto"];
+                        "text/json": components["schemas"]["MemberDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/companies/{companyId}/members/{membershipId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    companyId: string;
+                    membershipId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["UpdateMemberRequest"];
+                    "text/json": components["schemas"]["UpdateMemberRequest"];
+                    "application/*+json": components["schemas"]["UpdateMemberRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["MemberDto"];
+                        "application/json": components["schemas"]["MemberDto"];
+                        "text/json": components["schemas"]["MemberDto"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    companyId: string;
+                    membershipId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/companies/{companyId}/members/{membershipId}/scopes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    companyId: string;
+                    membershipId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["MemberScopesDto"];
+                        "application/json": components["schemas"]["MemberScopesDto"];
+                        "text/json": components["schemas"]["MemberScopesDto"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    companyId: string;
+                    membershipId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["UpdateScopesRequest"];
+                    "text/json": components["schemas"]["UpdateScopesRequest"];
+                    "application/*+json": components["schemas"]["UpdateScopesRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["MemberScopesDto"];
+                        "application/json": components["schemas"]["MemberScopesDto"];
+                        "text/json": components["schemas"]["MemberScopesDto"];
+                    };
+                };
+            };
+        };
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1589,6 +2317,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/users/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["MeResponse"];
+                        "application/json": components["schemas"]["MeResponse"];
+                        "text/json": components["schemas"]["MeResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/warehouses": {
         parameters: {
             query?: never;
@@ -1702,6 +2467,34 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * Format: int32
+         * @enum {integer}
+         */
+        AccessScopeType: 0 | 1 | 2;
+        AddMemberRequest: {
+            /** Format: uuid */
+            userId?: string;
+            role?: components["schemas"]["AppRole"];
+        };
+        AdminUserDto: {
+            /** Format: uuid */
+            id?: string;
+            email?: string | null;
+            firstName?: string | null;
+            lastName?: string | null;
+            phone?: string | null;
+            status?: components["schemas"]["UserStatus"];
+            isSystemAdmin?: boolean;
+            mustChangePassword?: boolean;
+            /** Format: date-time */
+            createdAt?: string;
+        };
+        /**
+         * Format: int32
+         * @enum {integer}
+         */
+        AppRole: 0 | 1 | 2 | 3 | 4 | 5;
         AppSettingsDto: {
             /** Format: double */
             lowStockThresholdLiters?: number;
@@ -1757,6 +2550,13 @@ export interface components {
             /** Format: int32 */
             rowsRestored?: number;
         };
+        BlockUserRequest: {
+            blocked?: boolean;
+        };
+        ChangePasswordRequest: {
+            currentPassword?: string | null;
+            newPassword?: string | null;
+        };
         ChemicalDetailDto: {
             /** Format: uuid */
             id?: string;
@@ -1799,6 +2599,30 @@ export interface components {
          * @enum {integer}
          */
         ChemicalType: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+        CompanyDto: {
+            /** Format: uuid */
+            id?: string;
+            name?: string | null;
+            legalName?: string | null;
+            binOrInn?: string | null;
+            country?: string | null;
+            timezone?: string | null;
+            address?: string | null;
+            description?: string | null;
+            status?: components["schemas"]["CompanyStatus"];
+        };
+        CompanyListItemDto: {
+            /** Format: uuid */
+            id?: string;
+            name?: string | null;
+            myRole?: components["schemas"]["AppRole"];
+            isSystemAdmin?: boolean;
+        };
+        /**
+         * Format: int32
+         * @enum {integer}
+         */
+        CompanyStatus: 0 | 1;
         /**
          * Format: int32
          * @enum {integer}
@@ -1844,11 +2668,28 @@ export interface components {
             comment?: string | null;
             cropIds?: string[] | null;
         };
+        CreateCompanyRequest: {
+            name?: string | null;
+            legalName?: string | null;
+            binOrInn?: string | null;
+            country?: string | null;
+            timezone?: string | null;
+            address?: string | null;
+            description?: string | null;
+        };
         CreateCropRequest: {
             name?: string | null;
         };
         CreateFieldRequest: {
             number?: string | null;
+        };
+        CreateUserRequest: {
+            email?: string | null;
+            password?: string | null;
+            firstName?: string | null;
+            lastName?: string | null;
+            phone?: string | null;
+            isSystemAdmin?: boolean;
         };
         CreateWarehouseRequest: {
             number?: string | null;
@@ -2082,6 +2923,51 @@ export interface components {
          * @enum {integer}
          */
         ItemStatus: 1 | 2 | 3;
+        LoginRequest: {
+            email?: string | null;
+            password?: string | null;
+        };
+        LogoutRequest: {
+            refreshToken?: string | null;
+        };
+        MeResponse: {
+            /** Format: uuid */
+            id?: string;
+            email?: string | null;
+            firstName?: string | null;
+            lastName?: string | null;
+            phone?: string | null;
+            isSystemAdmin?: boolean;
+            mustChangePassword?: boolean;
+            memberships?: components["schemas"]["MembershipInfo"][] | null;
+        };
+        MemberDto: {
+            /** Format: uuid */
+            membershipId?: string;
+            /** Format: uuid */
+            userId?: string;
+            email?: string | null;
+            displayName?: string | null;
+            role?: components["schemas"]["AppRole"];
+            status?: components["schemas"]["MembershipStatus"];
+        };
+        MemberScopesDto: {
+            hasFullCompanyScope?: boolean;
+            scopes?: components["schemas"]["ScopeItemDto"][] | null;
+        };
+        MembershipInfo: {
+            /** Format: uuid */
+            companyId?: string;
+            companyName?: string | null;
+            role?: components["schemas"]["AppRole"];
+            status?: components["schemas"]["MembershipStatus"];
+            permissions?: string[] | null;
+        };
+        /**
+         * Format: int32
+         * @enum {integer}
+         */
+        MembershipStatus: 0 | 1 | 2;
         MergeChemicalsRequest: {
             /** Format: uuid */
             targetId?: string;
@@ -2199,6 +3085,17 @@ export interface components {
             name?: string | null;
             matched?: boolean;
         };
+        RefreshRequest: {
+            refreshToken?: string | null;
+        };
+        ResetPasswordRequest: {
+            newPassword?: string | null;
+        };
+        ScopeItemDto: {
+            scopeType?: components["schemas"]["AccessScopeType"];
+            /** Format: uuid */
+            scopeEntityId?: string | null;
+        };
         /**
          * Format: int32
          * @enum {integer}
@@ -2209,6 +3106,13 @@ export interface components {
          * @enum {integer}
          */
         StockStatus: 0 | 1 | 2;
+        TokenResponse: {
+            accessToken?: string | null;
+            /** Format: date-time */
+            accessTokenExpiresAt?: string;
+            refreshToken?: string | null;
+            mustChangePassword?: boolean;
+        };
         /**
          * Format: int32
          * @enum {integer}
@@ -2221,20 +3125,47 @@ export interface components {
             comment?: string | null;
             cropIds?: string[] | null;
         };
+        UpdateCompanyRequest: {
+            name?: string | null;
+            legalName?: string | null;
+            binOrInn?: string | null;
+            country?: string | null;
+            timezone?: string | null;
+            address?: string | null;
+            description?: string | null;
+        };
         UpdateCropRequest: {
             name?: string | null;
         };
         UpdateFieldRequest: {
             number?: string | null;
         };
+        UpdateMemberRequest: {
+            role?: components["schemas"]["AppRole"];
+            status?: components["schemas"]["MembershipStatus"];
+        };
+        UpdateScopesRequest: {
+            scopes?: components["schemas"]["ScopeItemDto"][] | null;
+        };
         UpdateSettingsRequest: {
             /** Format: double */
             lowStockThresholdLiters?: number;
             autoOpenPackages?: boolean;
         };
+        UpdateUserRequest: {
+            firstName?: string | null;
+            lastName?: string | null;
+            phone?: string | null;
+            isSystemAdmin?: boolean;
+        };
         UpdateWarehouseRequest: {
             number?: string | null;
         };
+        /**
+         * Format: int32
+         * @enum {integer}
+         */
+        UserStatus: 0 | 1 | 2;
         WarehouseDto: {
             /** Format: uuid */
             id?: string;
