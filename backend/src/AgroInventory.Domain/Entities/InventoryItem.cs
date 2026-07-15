@@ -13,6 +13,13 @@ public class InventoryItem
     /// <summary>Хозяйство-владелец позиции (ТЗ §12). Складская позиция принадлежит одному хозяйству.</summary>
     public Guid CompanyId { get; set; }
 
+    /// <summary>
+    /// Ссылка на общий канонический препарат (ТЗ §12). NULL — карточка не привязана и в общем режиме
+    /// показывается отдельно. Привязка только ручная; автообъединение по названию запрещено.
+    /// </summary>
+    public Guid? CanonicalChemicalId { get; set; }
+    public CanonicalChemical? CanonicalChemical { get; set; }
+
     public ItemType ItemType { get; set; }
     public string Name { get; set; } = string.Empty;
     public ItemStatus Status { get; set; } = ItemStatus.Active;

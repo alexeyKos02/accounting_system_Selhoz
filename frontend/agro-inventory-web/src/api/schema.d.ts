@@ -199,6 +199,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/all-companies/chemicals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["AggregatedChemicalGroupDto"][];
+                        "application/json": components["schemas"]["AggregatedChemicalGroupDto"][];
+                        "text/json": components["schemas"]["AggregatedChemicalGroupDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/audit-log": {
         parameters: {
             query?: never;
@@ -561,6 +598,140 @@ export interface paths {
                 };
             };
         };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/canonical-chemicals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    search?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["CanonicalChemicalDto"][];
+                        "application/json": components["schemas"]["CanonicalChemicalDto"][];
+                        "text/json": components["schemas"]["CanonicalChemicalDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["CreateCanonicalChemicalRequest"];
+                    "text/json": components["schemas"]["CreateCanonicalChemicalRequest"];
+                    "application/*+json": components["schemas"]["CreateCanonicalChemicalRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["CanonicalChemicalDto"];
+                        "application/json": components["schemas"]["CanonicalChemicalDto"];
+                        "text/json": components["schemas"]["CanonicalChemicalDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/canonical-chemicals/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["CanonicalChemicalDto"];
+                        "application/json": components["schemas"]["CanonicalChemicalDto"];
+                        "text/json": components["schemas"]["CanonicalChemicalDto"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["UpdateCanonicalChemicalRequest"];
+                    "text/json": components["schemas"]["UpdateCanonicalChemicalRequest"];
+                    "application/*+json": components["schemas"]["UpdateCanonicalChemicalRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["CanonicalChemicalDto"];
+                        "application/json": components["schemas"]["CanonicalChemicalDto"];
+                        "text/json": components["schemas"]["CanonicalChemicalDto"];
+                    };
+                };
+            };
+        };
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2490,6 +2661,38 @@ export interface components {
             /** Format: date-time */
             createdAt?: string;
         };
+        AggregatedChemicalGroupDto: {
+            key?: string | null;
+            name?: string | null;
+            linked?: boolean;
+            /** Format: uuid */
+            canonicalChemicalId?: string | null;
+            /** Format: double */
+            totalLiters?: number;
+            /** Format: int32 */
+            companiesCount?: number;
+            /** Format: int32 */
+            warehousesCount?: number;
+            positions?: components["schemas"]["AggregatedPositionDto"][] | null;
+        };
+        AggregatedPositionDto: {
+            /** Format: uuid */
+            companyId?: string;
+            companyName?: string | null;
+            /** Format: uuid */
+            inventoryItemId?: string;
+            localName?: string | null;
+            /** Format: double */
+            totalLiters?: number;
+            warehouses?: components["schemas"]["AggregatedWarehouseDto"][] | null;
+        };
+        AggregatedWarehouseDto: {
+            /** Format: uuid */
+            warehouseId?: string;
+            warehouseNumber?: string | null;
+            /** Format: double */
+            totalLiters?: number;
+        };
         /**
          * Format: int32
          * @enum {integer}
@@ -2553,6 +2756,16 @@ export interface components {
         BlockUserRequest: {
             blocked?: boolean;
         };
+        CanonicalChemicalDto: {
+            /** Format: uuid */
+            id?: string;
+            canonicalName?: string | null;
+            manufacturer?: string | null;
+            activeIngredient?: string | null;
+            concentration?: string | null;
+            formulation?: string | null;
+            registrationNumber?: string | null;
+        };
         ChangePasswordRequest: {
             currentPassword?: string | null;
             newPassword?: string | null;
@@ -2567,6 +2780,9 @@ export interface components {
             status?: components["schemas"]["ItemStatus"];
             /** Format: uuid */
             mergedIntoItemId?: string | null;
+            /** Format: uuid */
+            canonicalChemicalId?: string | null;
+            canonicalChemicalName?: string | null;
             crops?: components["schemas"]["CropRefDto"][] | null;
             /** Format: double */
             totalLiters?: number;
@@ -2661,12 +2877,22 @@ export interface components {
             /** Format: uuid */
             movementId?: string;
         };
+        CreateCanonicalChemicalRequest: {
+            canonicalName?: string | null;
+            manufacturer?: string | null;
+            activeIngredient?: string | null;
+            concentration?: string | null;
+            formulation?: string | null;
+            registrationNumber?: string | null;
+        };
         CreateChemicalRequest: {
             name?: string | null;
             type?: components["schemas"]["ChemicalType"];
             manufacturer?: string | null;
             comment?: string | null;
             cropIds?: string[] | null;
+            /** Format: uuid */
+            canonicalChemicalId?: string | null;
         };
         CreateCompanyRequest: {
             name?: string | null;
@@ -3118,12 +3344,22 @@ export interface components {
          * @enum {integer}
          */
         UnitType: 1 | 2 | 3;
+        UpdateCanonicalChemicalRequest: {
+            canonicalName?: string | null;
+            manufacturer?: string | null;
+            activeIngredient?: string | null;
+            concentration?: string | null;
+            formulation?: string | null;
+            registrationNumber?: string | null;
+        };
         UpdateChemicalRequest: {
             name?: string | null;
             type?: components["schemas"]["ChemicalType"];
             manufacturer?: string | null;
             comment?: string | null;
             cropIds?: string[] | null;
+            /** Format: uuid */
+            canonicalChemicalId?: string | null;
         };
         UpdateCompanyRequest: {
             name?: string | null;

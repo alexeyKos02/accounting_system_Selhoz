@@ -7,8 +7,11 @@ import { useCompanyContextStore } from '../stores/companyContext'
 // :key на RouterView в AppLayout (текущий экран перемонтируется при смене хозяйства).
 const ctx = useCompanyContextStore()
 
-const options = computed(() =>
-  ctx.availableCompanies.map((c) => ({ label: c.name ?? '—', value: c.id })))
+// «Все хозяйства» (value = null) — общий режим просмотра (ТЗ §15, §17).
+const options = computed(() => [
+  { label: 'Все хозяйства', value: null as string | null },
+  ...ctx.availableCompanies.map((c) => ({ label: c.name ?? '—', value: c.id as string | null })),
+])
 
 const selected = computed({
   get: () => ctx.selectedCompanyId,

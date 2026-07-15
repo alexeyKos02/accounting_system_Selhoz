@@ -17,6 +17,7 @@ export default {
     fields: 'Поля',
     members: 'Пользователи хозяйства',
     users: 'Аккаунты',
+    canonicalChemicals: 'Общий каталог',
     archive: 'Архив',
     backups: 'Бэкапы',
     settings: 'Настройки',

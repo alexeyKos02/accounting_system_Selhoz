@@ -18,8 +18,12 @@ public sealed class InventoryItemConfiguration : IEntityTypeConfiguration<Invent
         b.HasIndex(x => x.ItemType);
         b.HasIndex(x => x.Name);
         b.HasIndex(x => x.CompanyId);
+        b.HasIndex(x => x.CanonicalChemicalId);
 
         b.HasOne<Company>().WithMany().HasForeignKey(x => x.CompanyId).OnDelete(DeleteBehavior.Restrict);
+
+        // Привязка к общему каноническому препарату (ТЗ §12). Restrict: запись со ссылками не удалить.
+        b.HasOne(x => x.CanonicalChemical).WithMany().HasForeignKey(x => x.CanonicalChemicalId).OnDelete(DeleteBehavior.Restrict);
 
         b.HasOne(x => x.MergedIntoItem)
             .WithMany()

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { RouterView, RouterLink, useRouter } from 'vue-router'
+import { RouterView, RouterLink, useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth'
 import { useCompanyContextStore } from '../stores/companyContext'
@@ -11,6 +11,14 @@ const { t } = useI18n()
 const auth = useAuthStore()
 const ctx = useCompanyContextStore()
 const router = useRouter()
+const route = useRoute()
+
+// Разделы, доступные в режиме «Все хозяйства» (ТЗ §15): агрегированная химия (§17) и глобальные
+// админ-страницы, не зависящие от хозяйства. Прочие (приход/склады/дашборд и т.п.) требуют выбора
+// конкретного хозяйства; общий дашборд и др. общие экраны — позже (этап G).
+const allModeRoutes = ['chemicals', 'canonical-chemicals', 'users', 'backups', 'audit-log', 'settings']
+const showAllModePlaceholder = computed(() =>
+  ctx.isAllCompaniesMode && !allModeRoutes.includes(route.name as string))
 
 // Пункт навигации виден, если у пользователя есть право (или он SystemAdmin). ТЗ §5.
 type NavItem = { to: string; key: string; icon?: string; perm?: string; systemAdmin?: boolean }
@@ -31,6 +39,7 @@ const secondaryAll: NavItem[] = [
   { to: '/fields', key: 'nav.fields', perm: Permissions.FieldsView },
   { to: '/members', key: 'nav.members', perm: Permissions.UsersView },
   { to: '/users', key: 'nav.users', systemAdmin: true },
+  { to: '/canonical-chemicals', key: 'nav.canonicalChemicals', systemAdmin: true },
   { to: '/archive', key: 'nav.archive', perm: Permissions.InventoryView },
   { to: '/audit-log', key: 'nav.auditLog', systemAdmin: true },
   { to: '/backups', key: 'nav.backups', systemAdmin: true },
@@ -82,7 +91,12 @@ async function logout() {
       </header>
 
       <main class="layout__content">
-        <RouterView :key="ctx.selectedCompanyId ?? 'none'" />
+        <div v-if="showAllModePlaceholder" class="allmode">
+          <i class="pi pi-building allmode__icon" />
+          <p>Этот раздел доступен в контексте конкретного хозяйства.</p>
+          <p class="allmode__muted">Выберите хозяйство в переключателе сверху.</p>
+        </div>
+        <RouterView v-else :key="ctx.selectedCompanyId ?? 'all'" />
       </main>
     </div>
 
@@ -141,6 +155,9 @@ async function logout() {
 }
 .topbar__action:hover { background: rgba(0,0,0,0.06); }
 .layout__content { padding: 1.5rem; }
+.allmode { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; padding: 4rem 1rem; text-align: center; }
+.allmode__icon { font-size: 2rem; color: var(--p-text-muted-color, #9ca3af); margin-bottom: 0.5rem; }
+.allmode__muted { color: var(--p-text-muted-color, #6b7280); font-size: 0.9rem; }
 .layout__bottombar { display: none; }
 
 @media (max-width: 768px) {

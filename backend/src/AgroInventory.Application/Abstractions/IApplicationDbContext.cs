@@ -10,6 +10,7 @@ namespace AgroInventory.Application.Abstractions;
 public interface IApplicationDbContext
 {
     DbSet<InventoryItem> InventoryItems { get; }
+    DbSet<CanonicalChemical> CanonicalChemicals { get; }
     DbSet<ChemicalDetails> ChemicalDetails { get; }
     DbSet<Crop> Crops { get; }
     DbSet<ChemicalCrop> ChemicalCrops { get; }

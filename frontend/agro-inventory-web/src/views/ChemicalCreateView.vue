@@ -4,8 +4,9 @@ import { useRouter, onBeforeRouteLeave } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
 import { chemicalsApi } from '../api/chemicals'
 import { cropsApi } from '../api/reference'
+import { canonicalApi } from '../api/catalog'
 import { gptApi } from '../api/gpt'
-import type { ChemicalTypeValue, CropDto, DuplicateDto } from '../api/types'
+import type { ChemicalTypeValue, CropDto, DuplicateDto, CanonicalChemicalDto } from '../api/types'
 import { chemicalTypeOptions } from '../api/types'
 import { ApiError } from '../api/http'
 
@@ -28,6 +29,13 @@ const createdId = ref<string | null>(null) // после успешного со
 
 const newCropName = ref('')
 const cropOptions = computed(() => crops.value.map((c) => ({ label: c.name, value: c.id })))
+
+// Привязка к общему каноническому препарату (ТЗ §12). Необязательна.
+const canonicalId = ref<string | null>(null)
+const canonicals = ref<CanonicalChemicalDto[]>([])
+const canonicalOptions = computed(() =>
+  canonicals.value.map((c) => ({ label: c.manufacturer ? `${c.canonicalName} (${c.manufacturer})` : c.canonicalName, value: c.id })))
+const canonicalSuggestion = ref<CanonicalChemicalDto | null>(null)
 
 const gptConfigured = ref(false)
 const enriching = ref(false)
@@ -72,11 +80,25 @@ watch([name, type, manufacturer, comment, selectedCropIds], () => { dirty.value 
 watch(name, (v) => {
   clearTimeout(dupTimer)
   const q = v.trim()
-  if (q.length < 2) { duplicates.value = []; return }
+  if (q.length < 2) { duplicates.value = []; canonicalSuggestion.value = null; return }
   dupTimer = setTimeout(async () => {
     try { duplicates.value = await chemicalsApi.duplicates(q) } catch { /* тихо */ }
+    // Подсказка привязки к каталогу по совпадению названия (ТЗ §12). Выбор — за пользователем.
+    if (!canonicalId.value) {
+      try {
+        const matches = await canonicalApi.list(q)
+        canonicalSuggestion.value = matches[0] ?? null
+      } catch { canonicalSuggestion.value = null }
+    }
   }, 350)
 })
+
+function applySuggestion() {
+  if (canonicalSuggestion.value?.id) {
+    canonicalId.value = canonicalSuggestion.value.id
+    canonicalSuggestion.value = null
+  }
+}
 
 function fail(e: unknown, fallback: string) {
   const msg = e instanceof ApiError ? e.message : fallback
@@ -105,6 +127,7 @@ async function submit() {
       manufacturer: manufacturer.value.trim() || null,
       comment: comment.value.trim() || null,
       cropIds: selectedCropIds.value,
+      canonicalChemicalId: canonicalId.value ?? undefined,
     })
     dirty.value = false
     createdId.value = created.id ?? null
@@ -124,6 +147,8 @@ function addAnother() {
   manufacturer.value = ''
   comment.value = ''
   selectedCropIds.value = []
+  canonicalId.value = null
+  canonicalSuggestion.value = null
   duplicates.value = []
   dirty.value = false
 }
@@ -146,6 +171,7 @@ onBeforeRouteLeave(() => {
 
 onMounted(async () => {
   crops.value = await cropsApi.list()
+  try { canonicals.value = await canonicalApi.list() } catch { canonicals.value = [] }
   try { gptConfigured.value = (await gptApi.status()).configured } catch { gptConfigured.value = false }
 })
 </script>
@@ -196,6 +222,18 @@ onMounted(async () => {
       </label>
 
       <label class="field">
+        <span>Каталожный препарат</span>
+        <PvSelect v-model="canonicalId" :options="canonicalOptions" option-label="label"
+          option-value="value" placeholder="Не привязан" filter show-clear />
+        <small class="hint">Привязка к общему справочнику — чтобы одинаковую химию показывать суммарно по хозяйствам (§17).</small>
+      </label>
+
+      <PvMessage v-if="canonicalSuggestion && !canonicalId" severity="info" :closable="false" class="dups">
+        Возможно, это «{{ canonicalSuggestion.canonicalName }}» из общего каталога.
+        <a href="#" @click.prevent="applySuggestion">Привязать</a>
+      </PvMessage>
+
+      <label class="field">
         <span>Культуры *</span>
         <PvMultiSelect v-model="selectedCropIds" :options="cropOptions" option-label="label"
           option-value="value" placeholder="Выберите культуры" filter />
@@ -228,6 +266,7 @@ onMounted(async () => {
 .quick { display: flex; gap: 0.5rem; align-items: center; margin: -0.5rem 0 1rem; }
 .row { display: flex; gap: 0.5rem; align-items: center; }
 .result { display: flex; flex-direction: column; gap: 1rem; }
+.hint { color: var(--p-text-muted-color, #6b7280); font-weight: 400; font-size: 0.8rem; }
 .dups { margin-bottom: 1rem; }
 .dups ul { margin: 0.25rem 0; padding-left: 1.25rem; }
 </style>

@@ -50,6 +50,48 @@ public sealed class CompanyContextService
         return access;
     }
 
+    /// <summary>
+    /// Все хозяйства, доступные пользователю, с областью доступа по складам (ТЗ §15, §17). Для режима
+    /// «Все хозяйства»: SystemAdmin — все активные хозяйства с полным доступом; иначе — хозяйства с
+    /// активным членством и их scope. Итоговое пересечение с запрошенными companyId — на backend (ТЗ §21).
+    /// </summary>
+    public async Task<IReadOnlyList<AccessibleCompany>> GetAccessibleCompaniesAsync(CancellationToken ct = default)
+    {
+        if (_current.IsSystemAdmin)
+        {
+            var companies = await _db.Companies
+                .Where(c => c.Status == CompanyStatus.Active)
+                .Select(c => new { c.Id, c.Name })
+                .ToListAsync(ct);
+            return companies
+                .Select(c => new AccessibleCompany(c.Id, c.Name, true, new HashSet<Guid>()))
+                .ToList();
+        }
+
+        var memberships = await _db.CompanyMemberships
+            .Where(m => m.UserId == _current.UserId
+                        && m.Status == MembershipStatus.Active
+                        && m.Company.Status == CompanyStatus.Active)
+            .Select(m => new { m.Id, m.CompanyId, CompanyName = m.Company.Name })
+            .ToListAsync(ct);
+
+        var membershipIds = memberships.Select(m => m.Id).ToList();
+        var scopes = await _db.MembershipAccessScopes
+            .Where(s => membershipIds.Contains(s.MembershipId))
+            .Select(s => new { s.MembershipId, s.ScopeType, s.ScopeEntityId })
+            .ToListAsync(ct);
+
+        return memberships.Select(m =>
+        {
+            var mScopes = scopes.Where(s => s.MembershipId == m.Id).ToList();
+            var full = mScopes.Any(s => s.ScopeType == AccessScopeType.Company);
+            var warehouseIds = mScopes
+                .Where(s => s.ScopeType == AccessScopeType.Warehouse && s.ScopeEntityId is not null)
+                .Select(s => s.ScopeEntityId!.Value).ToHashSet();
+            return new AccessibleCompany(m.CompanyId, m.CompanyName, full, warehouseIds);
+        }).ToList();
+    }
+
     private async Task<CompanyAccess> ResolveAsync(Guid companyId, CancellationToken ct)
     {
         // Хозяйство должно существовать и быть активным (companies не под company-фильтром).

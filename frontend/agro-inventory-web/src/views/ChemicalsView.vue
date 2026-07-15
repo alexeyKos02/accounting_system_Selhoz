@@ -10,7 +10,10 @@ import { exportApi } from '../api/export'
 import { ApiError } from '../api/http'
 import type { ChemicalListItemDto, CropDto, WarehouseDto } from '../api/types'
 import { StockStatus, chemicalTypeLabels, chemicalTypeOptions } from '../api/types'
+import { useCompanyContextStore } from '../stores/companyContext'
+import AggregatedChemicals from '../components/AggregatedChemicals.vue'
 
+const ctx = useCompanyContextStore()
 const router = useRouter()
 const toast = useToast()
 const items = ref<ChemicalListItemDto[]>([])
@@ -115,13 +118,17 @@ function toggleActions(event: MouseEvent) {
 }
 
 onMounted(async () => {
+  // В режиме «Все хозяйства» показывается агрегированный компонент; per-company данные не грузим.
+  if (ctx.isAllCompaniesMode) return
   ;[crops.value, warehouses.value] = await Promise.all([cropsApi.list(), warehousesApi.list()])
   await load()
 })
 </script>
 
 <template>
-  <section class="page">
+  <AggregatedChemicals v-if="ctx.isAllCompaniesMode" />
+
+  <section v-else class="page">
     <div class="toolbar">
     <div class="head">
       <h1 class="page__title">Химия</h1>

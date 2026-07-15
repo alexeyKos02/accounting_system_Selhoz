@@ -30,7 +30,7 @@ public sealed record WarehouseStockDto(
     IReadOnlyList<PackageGroupDto> PackageGroups,
     IReadOnlyList<OpenedPackageDto> OpenedPackages);
 
-/// <summary>Карточка химии (ТЗ §15).</summary>
+/// <summary>Карточка химии (ТЗ §15). Привязка к общему каноническому препарату — ТЗ §12.</summary>
 public sealed record ChemicalDetailDto(
     Guid Id,
     string Name,
@@ -39,6 +39,8 @@ public sealed record ChemicalDetailDto(
     string? Comment,
     ItemStatus Status,
     Guid? MergedIntoItemId,
+    Guid? CanonicalChemicalId,
+    string? CanonicalChemicalName,
     IReadOnlyList<CropRefDto> Crops,
     decimal TotalLiters,
     IReadOnlyList<WarehouseStockDto> Warehouses);
@@ -58,14 +60,16 @@ public sealed record CreateChemicalRequest(
     ChemicalType? Type,
     string? Manufacturer,
     string? Comment,
-    IReadOnlyList<Guid> CropIds);
+    IReadOnlyList<Guid> CropIds,
+    Guid? CanonicalChemicalId = null);
 
 public sealed record UpdateChemicalRequest(
     string Name,
     ChemicalType? Type,
     string? Manufacturer,
     string? Comment,
-    IReadOnlyList<Guid> CropIds);
+    IReadOnlyList<Guid> CropIds,
+    Guid? CanonicalChemicalId = null);
 
 /// <summary>Запрос архивирования. При остатке > 0 требуется подтверждение словом «АРХИВ» (ТЗ §17.1).</summary>
 public sealed record ArchiveChemicalRequest(string? Confirmation);

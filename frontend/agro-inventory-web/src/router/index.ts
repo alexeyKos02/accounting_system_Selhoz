@@ -28,6 +28,7 @@ const routes: RouteRecordRaw[] = [
       { path: 'fields', name: 'fields', component: () => import('../views/FieldsView.vue') },
       { path: 'members', name: 'members', component: () => import('../views/MembersView.vue'), meta: { permission: Permissions.UsersView } },
       { path: 'users', name: 'users', component: () => import('../views/UsersView.vue'), meta: { systemAdmin: true } },
+      { path: 'canonical-chemicals', name: 'canonical-chemicals', component: () => import('../views/CanonicalChemicalsView.vue'), meta: { systemAdmin: true } },
       { path: 'archive', name: 'archive', component: () => import('../views/ArchiveView.vue') },
       { path: 'backups', name: 'backups', component: () => import('../views/BackupsView.vue'), meta: { systemAdmin: true } },
       { path: 'settings', name: 'settings', component: () => import('../views/SettingsView.vue') },

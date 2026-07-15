@@ -80,6 +80,7 @@ public sealed partial class ChemicalService
         var item = await _db.InventoryItems
             .Include(i => i.ChemicalDetails)
             .Include(i => i.ChemicalCrops).ThenInclude(cc => cc.Crop)
+            .Include(i => i.CanonicalChemical)
             .FirstOrDefaultAsync(i => i.Id == id, ct)
             ?? throw NotFoundException.For("Химия", id);
 
@@ -93,7 +94,9 @@ public sealed partial class ChemicalService
 
         return new ChemicalDetailDto(
             item.Id, item.Name, item.ChemicalDetails?.Type, item.ChemicalDetails?.Manufacturer, item.ChemicalDetails?.Comment,
-            item.Status, item.MergedIntoItemId, crops, total, warehouses);
+            item.Status, item.MergedIntoItemId,
+            item.CanonicalChemicalId, item.CanonicalChemical?.CanonicalName,
+            crops, total, warehouses);
     }
 
     public async Task<IReadOnlyList<ArchivedChemicalDto>> GetArchivedAsync(CancellationToken ct = default)

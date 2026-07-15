@@ -16,12 +16,14 @@ public sealed partial class ChemicalService
             throw new ValidationException(nameof(request.Name), "Название химии обязательно.");
 
         var cropIds = await ValidateCropsAsync(request.CropIds, ct);
+        await ValidateCanonicalAsync(request.CanonicalChemicalId, ct);
 
         var now = _clock.GetUtcNow();
         var item = new InventoryItem
         {
             Id = Guid.NewGuid(),
             CompanyId = _currentUser.CompanyId, // выбранное хозяйство (ТЗ §12, §24)
+            CanonicalChemicalId = request.CanonicalChemicalId, // привязка к общему справочнику (ТЗ §12)
             ItemType = ItemType.Chemical,
             Status = ItemStatus.Active,
             Name = name,
@@ -52,6 +54,7 @@ public sealed partial class ChemicalService
             throw new ValidationException(nameof(request.Name), "Название химии обязательно.");
 
         var cropIds = await ValidateCropsAsync(request.CropIds, ct);
+        await ValidateCanonicalAsync(request.CanonicalChemicalId, ct);
 
         var item = await _db.InventoryItems
             .Include(i => i.ChemicalDetails)
@@ -61,6 +64,8 @@ public sealed partial class ChemicalService
 
         if (item.Status == ItemStatus.Merged)
             throw new ConflictException("Эта карточка объединена с другой и не редактируется.");
+
+        item.CanonicalChemicalId = request.CanonicalChemicalId; // привязка к общему справочнику (ТЗ §12)
 
         item.ChemicalDetails ??= new ChemicalDetails { Id = Guid.NewGuid(), InventoryItemId = item.Id };
 
@@ -186,6 +191,14 @@ public sealed partial class ChemicalService
     // ---------- Приватные помощники ----------
 
     private static string? Trim(string? s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim();
+
+    /// <summary>Проверяет, что канонический препарат существует (общий справочник, ТЗ §12). null — без привязки.</summary>
+    private async Task ValidateCanonicalAsync(Guid? canonicalId, CancellationToken ct)
+    {
+        if (canonicalId is null) return;
+        if (!await _db.CanonicalChemicals.AnyAsync(c => c.Id == canonicalId, ct))
+            throw new ValidationException("canonicalChemicalId", "Канонический препарат не найден.");
+    }
 
     private async Task<List<Guid>> ValidateCropsAsync(IReadOnlyList<Guid>? cropIds, CancellationToken ct)
     {

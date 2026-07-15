@@ -81,6 +81,14 @@ export type AdminUserDto = S['AdminUserDto']
 export type CreateUserRequest = S['CreateUserRequest']
 export type UpdateUserRequest = S['UpdateUserRequest']
 
+// Общий каталог препаратов (ТЗ §12, §17)
+export type CanonicalChemicalDto = S['CanonicalChemicalDto']
+export type CreateCanonicalChemicalRequest = S['CreateCanonicalChemicalRequest']
+export type UpdateCanonicalChemicalRequest = S['UpdateCanonicalChemicalRequest']
+export type AggregatedChemicalGroupDto = S['AggregatedChemicalGroupDto']
+export type AggregatedPositionDto = S['AggregatedPositionDto']
+export type AggregatedWarehouseDto = S['AggregatedWarehouseDto']
+
 // AppRole (Domain/Enums/AppRole.cs): 0 SystemAdmin, 1 Owner, 2 CompanyAdmin, 3 Manager, 4 Storekeeper, 5 Viewer
 export const AppRole = {
   SystemAdmin: 0, Owner: 1, CompanyAdmin: 2, Manager: 3, Storekeeper: 4, Viewer: 5,

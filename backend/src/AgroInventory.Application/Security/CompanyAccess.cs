@@ -4,6 +4,13 @@ using AgroInventory.Domain.Enums;
 namespace AgroInventory.Application.Security;
 
 /// <summary>
+/// Доступное пользователю хозяйство с областью доступа по складам (ТЗ §15, §17). HasFullScope —
+/// доступ ко всем складам хозяйства; иначе доступ ограничен WarehouseIds.
+/// </summary>
+public sealed record AccessibleCompany(
+    Guid CompanyId, string Name, bool HasFullScope, IReadOnlySet<Guid> WarehouseIds);
+
+/// <summary>
 /// Разрешённый доступ пользователя к выбранному хозяйству (ТЗ §4–§6, §24): роль, права,
 /// область доступа по складам/полям. Для SystemAdmin — полный доступ ко всему хозяйству.
 /// </summary>

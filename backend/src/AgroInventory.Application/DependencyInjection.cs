@@ -28,6 +28,8 @@ public static class DependencyInjection
         services.AddScoped<AdminUserService>();
         services.AddScoped<Companies.CompanyService>();
         services.AddScoped<Companies.MembershipService>();
+        services.AddScoped<Catalog.CanonicalChemicalService>();
+        services.AddScoped<Catalog.AggregatedChemicalService>();
         services.AddScoped<CropService>();
         services.AddScoped<WarehouseService>();
         services.AddScoped<FieldService>();
