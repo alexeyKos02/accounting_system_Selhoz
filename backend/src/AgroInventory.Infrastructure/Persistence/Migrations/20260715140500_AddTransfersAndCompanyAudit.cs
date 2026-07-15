@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace AgroInventory.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
-    [Migration("20260715140500_AddTransfersAndCompanyAudit")]
     public partial class AddTransfersAndCompanyAudit : Migration
     {
         /// <inheritdoc />
