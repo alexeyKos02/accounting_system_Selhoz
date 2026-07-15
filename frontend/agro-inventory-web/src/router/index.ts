@@ -31,6 +31,7 @@ const routes: RouteRecordRaw[] = [
       { path: 'fields', name: 'fields', component: () => import('../views/FieldsView.vue') },
       { path: 'fields/:id', name: 'field-detail', component: () => import('../views/FieldDetailView.vue') },
       { path: 'field-treatments', name: 'field-treatments', component: () => import('../views/FieldTreatmentsView.vue') },
+      { path: 'companies', name: 'companies', component: () => import('../views/CompaniesView.vue'), meta: { systemAdmin: true } },
       { path: 'members', name: 'members', component: () => import('../views/MembersView.vue'), meta: { permission: Permissions.UsersView } },
       { path: 'users', name: 'users', component: () => import('../views/UsersView.vue'), meta: { systemAdmin: true } },
       { path: 'canonical-chemicals', name: 'canonical-chemicals', component: () => import('../views/CanonicalChemicalsView.vue'), meta: { systemAdmin: true } },

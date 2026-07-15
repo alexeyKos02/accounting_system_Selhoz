@@ -17,7 +17,7 @@ const route = useRoute()
 // админ-страницы, не зависящие от хозяйства. Прочие (приход/склады/дашборд и т.п.) требуют выбора
 // конкретного хозяйства; общий дашборд и др. общие экраны — позже (этап G).
 const allModeRoutes = computed(() => [
-  'dashboard', 'chemicals', 'receipts', 'canonical-chemicals', 'users', 'backups', 'settings',
+  'dashboard', 'chemicals', 'receipts', 'canonical-chemicals', 'companies', 'users', 'backups', 'settings',
   ...(auth.isSystemAdmin ? ['audit-log'] : []),
 ])
 const showAllModePlaceholder = computed(() =>
@@ -43,6 +43,7 @@ const secondaryAll: NavItem[] = [
   { to: '/warehouses', key: 'nav.warehouses', perm: Permissions.WarehousesView },
   { to: '/fields', key: 'nav.fields', perm: Permissions.FieldsView },
   { to: '/field-treatments', key: 'nav.fieldTreatments', perm: Permissions.TreatmentsView },
+  { to: '/companies', key: 'nav.companies', systemAdmin: true },
   { to: '/members', key: 'nav.members', perm: Permissions.UsersView },
   { to: '/users', key: 'nav.users', systemAdmin: true },
   { to: '/canonical-chemicals', key: 'nav.canonicalChemicals', systemAdmin: true },

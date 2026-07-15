@@ -18,6 +18,7 @@ export default {
     warehouses: 'Склады',
     fields: 'Поля',
     fieldTreatments: 'Обработки полей',
+    companies: 'Хозяйства',
     members: 'Пользователи хозяйства',
     users: 'Аккаунты',
     canonicalChemicals: 'Общий каталог',
