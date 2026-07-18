@@ -3,6 +3,8 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { dashboardApi } from '../api/dashboard'
 import type { AllCompaniesDashboardDto, AllCompaniesDashboardCompanyDto, DashboardDto, DashboardStockDto } from '../api/dashboard'
+import { allCompaniesApi } from '../api/catalog'
+import type { AggregatedChemicalGroupDto } from '../api/types'
 import { MovementType } from '../api/history'
 import { useCompanyContextStore } from '../stores/companyContext'
 
@@ -24,6 +26,36 @@ const allRecentMobile = computed(() => (allData.value?.recentOperations ?? []).s
 
 // Список всей химии компании: на дашборде показываем первые 5.
 const topChemicals = computed(() => (data.value?.chemicals ?? []).slice(0, 5))
+
+// Химия по всем хозяйствам: агрегированные группы, на дашборде — первые 5 по алфавиту.
+const chemicalGroups = ref<AggregatedChemicalGroupDto[]>([])
+const expandedGroups = ref<Record<string, boolean>>({})
+const topGroups = computed(() =>
+  [...chemicalGroups.value]
+    .sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', 'ru'))
+    .slice(0, 5),
+)
+function toggleGroup(key?: string | null) {
+  const k = key ?? ''
+  expandedGroups.value[k] = !expandedGroups.value[k]
+}
+function isGroupOpen(key?: string | null) {
+  return !!expandedGroups.value[key ?? '']
+}
+// Разворот группы: остаток препарата по каждому хозяйству (позиции хозяйства суммируются).
+function perCompany(g: AggregatedChemicalGroupDto) {
+  const map = new Map<string, { companyId: string; companyName: string; totalLiters: number }>()
+  for (const p of g.positions ?? []) {
+    const id = p.companyId ?? ''
+    const cur = map.get(id)
+    if (cur) cur.totalLiters += p.totalLiters ?? 0
+    else map.set(id, { companyId: id, companyName: p.companyName ?? '', totalLiters: p.totalLiters ?? 0 })
+  }
+  return [...map.values()].sort((a, b) => a.companyName.localeCompare(b.companyName, 'ru'))
+}
+async function loadChemicals() {
+  chemicalGroups.value = await allCompaniesApi.chemicals()
+}
 
 async function load() {
   loading.value = true
@@ -120,8 +152,10 @@ const quick = [
 ]
 
 onMounted(() => {
-  if (ctx.isAllCompaniesMode) setPeriod('month')
-  else load()
+  if (ctx.isAllCompaniesMode) {
+    setPeriod('month')
+    loadChemicals()
+  } else load()
 })
 </script>
 
@@ -145,31 +179,28 @@ onMounted(() => {
         <input v-model="dateTo" class="date-input" type="date" @change="load" />
       </div>
 
-      <div class="stats">
-        <div class="stat">
-          <div class="stat__value">{{ allData?.companiesCount ?? 0 }}</div>
-          <div class="stat__label">Хозяйств</div>
+      <!-- Вся химия — все хозяйства (клик разворачивает остаток по каждому хозяйству) -->
+      <div class="block">
+        <div class="block__head"><i class="pi pi-box" /> Химия
+          <RouterLink to="/chemicals" class="all">вся химия →</RouterLink>
         </div>
-        <div class="stat">
-          <div class="stat__value">{{ fmtNum(allData?.totalLiters) }} л</div>
-          <div class="stat__label">Остаток сейчас</div>
-        </div>
-        <div class="stat">
-          <div class="stat__value">{{ fmtNum(allData?.incomeLiters) }} л</div>
-          <div class="stat__label">Приход за период</div>
-        </div>
-        <div class="stat">
-          <div class="stat__value">{{ fmtNum(allData?.outcomeLiters) }} л</div>
-          <div class="stat__label">Списание за период</div>
-        </div>
-        <div class="stat stat--warn" :class="{ 'stat--muted': !allData?.lowCount }">
-          <div class="stat__value">{{ allData?.lowCount ?? 0 }}</div>
-          <div class="stat__label">Малый остаток</div>
-        </div>
-        <div class="stat stat--danger" :class="{ 'stat--muted': !allData?.emptyCount }">
-          <div class="stat__value">{{ allData?.emptyCount ?? 0 }}</div>
-          <div class="stat__label">Закончилась</div>
-        </div>
+        <ul v-if="topGroups.length" class="list list--groups">
+          <li v-for="g in topGroups" :key="g.key ?? ''" class="group-item">
+            <button type="button" class="group-item__head" @click="toggleGroup(g.key)">
+              <i class="pi" :class="isGroupOpen(g.key) ? 'pi-chevron-down' : 'pi-chevron-right'" />
+              <span class="name">{{ g.name }}</span>
+              <span class="group-item__meta">хозяйств {{ g.companiesCount }}</span>
+              <PvTag :value="`${fmtNum(g.totalLiters)} л`" severity="info" />
+            </button>
+            <div v-if="isGroupOpen(g.key)" class="group-item__body">
+              <div v-for="p in perCompany(g)" :key="p.companyId" class="company-line">
+                <span class="company-line__name">{{ p.companyName }}</span>
+                <span class="company-line__qty">{{ fmtNum(p.totalLiters) }} л</span>
+              </div>
+            </div>
+          </li>
+        </ul>
+        <div v-else class="empty">Химия не заведена</div>
       </div>
 
       <div class="columns">
@@ -527,6 +558,23 @@ onMounted(() => {
 }
 .list li:hover { background: rgba(0, 0, 0, 0.04); }
 .list .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.list--groups { gap: 0.25rem; }
+.group-item { border-radius: 8px; overflow: hidden; }
+.group-item__head {
+  display: flex; align-items: center; gap: 0.5rem; width: 100%;
+  padding: 0.45rem 0.5rem; border: none; background: transparent; cursor: pointer;
+  font: inherit; color: inherit; text-align: left; border-radius: 8px;
+}
+.group-item__head:hover { background: rgba(0, 0, 0, 0.04); }
+.group-item__head .name { flex: 1 1 auto; font-weight: 500; }
+.group-item__meta { color: #6b7280; font-size: 0.8rem; white-space: nowrap; }
+.group-item__body {
+  display: flex; flex-direction: column; gap: 0.15rem;
+  padding: 0.15rem 0.5rem 0.5rem 1.85rem;
+}
+.company-line { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0.2rem 0; }
+.company-line__name { color: #374151; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.company-line__qty { font-weight: 600; color: #111827; white-space: nowrap; }
 .empty { padding: 0.75rem 0.25rem; color: #6b7280; }
 @media (max-width: 768px) {
   .columns { grid-template-columns: 1fr; }
