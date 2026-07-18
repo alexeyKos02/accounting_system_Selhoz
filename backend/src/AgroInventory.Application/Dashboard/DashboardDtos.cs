@@ -23,6 +23,7 @@ public sealed record DashboardDto(
     decimal LowStockThresholdLiters,
     IReadOnlyList<DashboardStockDto> Empty,
     IReadOnlyList<DashboardStockDto> Low,
+    IReadOnlyList<DashboardStockDto> Chemicals,
     IReadOnlyList<HistoryItemDto> RecentOperations);
 
 public sealed record AllCompaniesDashboardQuery(

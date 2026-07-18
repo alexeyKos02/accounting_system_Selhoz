@@ -22,6 +22,9 @@ const recentMobile = computed(() => (data.value?.recentOperations ?? []).slice(0
 const allRecentDesktop = computed(() => (allData.value?.recentOperations ?? []).slice(0, 10))
 const allRecentMobile = computed(() => (allData.value?.recentOperations ?? []).slice(0, 4))
 
+// Список всей химии компании: на дашборде показываем первые 5.
+const topChemicals = computed(() => (data.value?.chemicals ?? []).slice(0, 5))
+
 async function load() {
   loading.value = true
   try {
@@ -88,6 +91,10 @@ function typeLabel(t?: number) {
 }
 function typeSeverity(t?: number) {
   return t === MovementType.Income ? 'success' : t === MovementType.Outcome ? 'warn' : 'info'
+}
+// StockStatus: InStock=0, Low=1, Empty=2
+function stockSeverity(status?: number) {
+  return status === 2 ? 'danger' : status === 1 ? 'warn' : 'success'
 }
 function openChemical(row: DashboardStockDto) {
   router.push({ name: 'chemical-detail', params: { id: row.chemicalId } })
@@ -279,24 +286,18 @@ onMounted(() => {
       </button>
     </div>
 
-    <!-- Счётчики -->
-    <div class="stats">
-      <div class="stat">
-        <div class="stat__value">{{ data?.activeChemicals ?? 0 }}</div>
-        <div class="stat__label">Химии в работе</div>
+    <!-- Вся химия компании -->
+    <div class="block">
+      <div class="block__head"><i class="pi pi-box" /> Химия
+        <RouterLink to="/chemicals" class="all">вся химия →</RouterLink>
       </div>
-      <div class="stat stat--warn" :class="{ 'stat--muted': !data?.lowCount }">
-        <div class="stat__value">{{ data?.lowCount ?? 0 }}</div>
-        <div class="stat__label">Малый остаток</div>
-      </div>
-      <div class="stat stat--danger" :class="{ 'stat--muted': !data?.emptyCount }">
-        <div class="stat__value">{{ data?.emptyCount ?? 0 }}</div>
-        <div class="stat__label">Закончилась</div>
-      </div>
-      <div class="stat">
-        <div class="stat__value">{{ data?.warehouses ?? 0 }}</div>
-        <div class="stat__label">Складов</div>
-      </div>
+      <ul v-if="topChemicals.length" class="list">
+        <li v-for="c in topChemicals" :key="c.chemicalId" @click="openChemical(c)">
+          <span class="name">{{ c.name }}</span>
+          <PvTag :value="`${fmtNum(c.totalLiters)} л`" :severity="stockSeverity(c.status)" />
+        </li>
+      </ul>
+      <div v-else class="empty">Химия не заведена</div>
     </div>
 
     <div class="columns">

@@ -54,6 +54,18 @@ public sealed class DashboardService
             .Select(c => new DashboardStockDto(c.Id, c.Name, c.Total, StockStatus.Low))
             .ToList();
 
+        // Полный список активной химии для дашборда (по имени), со статусом остатка.
+        var allChemicals = chemicals
+            .OrderBy(c => c.Name)
+            .Select(c => new DashboardStockDto(
+                c.Id,
+                c.Name,
+                c.Total,
+                c.HasBalance && c.Total <= 0 ? StockStatus.Empty
+                    : c.Total > 0 && c.Total < threshold ? StockStatus.Low
+                    : StockStatus.InStock))
+            .ToList();
+
         var warehouses = await _db.Warehouses.CountAsync(ct);
 
         var recent = await _db.InventoryMovements.AsNoTracking()
@@ -91,6 +103,7 @@ public sealed class DashboardService
             LowStockThresholdLiters: threshold,
             Empty: empty,
             Low: low,
+            Chemicals: allChemicals,
             RecentOperations: recent);
     }
 

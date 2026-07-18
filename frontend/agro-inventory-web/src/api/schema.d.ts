@@ -2945,6 +2945,7 @@ export interface components {
             lowStockThresholdLiters?: number;
             empty?: components["schemas"]["DashboardStockDto"][] | null;
             low?: components["schemas"]["DashboardStockDto"][] | null;
+            chemicals?: components["schemas"]["DashboardStockDto"][] | null;
             recentOperations?: components["schemas"]["HistoryItemDto"][] | null;
         };
         DashboardStockDto: {
