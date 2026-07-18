@@ -27,6 +27,7 @@ public sealed partial class ChemicalService
             ItemType = ItemType.Chemical,
             Status = ItemStatus.Active,
             Name = name,
+            MeasureUnit = request.MeasureUnit, // единица задаётся при создании и далее не меняется
             CreatedAt = now,
             UpdatedAt = now,
             ChemicalDetails = new ChemicalDetails
@@ -100,18 +101,19 @@ public sealed partial class ChemicalService
             throw new ConflictException("Объединённую карточку нельзя архивировать.");
 
         var total = await _db.ChemicalStockBalances
-            .Where(b => b.ChemicalId == id).SumAsync(b => (decimal?)b.TotalLiters, ct) ?? 0m;
+            .Where(b => b.ChemicalId == id).SumAsync(b => (decimal?)b.TotalQuantity, ct) ?? 0m;
+        var unit = item.MeasureUnit == MeasureUnit.Kilogram ? "кг" : "л";
 
         // При остатке > 0 требуется ручное подтверждение словом «АРХИВ» (ТЗ §17.1).
         if (total > 0 && !string.Equals(request.Confirmation?.Trim(), "АРХИВ", StringComparison.Ordinal))
             throw new ConflictException(
-                $"У химии остаток {total:0.###} л. Для архивирования введите слово «АРХИВ».");
+                $"У химии остаток {total:0.###} {unit}. Для архивирования введите слово «АРХИВ».");
 
         item.Status = ItemStatus.Archived;
         item.UpdatedAt = _clock.GetUtcNow();
 
         _audit.Log(AuditAction.Archive, EntityType, item.Id,
-            new { Status = nameof(ItemStatus.Active) }, new { Status = nameof(ItemStatus.Archived), TotalLiters = total });
+            new { Status = nameof(ItemStatus.Active) }, new { Status = nameof(ItemStatus.Archived), TotalQuantity = total });
         await _db.SaveChangesAsync(ct);
     }
 
@@ -226,15 +228,9 @@ public sealed partial class ChemicalService
             item.ChemicalCrops.Add(new ChemicalCrop { ChemicalId = item.Id, CropId = cid });
     }
 
-    /// <summary>Переносит остатки/упаковки/операции с дубля на основную карточку.</summary>
+    /// <summary>Переносит остатки/операции с дубля на основную карточку.</summary>
     private async Task ReassignStockAsync(Guid sourceId, Guid targetId, CancellationToken ct)
     {
-        var groups = await _db.PackageGroups.Where(g => g.ChemicalId == sourceId).ToListAsync(ct);
-        foreach (var g in groups) g.ChemicalId = targetId;
-
-        var opened = await _db.OpenedPackages.Where(o => o.ChemicalId == sourceId).ToListAsync(ct);
-        foreach (var o in opened) o.ChemicalId = targetId;
-
         var movements = await _db.InventoryMovements.Where(m => m.ChemicalId == sourceId).ToListAsync(ct);
         foreach (var m in movements) m.ChemicalId = targetId;
 
@@ -251,8 +247,7 @@ public sealed partial class ChemicalService
             }
             else
             {
-                tb.LooseLiters += sb.LooseLiters;
-                tb.TotalLiters += sb.TotalLiters;
+                tb.TotalQuantity += sb.TotalQuantity;
                 tb.UpdatedAt = _clock.GetUtcNow();
                 _db.ChemicalStockBalances.Remove(sb);
             }

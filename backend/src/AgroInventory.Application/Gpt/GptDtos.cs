@@ -9,8 +9,6 @@ public sealed record RawOperationSuggestion(
     string? OperationType,          // income | outcome
     string? ChemicalName,
     decimal? Quantity,
-    string? Unit,                   // liter | can | piece
-    decimal? PackageVolumeLiters,
     string? WarehouseNumber,
     string? CropName,
     string? Comment,
@@ -36,8 +34,6 @@ public sealed record OperationSuggestionDto(
     MovementType? OperationType,
     ReferenceMatchDto? Chemical,
     decimal? Quantity,
-    UnitType? Unit,
-    decimal? PackageVolumeLiters,
     ReferenceMatchDto? Warehouse,
     ReferenceMatchDto? Crop,
     string? Comment,

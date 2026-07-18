@@ -24,6 +24,9 @@ public class InventoryItem
     public string Name { get; set; } = string.Empty;
     public ItemStatus Status { get; set; } = ItemStatus.Active;
 
+    /// <summary>Единица измерения химии (литры/кг). Задаётся при создании и не меняется.</summary>
+    public MeasureUnit MeasureUnit { get; set; } = MeasureUnit.Liter;
+
     /// <summary>Для merged-карточек — ссылка на основную карточку (ТЗ §18.2).</summary>
     public Guid? MergedIntoItemId { get; set; }
     public InventoryItem? MergedIntoItem { get; set; }

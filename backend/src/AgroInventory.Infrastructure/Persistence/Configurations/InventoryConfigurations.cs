@@ -13,6 +13,7 @@ public sealed class InventoryItemConfiguration : IEntityTypeConfiguration<Invent
         b.Property(x => x.Name).HasMaxLength(300).IsRequired();
         b.Property(x => x.ItemType).HasConversion<int>();
         b.Property(x => x.Status).HasConversion<int>();
+        b.Property(x => x.MeasureUnit).HasConversion<int>();
 
         b.HasIndex(x => x.Status);
         b.HasIndex(x => x.ItemType);

@@ -21,8 +21,8 @@ public class FieldTreatment
     public Guid MovementId { get; set; }
     public InventoryMovement Movement { get; set; } = null!;
 
-    public decimal QuantityLiters { get; set; }
-    public decimal? RateLitersPerHectare { get; set; }
+    public decimal Quantity { get; set; }
+    public decimal? RatePerHectare { get; set; }
     public DateTimeOffset TreatedAt { get; set; }
     public string? Comment { get; set; }
     public Guid CreatedByUserId { get; set; }

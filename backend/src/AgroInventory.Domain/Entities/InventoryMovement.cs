@@ -25,12 +25,8 @@ public class InventoryMovement
 
     public MovementType MovementType { get; set; }
 
-    /// <summary>Величина операции в литрах (для income/outcome/correction).</summary>
-    public decimal QuantityLiters { get; set; }
-
-    public UnitType? UnitType { get; set; }
-    public decimal? PackageVolumeLiters { get; set; }
-    public int? PackagesQuantity { get; set; }
+    /// <summary>Величина операции в единице химии (для income/outcome/correction).</summary>
+    public decimal Quantity { get; set; }
 
     public Guid? CropId { get; set; }
     public Crop? Crop { get; set; }
@@ -48,6 +44,4 @@ public class InventoryMovement
     public bool IsDeleted { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
-
-    public ICollection<InventoryMovementDetail> Details { get; set; } = new List<InventoryMovementDetail>();
 }

@@ -59,10 +59,7 @@ public sealed class BackupService : IBackupService
             ChemicalDetails = await _db.ChemicalDetails.AsNoTracking().ToListAsync(ct),
             ChemicalCrops = await _db.ChemicalCrops.AsNoTracking().ToListAsync(ct),
             Balances = await _db.ChemicalStockBalances.AsNoTracking().ToListAsync(ct),
-            PackageGroups = await _db.PackageGroups.AsNoTracking().ToListAsync(ct),
-            OpenedPackages = await _db.OpenedPackages.AsNoTracking().ToListAsync(ct),
             Movements = await _db.InventoryMovements.AsNoTracking().ToListAsync(ct),
-            MovementDetails = await _db.InventoryMovementDetails.AsNoTracking().ToListAsync(ct),
             AuditLogs = await _db.AuditLogs.AsNoTracking().ToListAsync(ct),
             AppSettings = await _db.AppSettings.AsNoTracking().ToListAsync(ct),
         };
@@ -100,10 +97,7 @@ public sealed class BackupService : IBackupService
 
         // Чистим пользовательские таблицы в обратном по FK порядке (кроме app_settings и security).
         await _db.AuditLogs.ExecuteDeleteAsync(ct);
-        await _db.InventoryMovementDetails.ExecuteDeleteAsync(ct);
         await _db.InventoryMovements.ExecuteDeleteAsync(ct);
-        await _db.OpenedPackages.ExecuteDeleteAsync(ct);
-        await _db.PackageGroups.ExecuteDeleteAsync(ct);
         await _db.ChemicalStockBalances.ExecuteDeleteAsync(ct);
         await _db.ChemicalCrops.ExecuteDeleteAsync(ct);
         await _db.ChemicalDetails.ExecuteDeleteAsync(ct);
@@ -124,10 +118,7 @@ public sealed class BackupService : IBackupService
         _db.ChemicalDetails.AddRange(snapshot.ChemicalDetails);
         _db.ChemicalCrops.AddRange(snapshot.ChemicalCrops);
         _db.ChemicalStockBalances.AddRange(snapshot.Balances);
-        _db.PackageGroups.AddRange(snapshot.PackageGroups);
-        _db.OpenedPackages.AddRange(snapshot.OpenedPackages);
         _db.InventoryMovements.AddRange(snapshot.Movements);
-        _db.InventoryMovementDetails.AddRange(snapshot.MovementDetails);
         _db.AuditLogs.AddRange(snapshot.AuditLogs);
         await _db.SaveChangesAsync(ct);
 
@@ -148,7 +139,7 @@ public sealed class BackupService : IBackupService
             else
             {
                 current.LowStockThresholdLiters = restoredSettings.LowStockThresholdLiters;
-                current.AutoOpenPackages = restoredSettings.AutoOpenPackages;
+                current.LowStockThresholdKg = restoredSettings.LowStockThresholdKg;
                 current.UpdatedAt = restoredSettings.UpdatedAt;
             }
         }
@@ -192,7 +183,7 @@ public sealed class BackupService : IBackupService
     /// <summary>Снимок пользовательских таблиц. Порядок полей = порядок вставки по FK.</summary>
     private sealed class BackupSnapshot
     {
-        public const int TableCount = 12;
+        public const int TableCount = 9;
 
         public int Version { get; set; } = 1;
         public DateTimeOffset CreatedAt { get; set; }
@@ -203,16 +194,13 @@ public sealed class BackupService : IBackupService
         public List<ChemicalDetails> ChemicalDetails { get; set; } = new();
         public List<ChemicalCrop> ChemicalCrops { get; set; } = new();
         public List<ChemicalStockBalance> Balances { get; set; } = new();
-        public List<PackageGroup> PackageGroups { get; set; } = new();
-        public List<OpenedPackage> OpenedPackages { get; set; } = new();
         public List<InventoryMovement> Movements { get; set; } = new();
-        public List<InventoryMovementDetail> MovementDetails { get; set; } = new();
         public List<AuditLog> AuditLogs { get; set; } = new();
         public List<AppSettings> AppSettings { get; set; } = new();
 
         public int TotalRows =>
             Crops.Count + Warehouses.Count + InventoryItems.Count + ChemicalDetails.Count +
-            ChemicalCrops.Count + Balances.Count + PackageGroups.Count + OpenedPackages.Count +
-            Movements.Count + MovementDetails.Count + AuditLogs.Count + AppSettings.Count;
+            ChemicalCrops.Count + Balances.Count +
+            Movements.Count + AuditLogs.Count + AppSettings.Count;
     }
 }

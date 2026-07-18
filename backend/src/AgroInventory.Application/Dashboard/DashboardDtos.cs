@@ -1,5 +1,6 @@
 using AgroInventory.Application.Chemicals;
 using AgroInventory.Application.History;
+using AgroInventory.Domain.Enums;
 
 namespace AgroInventory.Application.Dashboard;
 
@@ -7,11 +8,12 @@ namespace AgroInventory.Application.Dashboard;
 public sealed record DashboardStockDto(
     Guid ChemicalId,
     string Name,
-    decimal TotalLiters,
+    MeasureUnit MeasureUnit,
+    decimal TotalQuantity,
     StockStatus Status);
 
 /// <summary>
-/// Сводка для дашборда (ТЗ §22): счётчики, блоки «Закончилась» / «Малый остаток»,
+/// Сводка для дашборда (ТЗ §22): блоки «Закончилась» / «Малый остаток», список химии,
 /// последние операции.
 /// </summary>
 public sealed record DashboardDto(
@@ -19,8 +21,8 @@ public sealed record DashboardDto(
     int Warehouses,
     int EmptyCount,
     int LowCount,
-    decimal TotalLiters,
     decimal LowStockThresholdLiters,
+    decimal LowStockThresholdKg,
     IReadOnlyList<DashboardStockDto> Empty,
     IReadOnlyList<DashboardStockDto> Low,
     IReadOnlyList<DashboardStockDto> Chemicals,
@@ -30,36 +32,18 @@ public sealed record AllCompaniesDashboardQuery(
     DateTimeOffset? DateFrom = null,
     DateTimeOffset? DateTo = null);
 
-public sealed record AllCompaniesDashboardCompanyDto(
-    Guid CompanyId,
-    string CompanyName,
-    int ActiveChemicals,
-    int Warehouses,
-    decimal TotalLiters,
-    decimal IncomeLiters,
-    decimal OutcomeLiters,
-    int LowCount,
-    int EmptyCount);
-
 public sealed record AllCompaniesDashboardAlertDto(
     Guid CompanyId,
     string CompanyName,
     Guid ChemicalId,
     string ChemicalName,
-    decimal TotalLiters,
+    MeasureUnit MeasureUnit,
+    decimal TotalQuantity,
     StockStatus Status);
 
 public sealed record AllCompaniesDashboardDto(
-    int CompaniesCount,
-    int ActiveChemicals,
-    int Warehouses,
-    decimal TotalLiters,
-    decimal IncomeLiters,
-    decimal OutcomeLiters,
-    int LowCount,
-    int EmptyCount,
     decimal LowStockThresholdLiters,
-    IReadOnlyList<AllCompaniesDashboardCompanyDto> Companies,
+    decimal LowStockThresholdKg,
     IReadOnlyList<AllCompaniesDashboardAlertDto> Low,
     IReadOnlyList<AllCompaniesDashboardAlertDto> Empty,
     IReadOnlyList<HistoryItemDto> RecentOperations);

@@ -33,10 +33,7 @@ public class AgroInventoryDbContext : DbContext, IApplicationDbContext
     public DbSet<FieldSeason> FieldSeasons => Set<FieldSeason>();
     public DbSet<FieldTreatment> FieldTreatments => Set<FieldTreatment>();
     public DbSet<ChemicalStockBalance> ChemicalStockBalances => Set<ChemicalStockBalance>();
-    public DbSet<PackageGroup> PackageGroups => Set<PackageGroup>();
-    public DbSet<OpenedPackage> OpenedPackages => Set<OpenedPackage>();
     public DbSet<InventoryMovement> InventoryMovements => Set<InventoryMovement>();
-    public DbSet<InventoryMovementDetail> InventoryMovementDetails => Set<InventoryMovementDetail>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<User> Users => Set<User>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
@@ -58,8 +55,6 @@ public class AgroInventoryDbContext : DbContext, IApplicationDbContext
         modelBuilder.Entity<FieldSeason>().HasQueryFilter(x => x.CompanyId == _tenantId);
         modelBuilder.Entity<FieldTreatment>().HasQueryFilter(x => x.CompanyId == _tenantId);
         modelBuilder.Entity<ChemicalStockBalance>().HasQueryFilter(x => x.CompanyId == _tenantId);
-        modelBuilder.Entity<PackageGroup>().HasQueryFilter(x => x.CompanyId == _tenantId);
-        modelBuilder.Entity<OpenedPackage>().HasQueryFilter(x => x.CompanyId == _tenantId);
         modelBuilder.Entity<InventoryMovement>().HasQueryFilter(x => x.CompanyId == _tenantId);
         // Культуры: своё хозяйство + системные (общие) культуры (ТЗ §8).
         modelBuilder.Entity<Crop>().HasQueryFilter(x => x.CompanyId == _tenantId || x.IsSystem);

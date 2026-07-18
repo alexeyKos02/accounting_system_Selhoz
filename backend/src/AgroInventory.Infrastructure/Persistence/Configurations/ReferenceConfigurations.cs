@@ -58,8 +58,8 @@ public sealed class FieldTreatmentConfiguration : IEntityTypeConfiguration<Field
     {
         b.ToTable("field_treatments");
         b.HasKey(x => x.Id);
-        b.Property(x => x.QuantityLiters).HasPrecision(18, 3);
-        b.Property(x => x.RateLitersPerHectare).HasPrecision(18, 3);
+        b.Property(x => x.Quantity).HasPrecision(18, 3);
+        b.Property(x => x.RatePerHectare).HasPrecision(18, 3);
         b.Property(x => x.Comment).HasMaxLength(2000);
 
         b.HasIndex(x => x.CompanyId);

@@ -18,11 +18,8 @@ public class ChemicalStockBalance
     public Guid WarehouseId { get; set; }
     public Warehouse Warehouse { get; set; } = null!;
 
-    /// <summary>Отдельный литровый остаток (ТЗ §8.1).</summary>
-    public decimal LooseLiters { get; set; }
-
-    /// <summary>Полный остаток в литрах: loose + полные упаковки + вскрытые.</summary>
-    public decimal TotalLiters { get; set; }
+    /// <summary>Полный остаток в единице химии (литры/кг).</summary>
+    public decimal TotalQuantity { get; set; }
 
     public DateTimeOffset UpdatedAt { get; set; }
 }

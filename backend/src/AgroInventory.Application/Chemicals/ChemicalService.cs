@@ -32,7 +32,7 @@ public sealed partial class ChemicalService
     public async Task<IReadOnlyList<ChemicalListItemDto>> GetListAsync(
         ChemicalListQuery query, CancellationToken ct = default)
     {
-        var threshold = await GetLowStockThresholdAsync(ct);
+        var thresholds = await GetThresholdsAsync(ct);
 
         var q = _db.InventoryItems
             .Where(i => i.ItemType == ItemType.Chemical && i.Status == ItemStatus.Active);
@@ -62,16 +62,18 @@ public sealed partial class ChemicalService
             {
                 i.Id,
                 i.Name,
+                i.MeasureUnit,
                 Type = i.ChemicalDetails!.Type,
                 Crops = i.ChemicalCrops.Select(cc => new CropRefDto(cc.CropId, cc.Crop.Name)).ToList(),
                 Total = _db.ChemicalStockBalances
                     .Where(b => b.ChemicalId == i.Id)
-                    .Sum(b => (decimal?)b.TotalLiters) ?? 0m,
+                    .Sum(b => (decimal?)b.TotalQuantity) ?? 0m,
             })
             .ToListAsync(ct);
 
         return rows
-            .Select(r => new ChemicalListItemDto(r.Id, r.Name, r.Type, r.Total, r.Crops, Badge(r.Total, threshold)))
+            .Select(r => new ChemicalListItemDto(
+                r.Id, r.Name, r.Type, r.MeasureUnit, r.Total, r.Crops, Badge(r.Total, thresholds.For(r.MeasureUnit))))
             .ToList();
     }
 
@@ -90,10 +92,11 @@ public sealed partial class ChemicalService
             .ToList();
 
         var warehouses = await BuildWarehouseStocksAsync(id, ct);
-        var total = warehouses.Sum(w => w.TotalLiters);
+        var total = warehouses.Sum(w => w.TotalQuantity);
 
         return new ChemicalDetailDto(
-            item.Id, item.Name, item.ChemicalDetails?.Type, item.ChemicalDetails?.Manufacturer, item.ChemicalDetails?.Comment,
+            item.Id, item.Name, item.ChemicalDetails?.Type, item.MeasureUnit,
+            item.ChemicalDetails?.Manufacturer, item.ChemicalDetails?.Comment,
             item.Status, item.MergedIntoItemId,
             item.CanonicalChemicalId, item.CanonicalChemical?.CanonicalName,
             crops, total, warehouses);
@@ -108,11 +111,12 @@ public sealed partial class ChemicalService
             {
                 i.Id,
                 i.Name,
+                i.MeasureUnit,
                 i.UpdatedAt,
                 Type = i.ChemicalDetails!.Type,
                 Manufacturer = i.ChemicalDetails!.Manufacturer,
                 Crops = i.ChemicalCrops.Select(cc => new CropRefDto(cc.CropId, cc.Crop.Name)).ToList(),
-                Total = _db.ChemicalStockBalances.Where(b => b.ChemicalId == i.Id).Sum(b => (decimal?)b.TotalLiters) ?? 0m,
+                Total = _db.ChemicalStockBalances.Where(b => b.ChemicalId == i.Id).Sum(b => (decimal?)b.TotalQuantity) ?? 0m,
             })
             .ToListAsync(ct);
 
@@ -125,7 +129,7 @@ public sealed partial class ChemicalService
 
         return items
             .Select(i => new ArchivedChemicalDto(
-                i.Id, i.Name, i.Type, i.Manufacturer, i.Crops, i.Total,
+                i.Id, i.Name, i.Type, i.MeasureUnit, i.Manufacturer, i.Crops, i.Total,
                 archivedAt.TryGetValue(i.Id, out var at) ? at : i.UpdatedAt))
             .ToList();
     }
@@ -150,8 +154,13 @@ public sealed partial class ChemicalService
 
     // ---------- Вспомогательное ----------
 
-    private async Task<decimal> GetLowStockThresholdAsync(CancellationToken ct) =>
-        await _db.AppSettings.Select(s => s.LowStockThresholdLiters).FirstOrDefaultAsync(ct);
+    private async Task<Thresholds> GetThresholdsAsync(CancellationToken ct)
+    {
+        var s = await _db.AppSettings
+            .Select(s => new { s.LowStockThresholdLiters, s.LowStockThresholdKg })
+            .FirstOrDefaultAsync(ct);
+        return new Thresholds(s?.LowStockThresholdLiters ?? 0m, s?.LowStockThresholdKg ?? 0m);
+    }
 
     private static StockStatus Badge(decimal total, decimal threshold) =>
         total <= 0 ? StockStatus.Empty
@@ -160,55 +169,16 @@ public sealed partial class ChemicalService
 
     private async Task<List<WarehouseStockDto>> BuildWarehouseStocksAsync(Guid chemicalId, CancellationToken ct)
     {
-        var balances = await _db.ChemicalStockBalances
+        return await _db.ChemicalStockBalances
             .Where(b => b.ChemicalId == chemicalId)
-            .Select(b => new { b.WarehouseId, b.Warehouse.Number, b.LooseLiters, b.TotalLiters })
+            .OrderBy(b => b.Warehouse.Number)
+            .Select(b => new WarehouseStockDto(b.WarehouseId, b.Warehouse.Number, b.TotalQuantity))
             .ToListAsync(ct);
+    }
 
-        var groups = await _db.PackageGroups
-            .Where(g => g.ChemicalId == chemicalId)
-            .Select(g => new { g.WarehouseId, Dto = new PackageGroupDto(g.Id, g.UnitType, g.PackageVolumeLiters, g.Quantity) })
-            .ToListAsync(ct);
-
-        var opened = await _db.OpenedPackages
-            .Where(o => o.ChemicalId == chemicalId)
-            .Select(o => new { o.WarehouseId, Dto = new OpenedPackageDto(o.Id, o.UnitType, o.InitialLiters, o.RemainingLiters) })
-            .ToListAsync(ct);
-
-        // Номера складов для тех, у кого есть упаковки, но нет строки баланса (страховка).
-        var extraWarehouseIds = groups.Select(g => g.WarehouseId)
-            .Concat(opened.Select(o => o.WarehouseId))
-            .Where(wid => balances.All(b => b.WarehouseId != wid))
-            .Distinct()
-            .ToList();
-
-        var extraNumbers = extraWarehouseIds.Count == 0
-            ? new Dictionary<Guid, string>()
-            : await _db.Warehouses.Where(w => extraWarehouseIds.Contains(w.Id))
-                .ToDictionaryAsync(w => w.Id, w => w.Number, ct);
-
-        var warehouseIds = balances.Select(b => b.WarehouseId)
-            .Concat(extraWarehouseIds)
-            .Distinct()
-            .ToList();
-
-        var result = new List<WarehouseStockDto>();
-        foreach (var wid in warehouseIds)
-        {
-            var balance = balances.FirstOrDefault(b => b.WarehouseId == wid);
-            var number = balance?.Number ?? (extraNumbers.TryGetValue(wid, out var n) ? n : "?");
-            var wGroups = groups.Where(g => g.WarehouseId == wid).Select(g => g.Dto).ToList();
-            var wOpened = opened.Where(o => o.WarehouseId == wid).Select(o => o.Dto).ToList();
-
-            var loose = balance?.LooseLiters ?? 0m;
-            var total = balance?.TotalLiters
-                        ?? loose
-                        + wGroups.Sum(g => g.PackageVolumeLiters * g.Quantity)
-                        + wOpened.Sum(o => o.RemainingLiters);
-
-            result.Add(new WarehouseStockDto(wid, number, total, loose, wGroups, wOpened));
-        }
-
-        return result.OrderBy(w => w.WarehouseNumber).ToList();
+    /// <summary>Пороги малого остатка по единицам измерения.</summary>
+    private readonly record struct Thresholds(decimal Liters, decimal Kg)
+    {
+        public decimal For(MeasureUnit unit) => unit == MeasureUnit.Kilogram ? Kg : Liters;
     }
 }

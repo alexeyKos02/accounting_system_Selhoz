@@ -7,13 +7,11 @@ namespace AgroInventory.Application.Inventory;
 public sealed record IncomeRequest(
     Guid ChemicalId,
     Guid WarehouseId,
-    UnitType Unit,
     decimal Quantity,
-    decimal? PackageVolumeLiters,
     DateTimeOffset? OccurredAt,
     string? Comment);
 
-public sealed record IncomeResultDto(decimal TotalLiters, Guid MovementId);
+public sealed record IncomeResultDto(decimal TotalQuantity, Guid MovementId);
 
 // ---------- Приход сразу в несколько хозяйств (этап F) ----------
 
@@ -33,8 +31,6 @@ public sealed record BulkIncomeLineRequest(Guid CompanyId, Guid WarehouseId, dec
 
 public sealed record BulkIncomeRequest(
     Guid CanonicalChemicalId,
-    UnitType Unit,
-    decimal? PackageVolumeLiters,
     DateTimeOffset? OccurredAt,
     string? Comment,
     IReadOnlyList<BulkIncomeLineRequest> Lines);
@@ -43,47 +39,28 @@ public sealed record BulkIncomeLineResultDto(
     Guid CompanyId,
     Guid ChemicalId,
     Guid WarehouseId,
-    decimal TotalLiters,
+    decimal TotalQuantity,
     Guid MovementId);
 
 public sealed record BulkIncomeResultDto(IReadOnlyList<BulkIncomeLineResultDto> Lines);
 
 // ---------- Списание (ТЗ §11) ----------
 
-public sealed record OutcomeSourceDto(MovementSourceType Type, Guid? Id);
-
 public sealed record OutcomeRequest(
     Guid ChemicalId,
     Guid WarehouseId,
     Guid CropId,
-    decimal QuantityLiters,
-    OutcomeSourceDto? Source,
-    bool AllowOpenNewPackage,
+    decimal Quantity,
     DateTimeOffset? OccurredAt,
     string? Comment,
     Guid? FieldId = null);
 
-public sealed record OutcomeStepDto(
-    MovementSourceType SourceType,
-    Guid? SourceId,
-    UnitType? UnitType,
-    decimal? PackageVolumeLiters,
-    decimal Liters,
-    int WholePackages,
-    decimal OpenedRemainder,
-    bool OpensNewPackage);
-
 public sealed record OutcomePreviewResponse(
     bool Sufficient,
     decimal Requested,
-    decimal Fulfilled,
-    decimal Available,
-    bool WillOpenNewPackage,
-    bool TopUpUsed,
-    bool RequiresOpenConfirmation,
-    IReadOnlyList<OutcomeStepDto> Steps);
+    decimal Available);
 
-public sealed record OutcomeResultDto(decimal WrittenOffLiters, decimal TotalLiters, Guid MovementId);
+public sealed record OutcomeResultDto(decimal WrittenOffQuantity, decimal TotalQuantity, Guid MovementId);
 
 // ---------- Перемещение между складами (этап I) ----------
 
@@ -91,15 +68,14 @@ public sealed record TransferRequest(
     Guid ChemicalId,
     Guid SourceWarehouseId,
     Guid TargetWarehouseId,
-    decimal QuantityLiters,
-    bool AllowOpenNewPackage,
+    decimal Quantity,
     DateTimeOffset? OccurredAt,
     string? Comment);
 
 public sealed record TransferResultDto(
     Guid MovementId,
-    decimal SourceTotalLiters,
-    decimal TargetTotalLiters);
+    decimal SourceTotalQuantity,
+    decimal TargetTotalQuantity);
 
 public sealed record TransferItemDto(
     Guid Id,
@@ -110,29 +86,19 @@ public sealed record TransferItemDto(
     string SourceWarehouseNumber,
     Guid TargetWarehouseId,
     string TargetWarehouseNumber,
-    decimal QuantityLiters,
+    decimal Quantity,
     string? Comment);
 
 // ---------- Корректировка (ТЗ §13) ----------
 
-public enum CorrectionMode { SetActual = 0, AdjustByDelta = 1, DetailedInventory = 2 }
-
-public sealed record DetailedGroupDto(UnitType UnitType, decimal PackageVolumeLiters, int Quantity);
-
-public sealed record DetailedOpenedDto(UnitType UnitType, decimal InitialLiters, decimal RemainingLiters);
-
-public sealed record DetailedInventoryDto(
-    decimal LooseLiters,
-    IReadOnlyList<DetailedGroupDto> Groups,
-    IReadOnlyList<DetailedOpenedDto> Opened);
+public enum CorrectionMode { SetActual = 0, AdjustByDelta = 1 }
 
 public sealed record CorrectionRequest(
     Guid ChemicalId,
     Guid WarehouseId,
     CorrectionMode Mode,
-    decimal? ActualTotalLiters,
-    decimal? DeltaLiters,
-    DetailedInventoryDto? Detailed,
+    decimal? ActualTotalQuantity,
+    decimal? DeltaQuantity,
     bool Confirmed,
     DateTimeOffset? OccurredAt,
     string? Comment);
@@ -142,10 +108,9 @@ public sealed record CorrectionPreviewResponse(
     decimal NewTotal,
     decimal Delta,
     bool IsBigChange,
-    bool RequiresDetailed,
     string? Message);
 
-public sealed record CorrectionResultDto(decimal TotalLiters, Guid MovementId);
+public sealed record CorrectionResultDto(decimal TotalQuantity, Guid MovementId);
 
 // ---------- Инвентаризация склада (ТЗ §14) ----------
 
@@ -153,10 +118,8 @@ public sealed record CorrectionResultDto(decimal TotalLiters, Guid MovementId);
 public sealed record InventoryCheckLineDto(
     Guid ChemicalId,
     string ChemicalName,
-    decimal CurrentTotalLiters,
-    decimal LooseLiters,
-    int FullPackages,
-    int OpenedPackages);
+    MeasureUnit MeasureUnit,
+    decimal CurrentTotalQuantity);
 
 /// <summary>Ведомость инвентаризации по одному складу.</summary>
 public sealed record InventoryCheckSheetDto(
@@ -165,7 +128,7 @@ public sealed record InventoryCheckSheetDto(
     IReadOnlyList<InventoryCheckLineDto> Lines);
 
 /// <summary>Введённый фактический остаток по одной химии.</summary>
-public sealed record InventoryCheckEntry(Guid ChemicalId, decimal ActualTotalLiters);
+public sealed record InventoryCheckEntry(Guid ChemicalId, decimal ActualTotalQuantity);
 
 public sealed record InventoryCheckRequest(
     Guid WarehouseId,
@@ -174,7 +137,7 @@ public sealed record InventoryCheckRequest(
     string? Comment);
 
 /// <summary>Что произошло со строкой ведомости при применении.</summary>
-public enum InventoryCheckOutcome { Unchanged = 0, Applied = 1, NeedsDetailed = 2 }
+public enum InventoryCheckOutcome { Unchanged = 0, Applied = 1 }
 
 public sealed record InventoryCheckLineResult(
     Guid ChemicalId,
@@ -187,5 +150,4 @@ public sealed record InventoryCheckLineResult(
 public sealed record InventoryCheckResultDto(
     int AppliedCount,
     int UnchangedCount,
-    int NeedsDetailedCount,
     IReadOnlyList<InventoryCheckLineResult> Lines);

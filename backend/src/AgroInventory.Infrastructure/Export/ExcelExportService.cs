@@ -24,20 +24,21 @@ public sealed class ExcelExportService : IExcelExportService
 
         using var workbook = new XLWorkbook();
         var sheet = workbook.Worksheets.Add("Остатки");
-        WriteHeader(sheet, "Название", "Тип средства", "Всего, л", "Статус", "Культуры");
+        WriteHeader(sheet, "Название", "Тип средства", "Всего", "Ед.", "Статус", "Культуры");
 
         var row = 2;
         foreach (var item in items)
         {
             sheet.Cell(row, 1).Value = item.Name;
             sheet.Cell(row, 2).Value = item.Type?.ToRussian() ?? string.Empty;
-            sheet.Cell(row, 3).Value = item.TotalLiters;
-            sheet.Cell(row, 4).Value = StatusText(item.StockStatus);
-            sheet.Cell(row, 5).Value = string.Join(", ", item.Crops.Select(c => c.Name));
+            sheet.Cell(row, 3).Value = item.TotalQuantity;
+            sheet.Cell(row, 4).Value = UnitText(item.MeasureUnit);
+            sheet.Cell(row, 5).Value = StatusText(item.StockStatus);
+            sheet.Cell(row, 6).Value = string.Join(", ", item.Crops.Select(c => c.Name));
             row++;
         }
 
-        return Finish(workbook, sheet, lastColumn: 5);
+        return Finish(workbook, sheet, lastColumn: 6);
     }
 
     public async Task<byte[]> ExportHistoryAsync(HistoryQuery filter, CancellationToken ct = default)
@@ -46,7 +47,7 @@ public sealed class ExcelExportService : IExcelExportService
 
         using var workbook = new XLWorkbook();
         var sheet = workbook.Worksheets.Add("История");
-        WriteHeader(sheet, "Дата", "Тип", "Химия", "Кол-во, л", "Склад", "Культура", "Поле", "Комментарий");
+        WriteHeader(sheet, "Дата", "Тип", "Химия", "Кол-во", "Ед.", "Склад", "Культура", "Поле", "Комментарий");
 
         var row = 2;
         foreach (var item in items)
@@ -55,15 +56,16 @@ public sealed class ExcelExportService : IExcelExportService
             sheet.Cell(row, 1).Style.DateFormat.Format = "dd.MM.yyyy HH:mm";
             sheet.Cell(row, 2).Value = MovementText(item.MovementType);
             sheet.Cell(row, 3).Value = item.ChemicalName;
-            sheet.Cell(row, 4).Value = item.QuantityLiters;
-            sheet.Cell(row, 5).Value = $"Склад {item.WarehouseNumber}";
-            sheet.Cell(row, 6).Value = item.CropName ?? string.Empty;
-            sheet.Cell(row, 7).Value = item.FieldNumber ?? string.Empty;
-            sheet.Cell(row, 8).Value = item.Comment ?? string.Empty;
+            sheet.Cell(row, 4).Value = item.Quantity;
+            sheet.Cell(row, 5).Value = UnitText(item.MeasureUnit);
+            sheet.Cell(row, 6).Value = $"Склад {item.WarehouseNumber}";
+            sheet.Cell(row, 7).Value = item.CropName ?? string.Empty;
+            sheet.Cell(row, 8).Value = item.FieldNumber ?? string.Empty;
+            sheet.Cell(row, 9).Value = item.Comment ?? string.Empty;
             row++;
         }
 
-        return Finish(workbook, sheet, lastColumn: 8);
+        return Finish(workbook, sheet, lastColumn: 9);
     }
 
     private static void WriteHeader(IXLWorksheet sheet, params string[] titles)
@@ -84,6 +86,8 @@ public sealed class ExcelExportService : IExcelExportService
         workbook.SaveAs(stream);
         return stream.ToArray();
     }
+
+    private static string UnitText(MeasureUnit unit) => unit == MeasureUnit.Kilogram ? "кг" : "л";
 
     private static string StatusText(StockStatus status) => status switch
     {

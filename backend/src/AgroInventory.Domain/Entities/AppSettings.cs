@@ -7,11 +7,11 @@ public class AppSettings
 {
     public Guid Id { get; set; }
 
-    /// <summary>Общий порог малого остатка в литрах (ТЗ §16.2, §23.2). Дефолт — 10 л.</summary>
+    /// <summary>Порог малого остатка для химии в литрах. Дефолт — 10 л.</summary>
     public decimal LowStockThresholdLiters { get; set; } = 10m;
 
-    /// <summary>Автоматически вскрывать упаковки при списании (ТЗ §11.9, §23.2). Дефолт — выкл.</summary>
-    public bool AutoOpenPackages { get; set; }
+    /// <summary>Порог малого остатка для химии в килограммах. Дефолт — 10 кг.</summary>
+    public decimal LowStockThresholdKg { get; set; } = 10m;
 
     public DateTimeOffset UpdatedAt { get; set; }
 }

@@ -1,7 +1,9 @@
+using AgroInventory.Domain.Enums;
+
 namespace AgroInventory.Application.Catalog;
 
 /// <summary>Остаток одного склада в разбивке общего режима (ТЗ §17).</summary>
-public sealed record AggregatedWarehouseDto(Guid WarehouseId, string WarehouseNumber, decimal TotalLiters);
+public sealed record AggregatedWarehouseDto(Guid WarehouseId, string WarehouseNumber, decimal TotalQuantity);
 
 /// <summary>Позиция (карточка) конкретного хозяйства внутри группы (ТЗ §17).</summary>
 public sealed record AggregatedPositionDto(
@@ -9,7 +11,8 @@ public sealed record AggregatedPositionDto(
     string CompanyName,
     Guid InventoryItemId,
     string LocalName,
-    decimal TotalLiters,
+    MeasureUnit MeasureUnit,
+    decimal TotalQuantity,
     IReadOnlyList<AggregatedWarehouseDto> Warehouses);
 
 /// <summary>
@@ -22,7 +25,8 @@ public sealed record AggregatedChemicalGroupDto(
     string Name,
     bool Linked,
     Guid? CanonicalChemicalId,
-    decimal TotalLiters,
+    MeasureUnit MeasureUnit,
+    decimal TotalQuantity,
     int CompaniesCount,
     int WarehousesCount,
     IReadOnlyList<AggregatedPositionDto> Positions);

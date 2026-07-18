@@ -26,7 +26,7 @@ public sealed class SettingsService
     public async Task<AppSettingsDto> GetAsync(CancellationToken ct = default)
     {
         var settings = await LoadAsync(ct);
-        return new AppSettingsDto(settings.LowStockThresholdLiters, settings.AutoOpenPackages, settings.UpdatedAt);
+        return new AppSettingsDto(settings.LowStockThresholdLiters, settings.LowStockThresholdKg, settings.UpdatedAt);
     }
 
     public async Task<AppSettingsDto> UpdateAsync(UpdateSettingsRequest request, CancellationToken ct = default)
@@ -34,19 +34,22 @@ public sealed class SettingsService
         if (request.LowStockThresholdLiters < 0)
             throw new ValidationException(nameof(request.LowStockThresholdLiters),
                 "Порог малого остатка не может быть отрицательным.");
+        if (request.LowStockThresholdKg < 0)
+            throw new ValidationException(nameof(request.LowStockThresholdKg),
+                "Порог малого остатка не может быть отрицательным.");
 
         var settings = await LoadAsync(ct);
-        var old = new { settings.LowStockThresholdLiters, settings.AutoOpenPackages };
+        var old = new { settings.LowStockThresholdLiters, settings.LowStockThresholdKg };
 
         settings.LowStockThresholdLiters = request.LowStockThresholdLiters;
-        settings.AutoOpenPackages = request.AutoOpenPackages;
+        settings.LowStockThresholdKg = request.LowStockThresholdKg;
         settings.UpdatedAt = _clock.GetUtcNow();
 
         _audit.Log(AuditAction.Update, EntityType, settings.Id, old,
-            new { settings.LowStockThresholdLiters, settings.AutoOpenPackages });
+            new { settings.LowStockThresholdLiters, settings.LowStockThresholdKg });
 
         await _db.SaveChangesAsync(ct);
-        return new AppSettingsDto(settings.LowStockThresholdLiters, settings.AutoOpenPackages, settings.UpdatedAt);
+        return new AppSettingsDto(settings.LowStockThresholdLiters, settings.LowStockThresholdKg, settings.UpdatedAt);
     }
 
     /// <summary>Загружает единственную строку настроек; создаёт с дефолтами, если её ещё нет.</summary>
@@ -59,7 +62,7 @@ public sealed class SettingsService
         {
             Id = SystemIds.AppSettingsId,
             LowStockThresholdLiters = 10m,
-            AutoOpenPackages = false,
+            LowStockThresholdKg = 10m,
             UpdatedAt = _clock.GetUtcNow(),
         };
         _db.AppSettings.Add(settings);

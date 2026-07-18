@@ -4,14 +4,14 @@ using AgroInventory.Application.Security;
 using AgroInventory.Domain.Constants;
 using AgroInventory.Domain.Entities;
 using AgroInventory.Domain.Enums;
-using AgroInventory.Domain.Stock;
 using Microsoft.EntityFrameworkCore;
 
 namespace AgroInventory.Application.Inventory;
 
 /// <summary>
 /// Складские операции (ТЗ §9–13): приход, списание, корректировка. Источник истины —
-/// inventory_movements; быстрый баланс пересчитывается после каждой операции (ТЗ §31).
+/// inventory_movements; быстрый баланс (total_quantity) обновляется после каждой операции.
+/// Учёт ведётся одним числом в единице химии (литры/кг) — без разбивки по упаковкам.
 /// </summary>
 public sealed partial class InventoryService
 {
@@ -43,27 +43,24 @@ public sealed partial class InventoryService
         await EnsureWarehouseAsync(request.WarehouseId, ct);
         await RequireWarehouseAccessAsync(request.WarehouseId, ct); // область доступа (ТЗ §6)
 
-        var stock = await LoadStockAsync(request.ChemicalId, request.WarehouseId, ct, createBalance: true);
+        var balance = await LoadBalanceAsync(request.ChemicalId, request.WarehouseId, ct, createBalance: true);
         var now = _clock.GetUtcNow();
         var occurredAt = request.OccurredAt ?? now;
 
         var movement = ApplyIncome(
-            stock,
+            balance!,
             CompanyId,
             request.ChemicalId,
             request.WarehouseId,
-            request.Unit,
             request.Quantity,
-            request.PackageVolumeLiters,
             occurredAt,
             request.Comment,
             now);
-        Recompute(stock);
         _audit.Log(AuditAction.Create, "InventoryMovement", movement.Id, null,
-            new { movement.MovementType, movement.ChemicalId, movement.WarehouseId, movement.QuantityLiters, movement.OccurredAt });
+            new { movement.MovementType, movement.ChemicalId, movement.WarehouseId, movement.Quantity, movement.OccurredAt });
         await _db.SaveChangesAsync(ct);
 
-        return new IncomeResultDto(stock.Balance!.TotalLiters, movement.Id);
+        return new IncomeResultDto(balance!.TotalQuantity, movement.Id);
     }
 
     public async Task<BulkIncomeOptionsDto> GetBulkIncomeOptionsAsync(
@@ -136,14 +133,6 @@ public sealed partial class InventoryService
             throw new ValidationException(nameof(request.Lines), "Добавьте хотя бы одно хозяйство.");
         if (request.Lines.Any(l => l.Quantity <= 0))
             throw new ValidationException(nameof(request.Lines), "Количество должно быть больше нуля.");
-        if (request.Unit != UnitType.Liter)
-        {
-            if (request.PackageVolumeLiters is not { } volume || volume <= 0)
-                throw new ValidationException(nameof(request.PackageVolumeLiters),
-                    "Для банок/штук укажите литраж упаковки.");
-            if (request.Lines.Any(l => l.Quantity % 1 != 0))
-                throw new ValidationException(nameof(request.Lines), "Количество упаковок должно быть целым.");
-        }
 
         if (!await _db.CanonicalChemicals.AnyAsync(c => c.Id == request.CanonicalChemicalId, ct))
             throw NotFoundException.For("Препарат общего справочника", request.CanonicalChemicalId);
@@ -202,40 +191,27 @@ public sealed partial class InventoryService
                 .Where(i => i.CompanyId == line.CompanyId)
                 .OrderBy(i => i.Name)
                 .First();
-            var stock = await LoadStockAsync(
+            var balance = await LoadBalanceAsync(
                 chemical.Id,
                 line.WarehouseId,
                 ct,
                 createBalance: true,
                 companyId: line.CompanyId);
             var movement = ApplyIncome(
-                stock,
+                balance!,
                 line.CompanyId,
                 chemical.Id,
                 line.WarehouseId,
-                request.Unit,
                 line.Quantity,
-                request.PackageVolumeLiters,
                 occurredAt,
                 request.Comment,
                 now);
-            Recompute(stock);
             results.Add(new BulkIncomeLineResultDto(
-                line.CompanyId, chemical.Id, line.WarehouseId, stock.Balance!.TotalLiters, movement.Id));
+                line.CompanyId, chemical.Id, line.WarehouseId, balance!.TotalQuantity, movement.Id));
         }
 
         await _db.SaveChangesAsync(ct);
         return new BulkIncomeResultDto(results);
-    }
-
-    // ---------- Пересчёт баланса из текущих остатков (ТЗ §31.3) ----------
-
-    /// <summary>Пересчитывает быстрый баланс из активных остатков (loose + полные + вскрытые).</summary>
-    public async Task RecalculateBalanceAsync(Guid chemicalId, Guid warehouseId, CancellationToken ct = default)
-    {
-        var stock = await LoadStockAsync(chemicalId, warehouseId, ct, createBalance: true);
-        Recompute(stock);
-        await _db.SaveChangesAsync(ct);
     }
 
     // ---------- Общие помощники ----------
@@ -290,13 +266,11 @@ public sealed partial class InventoryService
     }
 
     private InventoryMovement ApplyIncome(
-        LoadedStock stock,
+        ChemicalStockBalance balance,
         Guid companyId,
         Guid chemicalId,
         Guid warehouseId,
-        UnitType unit,
         decimal quantity,
-        decimal? packageVolumeLiters,
         DateTimeOffset occurredAt,
         string? comment,
         DateTimeOffset now)
@@ -308,6 +282,7 @@ public sealed partial class InventoryService
             ChemicalId = chemicalId,
             WarehouseId = warehouseId,
             MovementType = MovementType.Income,
+            Quantity = quantity,
             CropId = null,
             OccurredAt = occurredAt,
             Comment = string.IsNullOrWhiteSpace(comment) ? null : comment.Trim(),
@@ -316,49 +291,14 @@ public sealed partial class InventoryService
             UpdatedAt = now,
         };
 
-        if (unit == UnitType.Liter)
-        {
-            stock.Balance!.LooseLiters += quantity;
-            movement.QuantityLiters = quantity;
-            movement.UnitType = UnitType.Liter;
-        }
-        else
-        {
-            var volume = packageVolumeLiters!.Value;
-            var count = (int)quantity;
-            var group = stock.Groups.FirstOrDefault(g => g.UnitType == unit && g.PackageVolumeLiters == volume);
-            if (group is null)
-            {
-                group = new PackageGroup
-                {
-                    Id = Guid.NewGuid(),
-                    CompanyId = companyId,
-                    ChemicalId = chemicalId,
-                    WarehouseId = warehouseId,
-                    UnitType = unit,
-                    PackageVolumeLiters = volume,
-                    Quantity = 0,
-                    CreatedAt = now,
-                    UpdatedAt = now,
-                };
-                _db.PackageGroups.Add(group);
-                stock.Groups.Add(group);
-            }
-
-            group.Quantity += count;
-            group.UpdatedAt = now;
-
-            movement.QuantityLiters = count * volume;
-            movement.UnitType = unit;
-            movement.PackageVolumeLiters = volume;
-            movement.PackagesQuantity = count;
-        }
+        balance.TotalQuantity += quantity;
+        balance.UpdatedAt = now;
 
         _db.InventoryMovements.Add(movement);
         return movement;
     }
 
-    private async Task<LoadedStock> LoadStockAsync(
+    private async Task<ChemicalStockBalance?> LoadBalanceAsync(
         Guid chemicalId,
         Guid warehouseId,
         CancellationToken ct,
@@ -379,67 +319,12 @@ public sealed partial class InventoryService
                 CompanyId = companyId ?? CompanyId,
                 ChemicalId = chemicalId,
                 WarehouseId = warehouseId,
-                LooseLiters = 0,
-                TotalLiters = 0,
+                TotalQuantity = 0,
                 UpdatedAt = _clock.GetUtcNow(),
             };
             _db.ChemicalStockBalances.Add(balance);
         }
 
-        var packageGroups = companyId is null ? _db.PackageGroups : _db.PackageGroups.IgnoreQueryFilters();
-        var groups = await packageGroups
-            .Where(g => g.ChemicalId == chemicalId && g.WarehouseId == warehouseId).ToListAsync(ct);
-        var openedPackages = companyId is null ? _db.OpenedPackages : _db.OpenedPackages.IgnoreQueryFilters();
-        var opened = await openedPackages
-            .Where(o => o.ChemicalId == chemicalId && o.WarehouseId == warehouseId).ToListAsync(ct);
-
-        return new LoadedStock(balance, groups, opened);
-    }
-
-    private static StockState BuildState(LoadedStock stock) =>
-        new(
-            stock.Balance?.LooseLiters ?? 0,
-            stock.Groups.Select(g => new GroupState(g.Id, g.UnitType, g.PackageVolumeLiters, g.Quantity)).ToList(),
-            stock.Opened.Select(o => new OpenedState(o.Id, o.UnitType, o.InitialLiters, o.RemainingLiters)).ToList());
-
-    /// <summary>Пересчитывает total_liters и убирает пустые упаковки (ТЗ §8.4, §11.5).</summary>
-    private void Recompute(LoadedStock stock)
-    {
-        var now = _clock.GetUtcNow();
-
-        // Пустые вскрытые упаковки не храним (ТЗ §8.4).
-        foreach (var empty in stock.Opened.Where(o => o.RemainingLiters <= 0).ToList())
-        {
-            _db.OpenedPackages.Remove(empty);
-            stock.Opened.Remove(empty);
-        }
-
-        // Пустые группы полных упаковок тоже убираем.
-        foreach (var empty in stock.Groups.Where(g => g.Quantity <= 0).ToList())
-        {
-            _db.PackageGroups.Remove(empty);
-            stock.Groups.Remove(empty);
-        }
-
-        if (stock.Balance is null) return;
-        stock.Balance.TotalLiters =
-            stock.Balance.LooseLiters
-            + stock.Groups.Sum(g => g.PackageVolumeLiters * g.Quantity)
-            + stock.Opened.Sum(o => o.RemainingLiters);
-        stock.Balance.UpdatedAt = now;
-    }
-
-    private sealed class LoadedStock
-    {
-        public LoadedStock(ChemicalStockBalance? balance, List<PackageGroup> groups, List<OpenedPackage> opened)
-        {
-            Balance = balance;
-            Groups = groups;
-            Opened = opened;
-        }
-
-        public ChemicalStockBalance? Balance { get; }
-        public List<PackageGroup> Groups { get; }
-        public List<OpenedPackage> Opened { get; }
+        return balance;
     }
 }

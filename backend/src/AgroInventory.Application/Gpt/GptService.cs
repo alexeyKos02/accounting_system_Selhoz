@@ -70,8 +70,6 @@ public sealed class GptService
             ParseOperationType(raw.OperationType),
             chemical,
             raw.Quantity is > 0 ? raw.Quantity : null,
-            ParseUnit(raw.Unit),
-            raw.PackageVolumeLiters is > 0 ? raw.PackageVolumeLiters : null,
             warehouse,
             crop,
             NullIfBlank(raw.Comment),
@@ -142,16 +140,6 @@ public sealed class GptService
         if (v.Contains("десикант") || v.Contains("desiccant")) return ChemicalType.Desiccant;
         if (v.Contains("регулятор") || v.Contains("growth")) return ChemicalType.GrowthRegulator;
         if (v.Contains("удобрен") || v.Contains("fertiliz")) return ChemicalType.Fertilizer;
-        return null;
-    }
-
-    private static UnitType? ParseUnit(string? value)
-    {
-        if (string.IsNullOrWhiteSpace(value)) return null;
-        var v = value.Trim().ToLowerInvariant();
-        if (v.StartsWith("can") || v.Contains("банк") || v.Contains("канистр")) return UnitType.Can;
-        if (v.StartsWith("piece") || v.Contains("штук") || v.StartsWith("шт")) return UnitType.Piece;
-        if (v.StartsWith("lit") || v.Contains("литр") || v == "л") return UnitType.Liter;
         return null;
     }
 

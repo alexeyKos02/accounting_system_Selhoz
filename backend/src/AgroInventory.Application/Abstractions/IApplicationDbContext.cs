@@ -19,10 +19,7 @@ public interface IApplicationDbContext
     DbSet<FieldSeason> FieldSeasons { get; }
     DbSet<FieldTreatment> FieldTreatments { get; }
     DbSet<ChemicalStockBalance> ChemicalStockBalances { get; }
-    DbSet<PackageGroup> PackageGroups { get; }
-    DbSet<OpenedPackage> OpenedPackages { get; }
     DbSet<InventoryMovement> InventoryMovements { get; }
-    DbSet<InventoryMovementDetail> InventoryMovementDetails { get; }
     DbSet<AuditLog> AuditLogs { get; }
     DbSet<User> Users { get; }
     DbSet<RefreshToken> RefreshTokens { get; }

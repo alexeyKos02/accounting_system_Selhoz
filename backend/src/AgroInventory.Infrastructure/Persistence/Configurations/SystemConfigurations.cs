@@ -33,13 +33,14 @@ public sealed class AppSettingsConfiguration : IEntityTypeConfiguration<AppSetti
         b.ToTable("app_settings");
         b.HasKey(x => x.Id);
         b.Property(x => x.LowStockThresholdLiters).HasPrecision(18, 3);
+        b.Property(x => x.LowStockThresholdKg).HasPrecision(18, 3);
 
         // Единственная строка настроек с дефолтами (ТЗ §23.2).
         b.HasData(new AppSettings
         {
             Id = SystemIds.AppSettingsId,
             LowStockThresholdLiters = 10m,
-            AutoOpenPackages = false,
+            LowStockThresholdKg = 10m,
             UpdatedAt = SystemIds.SeedTimestamp,
         });
     }

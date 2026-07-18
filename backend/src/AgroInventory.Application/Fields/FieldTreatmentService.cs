@@ -55,12 +55,13 @@ public sealed class FieldTreatmentService
                 t.Field.Number,
                 t.ChemicalId,
                 t.Chemical.Name,
+                t.Chemical.MeasureUnit,
                 t.WarehouseId,
                 t.Warehouse.Number,
                 t.CropId,
                 t.Crop.Name,
-                t.QuantityLiters,
-                t.RateLitersPerHectare,
+                t.Quantity,
+                t.RatePerHectare,
                 t.MovementId,
                 t.Comment))
             .ToListAsync(ct);
@@ -84,8 +85,6 @@ public sealed class FieldTreatmentService
             request.WarehouseId,
             request.CropId,
             quantity,
-            Source: null,
-            request.AllowOpenNewPackage,
             treatedAt,
             comment is null ? "Обработка поля" : $"Обработка поля. {comment}",
             FieldId: request.FieldId), ct);
@@ -100,8 +99,8 @@ public sealed class FieldTreatmentService
             WarehouseId = request.WarehouseId,
             CropId = request.CropId,
             MovementId = outcome.MovementId,
-            QuantityLiters = quantity,
-            RateLitersPerHectare = request.RateLitersPerHectare,
+            Quantity = quantity,
+            RatePerHectare = request.RatePerHectare,
             TreatedAt = treatedAt,
             Comment = comment,
             CreatedByUserId = _currentUser.UserId,
@@ -117,8 +116,8 @@ public sealed class FieldTreatmentService
                 treatment.WarehouseId,
                 treatment.CropId,
                 treatment.MovementId,
-                treatment.QuantityLiters,
-                treatment.RateLitersPerHectare,
+                treatment.Quantity,
+                treatment.RatePerHectare,
                 treatment.TreatedAt
             });
         await _db.SaveChangesAsync(ct);
@@ -128,18 +127,18 @@ public sealed class FieldTreatmentService
 
     private static decimal ResolveQuantity(Field field, CreateFieldTreatmentRequest request)
     {
-        if (request.RateLitersPerHectare is { } rate)
+        if (request.RatePerHectare is { } rate)
         {
             if (rate <= 0)
-                throw new ValidationException(nameof(request.RateLitersPerHectare), "Норма должна быть больше нуля.");
+                throw new ValidationException(nameof(request.RatePerHectare), "Норма должна быть больше нуля.");
             if (field.AreaHectares is not { } area || area <= 0)
                 throw new ValidationException(nameof(request.FieldId),
                     "Для расчёта по норме укажите площадь поля.");
             return rate * area;
         }
 
-        if (request.QuantityLiters is not { } quantity || quantity <= 0)
-            throw new ValidationException(nameof(request.QuantityLiters), "Укажите количество или норму на гектар.");
+        if (request.Quantity is not { } quantity || quantity <= 0)
+            throw new ValidationException(nameof(request.Quantity), "Укажите количество или норму на гектар.");
         return quantity;
     }
 
@@ -154,12 +153,13 @@ public sealed class FieldTreatmentService
                 t.Field.Number,
                 t.ChemicalId,
                 t.Chemical.Name,
+                t.Chemical.MeasureUnit,
                 t.WarehouseId,
                 t.Warehouse.Number,
                 t.CropId,
                 t.Crop.Name,
-                t.QuantityLiters,
-                t.RateLitersPerHectare,
+                t.Quantity,
+                t.RatePerHectare,
                 t.MovementId,
                 t.Comment))
             .FirstAsync(ct);

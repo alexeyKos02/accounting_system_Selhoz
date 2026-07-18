@@ -1,7 +1,6 @@
 using AgroInventory.Application.Common;
 using AgroInventory.Domain.Entities;
 using AgroInventory.Domain.Enums;
-using AgroInventory.Domain.Stock;
 using Microsoft.EntityFrameworkCore;
 
 namespace AgroInventory.Application.Inventory;
@@ -23,7 +22,7 @@ public sealed partial class InventoryService
                 m.Warehouse.Number,
                 m.TargetWarehouseId!.Value,
                 m.TargetWarehouse!.Number,
-                m.QuantityLiters,
+                m.Quantity,
                 m.Comment))
             .ToListAsync(ct);
 
@@ -34,8 +33,8 @@ public sealed partial class InventoryService
 
     public async Task<TransferResultDto> TransferAsync(TransferRequest request, CancellationToken ct = default)
     {
-        if (request.QuantityLiters <= 0)
-            throw new ValidationException(nameof(request.QuantityLiters), "Количество должно быть больше нуля.");
+        if (request.Quantity <= 0)
+            throw new ValidationException(nameof(request.Quantity), "Количество должно быть больше нуля.");
         if (request.SourceWarehouseId == request.TargetWarehouseId)
             throw new ValidationException(nameof(request.TargetWarehouseId), "Выберите другой склад назначения.");
 
@@ -45,17 +44,13 @@ public sealed partial class InventoryService
         await RequireWarehouseAccessAsync(request.SourceWarehouseId, ct);
         await RequireWarehouseAccessAsync(request.TargetWarehouseId, ct);
 
-        var sourceStock = await LoadStockAsync(request.ChemicalId, request.SourceWarehouseId, ct);
-        var plan = StockEngine.PlanOutcome(BuildState(sourceStock), request.QuantityLiters, null);
-        if (!plan.Sufficient)
+        var sourceBalance = await LoadBalanceAsync(request.ChemicalId, request.SourceWarehouseId, ct);
+        var available = sourceBalance?.TotalQuantity ?? 0m;
+        if (available < request.Quantity)
             throw new ConflictException(
-                $"Недостаточно остатка: доступно {plan.AvailableLiters:0.###} л из требуемых {plan.RequestedLiters:0.###} л.");
+                $"Недостаточно остатка: доступно {available:0.###} из требуемых {request.Quantity:0.###}.");
 
-        var autoOpen = await GetAutoOpenAsync(ct);
-        if (plan.WillOpenNewPackage && !autoOpen && !request.AllowOpenNewPackage)
-            throw new ConflictException("Для перемещения нужно вскрыть новую упаковку. Подтвердите вскрытие.");
-
-        var targetStock = await LoadStockAsync(request.ChemicalId, request.TargetWarehouseId, ct, createBalance: true);
+        var targetBalance = await LoadBalanceAsync(request.ChemicalId, request.TargetWarehouseId, ct, createBalance: true);
         var now = _clock.GetUtcNow();
         var occurredAt = request.OccurredAt ?? now;
         var comment = string.IsNullOrWhiteSpace(request.Comment) ? null : request.Comment.Trim();
@@ -68,8 +63,7 @@ public sealed partial class InventoryService
             WarehouseId = request.SourceWarehouseId,
             TargetWarehouseId = request.TargetWarehouseId,
             MovementType = MovementType.Transfer,
-            QuantityLiters = plan.RequestedLiters,
-            UnitType = UnitType.Liter,
+            Quantity = request.Quantity,
             OccurredAt = occurredAt,
             Comment = comment,
             CreatedByUserId = CurrentUserId,
@@ -77,12 +71,12 @@ public sealed partial class InventoryService
             UpdatedAt = now,
         };
 
-        ApplyOutcome(plan, sourceStock, movement, now);
-        targetStock.Balance!.LooseLiters += plan.RequestedLiters;
+        sourceBalance!.TotalQuantity -= request.Quantity;
+        sourceBalance.UpdatedAt = now;
+        targetBalance!.TotalQuantity += request.Quantity;
+        targetBalance.UpdatedAt = now;
 
         _db.InventoryMovements.Add(movement);
-        Recompute(sourceStock);
-        Recompute(targetStock);
         _audit.Log(AuditAction.Create, "InventoryMovement", movement.Id, null,
             new
             {
@@ -90,14 +84,14 @@ public sealed partial class InventoryService
                 movement.ChemicalId,
                 SourceWarehouseId = movement.WarehouseId,
                 movement.TargetWarehouseId,
-                movement.QuantityLiters,
+                movement.Quantity,
                 movement.OccurredAt
             });
         await _db.SaveChangesAsync(ct);
 
         return new TransferResultDto(
             movement.Id,
-            sourceStock.Balance?.TotalLiters ?? 0,
-            targetStock.Balance?.TotalLiters ?? 0);
+            sourceBalance.TotalQuantity,
+            targetBalance.TotalQuantity);
     }
 }

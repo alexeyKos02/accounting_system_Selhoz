@@ -65,10 +65,8 @@ public sealed class ReceiptQueryService
                 CanonicalChemicalName = m.Chemical.CanonicalChemical != null
                     ? m.Chemical.CanonicalChemical.CanonicalName
                     : null,
-                m.QuantityLiters,
-                m.UnitType,
-                m.PackageVolumeLiters,
-                m.PackagesQuantity,
+                m.Quantity,
+                m.Chemical.MeasureUnit,
                 m.WarehouseId,
                 WarehouseNumber = m.Warehouse.Number,
                 m.Comment,
@@ -86,10 +84,8 @@ public sealed class ReceiptQueryService
                 r.ChemicalName,
                 r.CanonicalChemicalId,
                 r.CanonicalChemicalName,
-                r.QuantityLiters,
-                r.UnitType,
-                r.PackageVolumeLiters,
-                r.PackagesQuantity,
+                r.Quantity,
+                r.MeasureUnit,
                 r.WarehouseId,
                 r.WarehouseNumber,
                 r.Comment))

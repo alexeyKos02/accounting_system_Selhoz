@@ -19,7 +19,8 @@ public sealed record HistoryItemDto(
     MovementType MovementType,
     Guid ChemicalId,
     string ChemicalName,
-    decimal QuantityLiters,
+    decimal Quantity,
+    MeasureUnit MeasureUnit,
     Guid WarehouseId,
     string WarehouseNumber,
     Guid? TargetWarehouseId,
@@ -31,13 +32,6 @@ public sealed record HistoryItemDto(
     Guid? FieldTreatmentId,
     string? Comment);
 
-public sealed record HistoryDetailSourceDto(
-    MovementSourceType SourceType,
-    UnitType? UnitType,
-    decimal? PackageVolumeLiters,
-    decimal QuantityLiters,
-    int? PackagesQuantity);
-
 /// <summary>Подробности операции (ТЗ §19.2 — детали открываются отдельно).</summary>
 public sealed record HistoryDetailDto(
     Guid Id,
@@ -45,10 +39,8 @@ public sealed record HistoryDetailDto(
     MovementType MovementType,
     Guid ChemicalId,
     string ChemicalName,
-    decimal QuantityLiters,
-    UnitType? UnitType,
-    decimal? PackageVolumeLiters,
-    int? PackagesQuantity,
+    decimal Quantity,
+    MeasureUnit MeasureUnit,
     Guid WarehouseId,
     string WarehouseNumber,
     Guid? TargetWarehouseId,
@@ -58,19 +50,15 @@ public sealed record HistoryDetailDto(
     Guid? FieldId,
     string? FieldNumber,
     Guid? FieldTreatmentId,
-    string? Comment,
-    IReadOnlyList<HistoryDetailSourceDto> Sources);
+    string? Comment);
 
 /// <summary>
 /// Редактирование операции (ТЗ §20). Метаданные (дата/культура/комментарий) — всегда.
-/// Количество — опционально: пересчитывает остатки. Набор полей зависит от типа операции.
+/// Количество — опционально: пересчитывает остатки.
 /// </summary>
 public sealed record EditMovementRequest(
     DateTimeOffset? OccurredAt,
     Guid? CropId,
     string? Comment,
-    decimal? QuantityLiters,
-    UnitType? Unit,
-    decimal? PackageVolumeLiters,
-    int? PackagesQuantity,
+    decimal? Quantity,
     Guid? FieldId = null);

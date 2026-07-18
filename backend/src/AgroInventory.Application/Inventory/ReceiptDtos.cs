@@ -17,10 +17,8 @@ public sealed record ReceiptItemDto(
     string ChemicalName,
     Guid? CanonicalChemicalId,
     string? CanonicalChemicalName,
-    decimal QuantityLiters,
-    UnitType? UnitType,
-    decimal? PackageVolumeLiters,
-    int? PackagesQuantity,
+    decimal Quantity,
+    MeasureUnit MeasureUnit,
     Guid WarehouseId,
     string WarehouseNumber,
     string? Comment);

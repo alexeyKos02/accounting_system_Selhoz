@@ -35,16 +35,17 @@ public sealed class AggregatedChemicalService
             .Where(b => companyIds.Contains(b.CompanyId)
                         && b.Chemical.ItemType == ItemType.Chemical
                         && b.Chemical.Status == ItemStatus.Active
-                        && b.TotalLiters > 0)
+                        && b.TotalQuantity > 0)
             .Select(b => new Row(
                 b.CompanyId,
                 b.ChemicalId,
                 b.Chemical.Name,
                 b.Chemical.CanonicalChemicalId,
                 b.Chemical.CanonicalChemical!.CanonicalName,
+                b.Chemical.MeasureUnit,
                 b.WarehouseId,
                 b.Warehouse.Number,
-                b.TotalLiters))
+                b.TotalQuantity))
             .ToListAsync(ct);
 
         // Фильтр по области доступа к складам (ТЗ §6): при неполном scope — только разрешённые склады.
@@ -72,12 +73,12 @@ public sealed class AggregatedChemicalService
                         var warehouses = pg
                             .GroupBy(r => new { r.WarehouseId, r.WarehouseNumber })
                             .Select(wg => new AggregatedWarehouseDto(
-                                wg.Key.WarehouseId, wg.Key.WarehouseNumber, wg.Sum(x => x.TotalLiters)))
+                                wg.Key.WarehouseId, wg.Key.WarehouseNumber, wg.Sum(x => x.TotalQuantity)))
                             .OrderBy(w => w.WarehouseNumber)
                             .ToList();
                         return new AggregatedPositionDto(
                             p.CompanyId, byCompany[p.CompanyId].Name, p.ChemicalId, p.LocalName,
-                            pg.Sum(x => x.TotalLiters), warehouses);
+                            p.MeasureUnit, pg.Sum(x => x.TotalQuantity), warehouses);
                     })
                     .OrderBy(p => p.CompanyName)
                     .ToList();
@@ -87,7 +88,8 @@ public sealed class AggregatedChemicalService
                     name,
                     linked,
                     linked ? first.CanonicalChemicalId : null,
-                    positions.Sum(p => p.TotalLiters),
+                    first.MeasureUnit,
+                    positions.Sum(p => p.TotalQuantity),
                     positions.Select(p => p.CompanyId).Distinct().Count(),
                     g.Select(r => r.WarehouseId).Distinct().Count(),
                     positions);
@@ -100,5 +102,5 @@ public sealed class AggregatedChemicalService
 
     private sealed record Row(
         Guid CompanyId, Guid ChemicalId, string LocalName, Guid? CanonicalChemicalId, string? CanonicalName,
-        Guid WarehouseId, string WarehouseNumber, decimal TotalLiters);
+        MeasureUnit MeasureUnit, Guid WarehouseId, string WarehouseNumber, decimal TotalQuantity);
 }

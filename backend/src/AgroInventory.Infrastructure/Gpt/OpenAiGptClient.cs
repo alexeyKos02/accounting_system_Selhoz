@@ -16,8 +16,7 @@ public sealed class OpenAiGptClient : IGptClient
         "Ты помощник складского учёта агрохимии. Извлеки из сообщения данные складской операции и " +
         "верни СТРОГО JSON без пояснений с полями: " +
         "operationType ('income' — приход/поступление, 'outcome' — списание/расход), " +
-        "chemicalName (название препарата), quantity (число), unit ('liter'|'can'|'piece'), " +
-        "packageVolumeLiters (литраж одной упаковки, если единица не литры), " +
+        "chemicalName (название препарата), quantity (число — в литрах или кг, как в источнике), " +
         "warehouseNumber (номер склада строкой), cropName (культура — для списания), " +
         "comment (примечание), notes (что осталось неясным, по-русски). Неизвестное поле — null.";
 

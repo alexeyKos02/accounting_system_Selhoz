@@ -17,12 +17,31 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
                     low_stock_threshold_liters = table.Column<decimal>(type: "numeric(18,3)", precision: 18, scale: 3, nullable: false),
-                    auto_open_packages = table.Column<bool>(type: "boolean", nullable: false),
+                    low_stock_threshold_kg = table.Column<decimal>(type: "numeric(18,3)", precision: 18, scale: 3, nullable: false),
                     updated_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("pk_app_settings", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "canonical_chemicals",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    canonical_name = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: false),
+                    manufacturer = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: true),
+                    active_ingredient = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: true),
+                    concentration = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    formulation = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    registration_number = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_canonical_chemicals", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -49,30 +68,6 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "audit_logs",
-                columns: table => new
-                {
-                    id = table.Column<Guid>(type: "uuid", nullable: false),
-                    user_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    action = table.Column<int>(type: "integer", nullable: false),
-                    entity_type = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    entity_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    old_values = table.Column<string>(type: "jsonb", nullable: true),
-                    new_values = table.Column<string>(type: "jsonb", nullable: true),
-                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_audit_logs", x => x.id);
-                    table.ForeignKey(
-                        name: "fk_audit_logs_users_user_id",
-                        column: x => x.user_id,
-                        principalTable: "users",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "companies",
                 columns: table => new
                 {
@@ -95,6 +90,59 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                     table.ForeignKey(
                         name: "fk_companies_users_created_by_user_id",
                         column: x => x.created_by_user_id,
+                        principalTable: "users",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "refresh_tokens",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    user_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    token_hash = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                    expires_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    revoked_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_refresh_tokens", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_refresh_tokens_users_user_id",
+                        column: x => x.user_id,
+                        principalTable: "users",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "audit_logs",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    company_id = table.Column<Guid>(type: "uuid", nullable: true),
+                    user_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    action = table.Column<int>(type: "integer", nullable: false),
+                    entity_type = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    entity_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    old_values = table.Column<string>(type: "jsonb", nullable: true),
+                    new_values = table.Column<string>(type: "jsonb", nullable: true),
+                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_audit_logs", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_audit_logs_companies_company_id",
+                        column: x => x.company_id,
+                        principalTable: "companies",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "fk_audit_logs_users_user_id",
+                        column: x => x.user_id,
                         principalTable: "users",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Restrict);
@@ -159,35 +207,16 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "fields",
-                columns: table => new
-                {
-                    id = table.Column<Guid>(type: "uuid", nullable: false),
-                    company_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    number = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    updated_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_fields", x => x.id);
-                    table.ForeignKey(
-                        name: "fk_fields_companies_company_id",
-                        column: x => x.company_id,
-                        principalTable: "companies",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "inventory_items",
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
                     company_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    canonical_chemical_id = table.Column<Guid>(type: "uuid", nullable: true),
                     item_type = table.Column<int>(type: "integer", nullable: false),
                     name = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: false),
                     status = table.Column<int>(type: "integer", nullable: false),
+                    measure_unit = table.Column<int>(type: "integer", nullable: false),
                     merged_into_item_id = table.Column<Guid>(type: "uuid", nullable: true),
                     created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     updated_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
@@ -195,6 +224,12 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("pk_inventory_items", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_inventory_items_canonical_chemicals_canonical_chemical_id",
+                        column: x => x.canonical_chemical_id,
+                        principalTable: "canonical_chemicals",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "fk_inventory_items_companies_company_id",
                         column: x => x.company_id,
@@ -252,6 +287,35 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "fields",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    company_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    number = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    area_hectares = table.Column<decimal>(type: "numeric(18,3)", precision: 18, scale: 3, nullable: true),
+                    current_crop_id = table.Column<Guid>(type: "uuid", nullable: true),
+                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_fields", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_fields_companies_company_id",
+                        column: x => x.company_id,
+                        principalTable: "companies",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "fk_fields_crops_current_crop_id",
+                        column: x => x.current_crop_id,
+                        principalTable: "crops",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "chemical_crops",
                 columns: table => new
                 {
@@ -304,8 +368,7 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                     company_id = table.Column<Guid>(type: "uuid", nullable: false),
                     chemical_id = table.Column<Guid>(type: "uuid", nullable: false),
                     warehouse_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    loose_liters = table.Column<decimal>(type: "numeric(18,3)", precision: 18, scale: 3, nullable: false),
-                    total_liters = table.Column<decimal>(type: "numeric(18,3)", precision: 18, scale: 3, nullable: false),
+                    total_quantity = table.Column<decimal>(type: "numeric(18,3)", precision: 18, scale: 3, nullable: false),
                     updated_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
@@ -332,6 +395,45 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "field_seasons",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    company_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    field_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    crop_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    year = table.Column<int>(type: "integer", nullable: false),
+                    name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
+                    started_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    finished_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    comment = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: true),
+                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_field_seasons", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_field_seasons_companies_company_id",
+                        column: x => x.company_id,
+                        principalTable: "companies",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "fk_field_seasons_crops_crop_id",
+                        column: x => x.crop_id,
+                        principalTable: "crops",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "fk_field_seasons_fields_field_id",
+                        column: x => x.field_id,
+                        principalTable: "fields",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "inventory_movements",
                 columns: table => new
                 {
@@ -339,11 +441,9 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                     company_id = table.Column<Guid>(type: "uuid", nullable: false),
                     chemical_id = table.Column<Guid>(type: "uuid", nullable: false),
                     warehouse_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    target_warehouse_id = table.Column<Guid>(type: "uuid", nullable: true),
                     movement_type = table.Column<int>(type: "integer", nullable: false),
-                    quantity_liters = table.Column<decimal>(type: "numeric(18,3)", precision: 18, scale: 3, nullable: false),
-                    unit_type = table.Column<int>(type: "integer", nullable: true),
-                    package_volume_liters = table.Column<decimal>(type: "numeric(18,3)", precision: 18, scale: 3, nullable: true),
-                    packages_quantity = table.Column<int>(type: "integer", nullable: true),
+                    quantity = table.Column<decimal>(type: "numeric(18,3)", precision: 18, scale: 3, nullable: false),
                     crop_id = table.Column<Guid>(type: "uuid", nullable: true),
                     field_id = table.Column<Guid>(type: "uuid", nullable: true),
                     occurred_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
@@ -387,6 +487,12 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                         principalColumn: "id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
+                        name: "fk_inventory_movements_warehouses_target_warehouse_id",
+                        column: x => x.target_warehouse_id,
+                        principalTable: "warehouses",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
                         name: "fk_inventory_movements_warehouses_warehouse_id",
                         column: x => x.warehouse_id,
                         principalTable: "warehouses",
@@ -395,108 +501,75 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "opened_packages",
+                name: "field_treatments",
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
                     company_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    field_id = table.Column<Guid>(type: "uuid", nullable: false),
                     chemical_id = table.Column<Guid>(type: "uuid", nullable: false),
                     warehouse_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    unit_type = table.Column<int>(type: "integer", nullable: false),
-                    initial_liters = table.Column<decimal>(type: "numeric(18,3)", precision: 18, scale: 3, nullable: false),
-                    remaining_liters = table.Column<decimal>(type: "numeric(18,3)", precision: 18, scale: 3, nullable: false),
-                    opened_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    updated_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_opened_packages", x => x.id);
-                    table.ForeignKey(
-                        name: "fk_opened_packages_companies_company_id",
-                        column: x => x.company_id,
-                        principalTable: "companies",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "fk_opened_packages_inventory_items_chemical_id",
-                        column: x => x.chemical_id,
-                        principalTable: "inventory_items",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "fk_opened_packages_warehouses_warehouse_id",
-                        column: x => x.warehouse_id,
-                        principalTable: "warehouses",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "package_groups",
-                columns: table => new
-                {
-                    id = table.Column<Guid>(type: "uuid", nullable: false),
-                    company_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    chemical_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    warehouse_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    unit_type = table.Column<int>(type: "integer", nullable: false),
-                    package_volume_liters = table.Column<decimal>(type: "numeric(18,3)", precision: 18, scale: 3, nullable: false),
-                    quantity = table.Column<int>(type: "integer", nullable: false),
-                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    updated_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_package_groups", x => x.id);
-                    table.ForeignKey(
-                        name: "fk_package_groups_companies_company_id",
-                        column: x => x.company_id,
-                        principalTable: "companies",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "fk_package_groups_inventory_items_chemical_id",
-                        column: x => x.chemical_id,
-                        principalTable: "inventory_items",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "fk_package_groups_warehouses_warehouse_id",
-                        column: x => x.warehouse_id,
-                        principalTable: "warehouses",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "inventory_movement_details",
-                columns: table => new
-                {
-                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    crop_id = table.Column<Guid>(type: "uuid", nullable: false),
                     movement_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    source_type = table.Column<int>(type: "integer", nullable: false),
-                    source_id = table.Column<Guid>(type: "uuid", nullable: true),
-                    unit_type = table.Column<int>(type: "integer", nullable: true),
-                    package_volume_liters = table.Column<decimal>(type: "numeric(18,3)", precision: 18, scale: 3, nullable: true),
-                    quantity_liters = table.Column<decimal>(type: "numeric(18,3)", precision: 18, scale: 3, nullable: false),
-                    packages_quantity = table.Column<int>(type: "integer", nullable: true)
+                    quantity = table.Column<decimal>(type: "numeric(18,3)", precision: 18, scale: 3, nullable: false),
+                    rate_per_hectare = table.Column<decimal>(type: "numeric(18,3)", precision: 18, scale: 3, nullable: true),
+                    treated_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    comment = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: true),
+                    created_by_user_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_inventory_movement_details", x => x.id);
+                    table.PrimaryKey("pk_field_treatments", x => x.id);
                     table.ForeignKey(
-                        name: "fk_inventory_movement_details_inventory_movements_movement_id",
+                        name: "fk_field_treatments_companies_company_id",
+                        column: x => x.company_id,
+                        principalTable: "companies",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "fk_field_treatments_crops_crop_id",
+                        column: x => x.crop_id,
+                        principalTable: "crops",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "fk_field_treatments_fields_field_id",
+                        column: x => x.field_id,
+                        principalTable: "fields",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "fk_field_treatments_inventory_items_chemical_id",
+                        column: x => x.chemical_id,
+                        principalTable: "inventory_items",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "fk_field_treatments_inventory_movements_movement_id",
                         column: x => x.movement_id,
                         principalTable: "inventory_movements",
                         principalColumn: "id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "fk_field_treatments_users_created_by_user_id",
+                        column: x => x.created_by_user_id,
+                        principalTable: "users",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "fk_field_treatments_warehouses_warehouse_id",
+                        column: x => x.warehouse_id,
+                        principalTable: "warehouses",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.InsertData(
                 table: "app_settings",
-                columns: new[] { "id", "auto_open_packages", "low_stock_threshold_liters", "updated_at" },
-                values: new object[] { new Guid("00000000-0000-0000-0000-000000000003"), false, 10m, new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)) });
+                columns: new[] { "id", "low_stock_threshold_kg", "low_stock_threshold_liters", "updated_at" },
+                values: new object[] { new Guid("00000000-0000-0000-0000-000000000003"), 10m, 10m, new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)) });
 
             migrationBuilder.InsertData(
                 table: "users",
@@ -524,6 +597,11 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                 column: "action");
 
             migrationBuilder.CreateIndex(
+                name: "ix_audit_logs_company_id",
+                table: "audit_logs",
+                column: "company_id");
+
+            migrationBuilder.CreateIndex(
                 name: "ix_audit_logs_created_at",
                 table: "audit_logs",
                 column: "created_at");
@@ -537,6 +615,11 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                 name: "ix_audit_logs_user_id",
                 table: "audit_logs",
                 column: "user_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_canonical_chemicals_canonical_name",
+                table: "canonical_chemicals",
+                column: "canonical_name");
 
             migrationBuilder.CreateIndex(
                 name: "ix_chemical_crops_crop_id",
@@ -598,10 +681,76 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "ix_field_seasons_company_id",
+                table: "field_seasons",
+                column: "company_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_field_seasons_crop_id",
+                table: "field_seasons",
+                column: "crop_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_field_seasons_field_id_year",
+                table: "field_seasons",
+                columns: new[] { "field_id", "year" });
+
+            migrationBuilder.CreateIndex(
+                name: "ix_field_treatments_chemical_id",
+                table: "field_treatments",
+                column: "chemical_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_field_treatments_company_id",
+                table: "field_treatments",
+                column: "company_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_field_treatments_created_by_user_id",
+                table: "field_treatments",
+                column: "created_by_user_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_field_treatments_crop_id",
+                table: "field_treatments",
+                column: "crop_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_field_treatments_field_id",
+                table: "field_treatments",
+                column: "field_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_field_treatments_movement_id",
+                table: "field_treatments",
+                column: "movement_id",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "ix_field_treatments_treated_at",
+                table: "field_treatments",
+                column: "treated_at");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_field_treatments_warehouse_id",
+                table: "field_treatments",
+                column: "warehouse_id");
+
+            migrationBuilder.CreateIndex(
                 name: "ix_fields_company_id_number",
                 table: "fields",
                 columns: new[] { "company_id", "number" },
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "ix_fields_current_crop_id",
+                table: "fields",
+                column: "current_crop_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_inventory_items_canonical_chemical_id",
+                table: "inventory_items",
+                column: "canonical_chemical_id");
 
             migrationBuilder.CreateIndex(
                 name: "ix_inventory_items_company_id",
@@ -627,11 +776,6 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                 name: "ix_inventory_items_status",
                 table: "inventory_items",
                 column: "status");
-
-            migrationBuilder.CreateIndex(
-                name: "ix_inventory_movement_details_movement_id",
-                table: "inventory_movement_details",
-                column: "movement_id");
 
             migrationBuilder.CreateIndex(
                 name: "ix_inventory_movements_chemical_id_warehouse_id",
@@ -669,6 +813,11 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                 column: "occurred_at");
 
             migrationBuilder.CreateIndex(
+                name: "ix_inventory_movements_target_warehouse_id",
+                table: "inventory_movements",
+                column: "target_warehouse_id");
+
+            migrationBuilder.CreateIndex(
                 name: "ix_inventory_movements_warehouse_id",
                 table: "inventory_movements",
                 column: "warehouse_id");
@@ -679,34 +828,15 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                 columns: new[] { "membership_id", "scope_type" });
 
             migrationBuilder.CreateIndex(
-                name: "ix_opened_packages_chemical_id_warehouse_id",
-                table: "opened_packages",
-                columns: new[] { "chemical_id", "warehouse_id" });
+                name: "ix_refresh_tokens_token_hash",
+                table: "refresh_tokens",
+                column: "token_hash",
+                unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "ix_opened_packages_company_id",
-                table: "opened_packages",
-                column: "company_id");
-
-            migrationBuilder.CreateIndex(
-                name: "ix_opened_packages_warehouse_id",
-                table: "opened_packages",
-                column: "warehouse_id");
-
-            migrationBuilder.CreateIndex(
-                name: "ix_package_groups_chemical_id_warehouse_id",
-                table: "package_groups",
-                columns: new[] { "chemical_id", "warehouse_id" });
-
-            migrationBuilder.CreateIndex(
-                name: "ix_package_groups_company_id",
-                table: "package_groups",
-                column: "company_id");
-
-            migrationBuilder.CreateIndex(
-                name: "ix_package_groups_warehouse_id",
-                table: "package_groups",
-                column: "warehouse_id");
+                name: "ix_refresh_tokens_user_id",
+                table: "refresh_tokens",
+                column: "user_id");
 
             migrationBuilder.CreateIndex(
                 name: "ix_users_email",
@@ -740,25 +870,22 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
                 name: "chemical_stock_balances");
 
             migrationBuilder.DropTable(
-                name: "inventory_movement_details");
+                name: "field_seasons");
+
+            migrationBuilder.DropTable(
+                name: "field_treatments");
 
             migrationBuilder.DropTable(
                 name: "membership_access_scopes");
 
             migrationBuilder.DropTable(
-                name: "opened_packages");
-
-            migrationBuilder.DropTable(
-                name: "package_groups");
+                name: "refresh_tokens");
 
             migrationBuilder.DropTable(
                 name: "inventory_movements");
 
             migrationBuilder.DropTable(
                 name: "company_memberships");
-
-            migrationBuilder.DropTable(
-                name: "crops");
 
             migrationBuilder.DropTable(
                 name: "fields");
@@ -768,6 +895,12 @@ namespace AgroInventory.Infrastructure.Persistence.Migrations
 
             migrationBuilder.DropTable(
                 name: "warehouses");
+
+            migrationBuilder.DropTable(
+                name: "crops");
+
+            migrationBuilder.DropTable(
+                name: "canonical_chemicals");
 
             migrationBuilder.DropTable(
                 name: "companies");

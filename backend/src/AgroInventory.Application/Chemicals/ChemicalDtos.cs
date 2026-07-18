@@ -13,28 +13,23 @@ public sealed record ChemicalListItemDto(
     Guid Id,
     string Name,
     ChemicalType? Type,
-    decimal TotalLiters,
+    MeasureUnit MeasureUnit,
+    decimal TotalQuantity,
     IReadOnlyList<CropRefDto> Crops,
     StockStatus StockStatus);
-
-public sealed record PackageGroupDto(Guid Id, UnitType UnitType, decimal PackageVolumeLiters, int Quantity);
-
-public sealed record OpenedPackageDto(Guid Id, UnitType UnitType, decimal InitialLiters, decimal RemainingLiters);
 
 /// <summary>Остаток по одному складу (ТЗ §15.2).</summary>
 public sealed record WarehouseStockDto(
     Guid WarehouseId,
     string WarehouseNumber,
-    decimal TotalLiters,
-    decimal LooseLiters,
-    IReadOnlyList<PackageGroupDto> PackageGroups,
-    IReadOnlyList<OpenedPackageDto> OpenedPackages);
+    decimal TotalQuantity);
 
 /// <summary>Карточка химии (ТЗ §15). Привязка к общему каноническому препарату — ТЗ §12.</summary>
 public sealed record ChemicalDetailDto(
     Guid Id,
     string Name,
     ChemicalType? Type,
+    MeasureUnit MeasureUnit,
     string? Manufacturer,
     string? Comment,
     ItemStatus Status,
@@ -42,7 +37,7 @@ public sealed record ChemicalDetailDto(
     Guid? CanonicalChemicalId,
     string? CanonicalChemicalName,
     IReadOnlyList<CropRefDto> Crops,
-    decimal TotalLiters,
+    decimal TotalQuantity,
     IReadOnlyList<WarehouseStockDto> Warehouses);
 
 /// <summary>Карточка в архиве (ТЗ §17.2).</summary>
@@ -50,14 +45,16 @@ public sealed record ArchivedChemicalDto(
     Guid Id,
     string Name,
     ChemicalType? Type,
+    MeasureUnit MeasureUnit,
     string? Manufacturer,
     IReadOnlyList<CropRefDto> Crops,
-    decimal TotalLiters,
+    decimal TotalQuantity,
     DateTimeOffset ArchivedAt);
 
 public sealed record CreateChemicalRequest(
     string Name,
     ChemicalType? Type,
+    MeasureUnit MeasureUnit,
     string? Manufacturer,
     string? Comment,
     IReadOnlyList<Guid> CropIds,

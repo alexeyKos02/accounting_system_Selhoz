@@ -1,3 +1,5 @@
+using AgroInventory.Domain.Enums;
+
 namespace AgroInventory.Application.Fields;
 
 public sealed record FieldTreatmentDto(
@@ -7,12 +9,13 @@ public sealed record FieldTreatmentDto(
     string FieldNumber,
     Guid ChemicalId,
     string ChemicalName,
+    MeasureUnit MeasureUnit,
     Guid WarehouseId,
     string WarehouseNumber,
     Guid CropId,
     string CropName,
-    decimal QuantityLiters,
-    decimal? RateLitersPerHectare,
+    decimal Quantity,
+    decimal? RatePerHectare,
     Guid MovementId,
     string? Comment);
 
@@ -21,8 +24,7 @@ public sealed record CreateFieldTreatmentRequest(
     Guid ChemicalId,
     Guid WarehouseId,
     Guid CropId,
-    decimal? QuantityLiters,
-    decimal? RateLitersPerHectare,
-    bool AllowOpenNewPackage,
+    decimal? Quantity,
+    decimal? RatePerHectare,
     DateTimeOffset? TreatedAt,
     string? Comment);
