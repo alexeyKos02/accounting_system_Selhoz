@@ -14,8 +14,6 @@ export type ChemicalListItemDto = S['ChemicalListItemDto']
 export type ChemicalDetailDto = S['ChemicalDetailDto']
 export type ArchivedChemicalDto = S['ArchivedChemicalDto']
 export type WarehouseStockDto = S['WarehouseStockDto']
-export type PackageGroupDto = S['PackageGroupDto']
-export type OpenedPackageDto = S['OpenedPackageDto']
 export type CropRefDto = S['CropRefDto']
 export type DuplicateDto = S['DuplicateDto']
 
@@ -58,8 +56,16 @@ export const chemicalTypeOptions = Object.entries(chemicalTypeLabels).map(
 export const StockStatus = { InStock: 0, Low: 1, Empty: 2 } as const
 // ItemStatus: 1 Active, 2 Archived, 3 Merged
 export const ItemStatus = { Active: 1, Archived: 2, Merged: 3 } as const
-// UnitType: 1 Liter, 2 Can, 3 Piece
-export const UnitType = { Liter: 1, Can: 2, Piece: 3 } as const
+
+// MeasureUnit: единица измерения химии (Domain/Enums/MeasureUnit.cs): 1 литры, 2 килограммы.
+export const MeasureUnit = { Liter: 1, Kilogram: 2 } as const
+export function unitLabel(unit?: number): string {
+  return unit === MeasureUnit.Kilogram ? 'кг' : 'л'
+}
+export const measureUnitOptions = [
+  { value: MeasureUnit.Liter, label: 'Литры (л)' },
+  { value: MeasureUnit.Kilogram, label: 'Килограммы (кг)' },
+]
 
 // ---------- Аутентификация и мультиарендность (ТЗ §1–§6, §21) ----------
 

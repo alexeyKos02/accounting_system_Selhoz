@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
 import { chemicalsApi } from '../api/chemicals'
 import type { ArchivedChemicalDto } from '../api/types'
-import { chemicalTypeLabels } from '../api/types'
+import { chemicalTypeLabels, unitLabel } from '../api/types'
 import { ApiError } from '../api/http'
 
 const router = useRouter()
@@ -55,7 +55,7 @@ onMounted(load)
       <PvColumn field="manufacturer" header="Производитель" />
       <PvColumn header="Культуры"><template #body="{ data }">{{ cropsLabel(data) }}</template></PvColumn>
       <PvColumn header="Остаток">
-        <template #body="{ data }">{{ (data.totalLiters ?? 0).toLocaleString('ru-RU') }} л</template>
+        <template #body="{ data }">{{ (data.totalQuantity ?? 0).toLocaleString('ru-RU') }} {{ unitLabel(data.measureUnit) }}</template>
       </PvColumn>
       <PvColumn header="Архивирована">
         <template #body="{ data }">{{ new Date(data.archivedAt).toLocaleDateString('ru-RU') }}</template>

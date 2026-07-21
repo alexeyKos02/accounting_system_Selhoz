@@ -1554,6 +1554,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/dashboard/all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    DateFrom?: string;
+                    DateTo?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["AllCompaniesDashboardDto"];
+                        "application/json": components["schemas"]["AllCompaniesDashboardDto"];
+                        "text/json": components["schemas"]["AllCompaniesDashboardDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/export/chemicals": {
         parameters: {
             query?: never;
@@ -1699,7 +1739,30 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["FieldDto"];
+                        "application/json": components["schemas"]["FieldDto"];
+                        "text/json": components["schemas"]["FieldDto"];
+                    };
+                };
+            };
+        };
         put: {
             parameters: {
                 query?: never;
@@ -1731,6 +1794,183 @@ export interface paths {
             };
         };
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/field-seasons": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    fieldId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["FieldSeasonDto"][];
+                        "application/json": components["schemas"]["FieldSeasonDto"][];
+                        "text/json": components["schemas"]["FieldSeasonDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["CreateFieldSeasonRequest"];
+                    "text/json": components["schemas"]["CreateFieldSeasonRequest"];
+                    "application/*+json": components["schemas"]["CreateFieldSeasonRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["FieldSeasonDto"];
+                        "application/json": components["schemas"]["FieldSeasonDto"];
+                        "text/json": components["schemas"]["FieldSeasonDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/field-seasons/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["UpdateFieldSeasonRequest"];
+                    "text/json": components["schemas"]["UpdateFieldSeasonRequest"];
+                    "application/*+json": components["schemas"]["UpdateFieldSeasonRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["FieldSeasonDto"];
+                        "application/json": components["schemas"]["FieldSeasonDto"];
+                        "text/json": components["schemas"]["FieldSeasonDto"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/field-treatments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    fieldId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["FieldTreatmentDto"][];
+                        "application/json": components["schemas"]["FieldTreatmentDto"][];
+                        "text/json": components["schemas"]["FieldTreatmentDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["CreateFieldTreatmentRequest"];
+                    "text/json": components["schemas"]["CreateFieldTreatmentRequest"];
+                    "application/*+json": components["schemas"]["CreateFieldTreatmentRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["FieldTreatmentDto"];
+                        "application/json": components["schemas"]["FieldTreatmentDto"];
+                        "text/json": components["schemas"]["FieldTreatmentDto"];
+                    };
+                };
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;
@@ -2170,6 +2410,88 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/inventory/income/bulk/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    canonicalChemicalId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["BulkIncomeOptionsDto"];
+                        "application/json": components["schemas"]["BulkIncomeOptionsDto"];
+                        "text/json": components["schemas"]["BulkIncomeOptionsDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inventory/income/bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["BulkIncomeRequest"];
+                    "text/json": components["schemas"]["BulkIncomeRequest"];
+                    "application/*+json": components["schemas"]["BulkIncomeRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["BulkIncomeResultDto"];
+                        "application/json": components["schemas"]["BulkIncomeResultDto"];
+                        "text/json": components["schemas"]["BulkIncomeResultDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/inventory/outcome/preview": {
         parameters: {
             query?: never;
@@ -2246,6 +2568,70 @@ export interface paths {
                         "text/plain": components["schemas"]["OutcomeResultDto"];
                         "application/json": components["schemas"]["OutcomeResultDto"];
                         "text/json": components["schemas"]["OutcomeResultDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inventory/transfers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["TransferItemDto"][];
+                        "application/json": components["schemas"]["TransferItemDto"][];
+                        "text/json": components["schemas"]["TransferItemDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["TransferRequest"];
+                    "text/json": components["schemas"]["TransferRequest"];
+                    "application/*+json": components["schemas"]["TransferRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["TransferResultDto"];
+                        "application/json": components["schemas"]["TransferResultDto"];
+                        "text/json": components["schemas"]["TransferResultDto"];
                     };
                 };
             };
@@ -2418,6 +2804,48 @@ export interface paths {
                 };
             };
         };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/receipts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    DateFrom?: string;
+                    DateTo?: string;
+                    CompanyId?: string;
+                    CanonicalChemicalId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ReceiptItemDto"][];
+                        "application/json": components["schemas"]["ReceiptItemDto"][];
+                        "text/json": components["schemas"]["ReceiptItemDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2667,8 +3095,9 @@ export interface components {
             linked?: boolean;
             /** Format: uuid */
             canonicalChemicalId?: string | null;
+            measureUnit?: components["schemas"]["MeasureUnit"];
             /** Format: double */
-            totalLiters?: number;
+            totalQuantity?: number;
             /** Format: int32 */
             companiesCount?: number;
             /** Format: int32 */
@@ -2682,8 +3111,9 @@ export interface components {
             /** Format: uuid */
             inventoryItemId?: string;
             localName?: string | null;
+            measureUnit?: components["schemas"]["MeasureUnit"];
             /** Format: double */
-            totalLiters?: number;
+            totalQuantity?: number;
             warehouses?: components["schemas"]["AggregatedWarehouseDto"][] | null;
         };
         AggregatedWarehouseDto: {
@@ -2691,7 +3121,28 @@ export interface components {
             warehouseId?: string;
             warehouseNumber?: string | null;
             /** Format: double */
-            totalLiters?: number;
+            totalQuantity?: number;
+        };
+        AllCompaniesDashboardAlertDto: {
+            /** Format: uuid */
+            companyId?: string;
+            companyName?: string | null;
+            /** Format: uuid */
+            chemicalId?: string;
+            chemicalName?: string | null;
+            measureUnit?: components["schemas"]["MeasureUnit"];
+            /** Format: double */
+            totalQuantity?: number;
+            status?: components["schemas"]["StockStatus"];
+        };
+        AllCompaniesDashboardDto: {
+            /** Format: double */
+            lowStockThresholdLiters?: number;
+            /** Format: double */
+            lowStockThresholdKg?: number;
+            low?: components["schemas"]["AllCompaniesDashboardAlertDto"][] | null;
+            empty?: components["schemas"]["AllCompaniesDashboardAlertDto"][] | null;
+            recentOperations?: components["schemas"]["HistoryItemDto"][] | null;
         };
         /**
          * Format: int32
@@ -2701,7 +3152,8 @@ export interface components {
         AppSettingsDto: {
             /** Format: double */
             lowStockThresholdLiters?: number;
-            autoOpenPackages?: boolean;
+            /** Format: double */
+            lowStockThresholdKg?: number;
             /** Format: date-time */
             updatedAt?: string;
         };
@@ -2713,10 +3165,11 @@ export interface components {
             id?: string;
             name?: string | null;
             type?: components["schemas"]["ChemicalType"];
+            measureUnit?: components["schemas"]["MeasureUnit"];
             manufacturer?: string | null;
             crops?: components["schemas"]["CropRefDto"][] | null;
             /** Format: double */
-            totalLiters?: number;
+            totalQuantity?: number;
             /** Format: date-time */
             archivedAt?: string;
         };
@@ -2728,6 +3181,9 @@ export interface components {
         AuditLogDto: {
             /** Format: uuid */
             id?: string;
+            /** Format: uuid */
+            companyId?: string | null;
+            companyName?: string | null;
             /** Format: date-time */
             createdAt?: string;
             /** Format: uuid */
@@ -2756,6 +3212,55 @@ export interface components {
         BlockUserRequest: {
             blocked?: boolean;
         };
+        BulkIncomeCompanyOptionDto: {
+            /** Format: uuid */
+            companyId?: string;
+            companyName?: string | null;
+            /** Format: uuid */
+            chemicalId?: string | null;
+            chemicalName?: string | null;
+            warehouses?: components["schemas"]["BulkIncomeWarehouseOptionDto"][] | null;
+            blockedReason?: string | null;
+        };
+        BulkIncomeLineRequest: {
+            /** Format: uuid */
+            companyId?: string;
+            /** Format: uuid */
+            warehouseId?: string;
+            /** Format: double */
+            quantity?: number;
+        };
+        BulkIncomeLineResultDto: {
+            /** Format: uuid */
+            companyId?: string;
+            /** Format: uuid */
+            chemicalId?: string;
+            /** Format: uuid */
+            warehouseId?: string;
+            /** Format: double */
+            totalQuantity?: number;
+            /** Format: uuid */
+            movementId?: string;
+        };
+        BulkIncomeOptionsDto: {
+            companies?: components["schemas"]["BulkIncomeCompanyOptionDto"][] | null;
+        };
+        BulkIncomeRequest: {
+            /** Format: uuid */
+            canonicalChemicalId?: string;
+            /** Format: date-time */
+            occurredAt?: string | null;
+            comment?: string | null;
+            lines?: components["schemas"]["BulkIncomeLineRequest"][] | null;
+        };
+        BulkIncomeResultDto: {
+            lines?: components["schemas"]["BulkIncomeLineResultDto"][] | null;
+        };
+        BulkIncomeWarehouseOptionDto: {
+            /** Format: uuid */
+            warehouseId?: string;
+            warehouseNumber?: string | null;
+        };
         CanonicalChemicalDto: {
             /** Format: uuid */
             id?: string;
@@ -2775,6 +3280,7 @@ export interface components {
             id?: string;
             name?: string | null;
             type?: components["schemas"]["ChemicalType"];
+            measureUnit?: components["schemas"]["MeasureUnit"];
             manufacturer?: string | null;
             comment?: string | null;
             status?: components["schemas"]["ItemStatus"];
@@ -2785,7 +3291,7 @@ export interface components {
             canonicalChemicalName?: string | null;
             crops?: components["schemas"]["CropRefDto"][] | null;
             /** Format: double */
-            totalLiters?: number;
+            totalQuantity?: number;
             warehouses?: components["schemas"]["WarehouseStockDto"][] | null;
         };
         ChemicalEnrichmentDto: {
@@ -2800,8 +3306,9 @@ export interface components {
             id?: string;
             name?: string | null;
             type?: components["schemas"]["ChemicalType"];
+            measureUnit?: components["schemas"]["MeasureUnit"];
             /** Format: double */
-            totalLiters?: number;
+            totalQuantity?: number;
             crops?: components["schemas"]["CropRefDto"][] | null;
             stockStatus?: components["schemas"]["StockStatus"];
         };
@@ -2843,7 +3350,7 @@ export interface components {
          * Format: int32
          * @enum {integer}
          */
-        CorrectionMode: 0 | 1 | 2;
+        CorrectionMode: 0 | 1;
         CorrectionPreviewResponse: {
             /** Format: double */
             currentTotal?: number;
@@ -2852,7 +3359,6 @@ export interface components {
             /** Format: double */
             delta?: number;
             isBigChange?: boolean;
-            requiresDetailed?: boolean;
             message?: string | null;
         };
         CorrectionRequest: {
@@ -2862,10 +3368,9 @@ export interface components {
             warehouseId?: string;
             mode?: components["schemas"]["CorrectionMode"];
             /** Format: double */
-            actualTotalLiters?: number | null;
+            actualTotalQuantity?: number | null;
             /** Format: double */
-            deltaLiters?: number | null;
-            detailed?: components["schemas"]["DetailedInventoryDto"];
+            deltaQuantity?: number | null;
             confirmed?: boolean;
             /** Format: date-time */
             occurredAt?: string | null;
@@ -2873,7 +3378,7 @@ export interface components {
         };
         CorrectionResultDto: {
             /** Format: double */
-            totalLiters?: number;
+            totalQuantity?: number;
             /** Format: uuid */
             movementId?: string;
         };
@@ -2888,6 +3393,7 @@ export interface components {
         CreateChemicalRequest: {
             name?: string | null;
             type?: components["schemas"]["ChemicalType"];
+            measureUnit?: components["schemas"]["MeasureUnit"];
             manufacturer?: string | null;
             comment?: string | null;
             cropIds?: string[] | null;
@@ -2908,6 +3414,41 @@ export interface components {
         };
         CreateFieldRequest: {
             number?: string | null;
+            /** Format: double */
+            areaHectares?: number | null;
+            /** Format: uuid */
+            currentCropId?: string | null;
+        };
+        CreateFieldSeasonRequest: {
+            /** Format: uuid */
+            fieldId?: string;
+            /** Format: uuid */
+            cropId?: string;
+            /** Format: int32 */
+            year?: number;
+            name?: string | null;
+            /** Format: date-time */
+            startedAt?: string | null;
+            /** Format: date-time */
+            finishedAt?: string | null;
+            comment?: string | null;
+        };
+        CreateFieldTreatmentRequest: {
+            /** Format: uuid */
+            fieldId?: string;
+            /** Format: uuid */
+            chemicalId?: string;
+            /** Format: uuid */
+            warehouseId?: string;
+            /** Format: uuid */
+            cropId?: string;
+            /** Format: double */
+            quantity?: number | null;
+            /** Format: double */
+            ratePerHectare?: number | null;
+            /** Format: date-time */
+            treatedAt?: string | null;
+            comment?: string | null;
         };
         CreateUserRequest: {
             email?: string | null;
@@ -2940,9 +3481,9 @@ export interface components {
             /** Format: int32 */
             lowCount?: number;
             /** Format: double */
-            totalLiters?: number;
-            /** Format: double */
             lowStockThresholdLiters?: number;
+            /** Format: double */
+            lowStockThresholdKg?: number;
             empty?: components["schemas"]["DashboardStockDto"][] | null;
             low?: components["schemas"]["DashboardStockDto"][] | null;
             chemicals?: components["schemas"]["DashboardStockDto"][] | null;
@@ -2952,29 +3493,10 @@ export interface components {
             /** Format: uuid */
             chemicalId?: string;
             name?: string | null;
+            measureUnit?: components["schemas"]["MeasureUnit"];
             /** Format: double */
-            totalLiters?: number;
+            totalQuantity?: number;
             status?: components["schemas"]["StockStatus"];
-        };
-        DetailedGroupDto: {
-            unitType?: components["schemas"]["UnitType"];
-            /** Format: double */
-            packageVolumeLiters?: number;
-            /** Format: int32 */
-            quantity?: number;
-        };
-        DetailedInventoryDto: {
-            /** Format: double */
-            looseLiters?: number;
-            groups?: components["schemas"]["DetailedGroupDto"][] | null;
-            opened?: components["schemas"]["DetailedOpenedDto"][] | null;
-        };
-        DetailedOpenedDto: {
-            unitType?: components["schemas"]["UnitType"];
-            /** Format: double */
-            initialLiters?: number;
-            /** Format: double */
-            remainingLiters?: number;
         };
         DuplicateDto: {
             /** Format: uuid */
@@ -2989,12 +3511,7 @@ export interface components {
             cropId?: string | null;
             comment?: string | null;
             /** Format: double */
-            quantityLiters?: number | null;
-            unit?: components["schemas"]["UnitType"];
-            /** Format: double */
-            packageVolumeLiters?: number | null;
-            /** Format: int32 */
-            packagesQuantity?: number | null;
+            quantity?: number | null;
             /** Format: uuid */
             fieldId?: string | null;
         };
@@ -3005,6 +3522,55 @@ export interface components {
             /** Format: uuid */
             id?: string;
             number?: string | null;
+            /** Format: double */
+            areaHectares?: number | null;
+            /** Format: uuid */
+            currentCropId?: string | null;
+            currentCropName?: string | null;
+        };
+        FieldSeasonDto: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            fieldId?: string;
+            fieldNumber?: string | null;
+            /** Format: uuid */
+            cropId?: string;
+            cropName?: string | null;
+            /** Format: int32 */
+            year?: number;
+            name?: string | null;
+            /** Format: date-time */
+            startedAt?: string | null;
+            /** Format: date-time */
+            finishedAt?: string | null;
+            comment?: string | null;
+        };
+        FieldTreatmentDto: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: date-time */
+            treatedAt?: string;
+            /** Format: uuid */
+            fieldId?: string;
+            fieldNumber?: string | null;
+            /** Format: uuid */
+            chemicalId?: string;
+            chemicalName?: string | null;
+            measureUnit?: components["schemas"]["MeasureUnit"];
+            /** Format: uuid */
+            warehouseId?: string;
+            warehouseNumber?: string | null;
+            /** Format: uuid */
+            cropId?: string;
+            cropName?: string | null;
+            /** Format: double */
+            quantity?: number;
+            /** Format: double */
+            ratePerHectare?: number | null;
+            /** Format: uuid */
+            movementId?: string;
+            comment?: string | null;
         };
         HistoryDetailDto: {
             /** Format: uuid */
@@ -3016,33 +3582,23 @@ export interface components {
             chemicalId?: string;
             chemicalName?: string | null;
             /** Format: double */
-            quantityLiters?: number;
-            unitType?: components["schemas"]["UnitType"];
-            /** Format: double */
-            packageVolumeLiters?: number | null;
-            /** Format: int32 */
-            packagesQuantity?: number | null;
+            quantity?: number;
+            measureUnit?: components["schemas"]["MeasureUnit"];
             /** Format: uuid */
             warehouseId?: string;
             warehouseNumber?: string | null;
+            /** Format: uuid */
+            targetWarehouseId?: string | null;
+            targetWarehouseNumber?: string | null;
             /** Format: uuid */
             cropId?: string | null;
             cropName?: string | null;
             /** Format: uuid */
             fieldId?: string | null;
             fieldNumber?: string | null;
+            /** Format: uuid */
+            fieldTreatmentId?: string | null;
             comment?: string | null;
-            sources?: components["schemas"]["HistoryDetailSourceDto"][] | null;
-        };
-        HistoryDetailSourceDto: {
-            sourceType?: components["schemas"]["MovementSourceType"];
-            unitType?: components["schemas"]["UnitType"];
-            /** Format: double */
-            packageVolumeLiters?: number | null;
-            /** Format: double */
-            quantityLiters?: number;
-            /** Format: int32 */
-            packagesQuantity?: number | null;
         };
         HistoryItemDto: {
             /** Format: uuid */
@@ -3054,16 +3610,22 @@ export interface components {
             chemicalId?: string;
             chemicalName?: string | null;
             /** Format: double */
-            quantityLiters?: number;
+            quantity?: number;
+            measureUnit?: components["schemas"]["MeasureUnit"];
             /** Format: uuid */
             warehouseId?: string;
             warehouseNumber?: string | null;
+            /** Format: uuid */
+            targetWarehouseId?: string | null;
+            targetWarehouseNumber?: string | null;
             /** Format: uuid */
             cropId?: string | null;
             cropName?: string | null;
             /** Format: uuid */
             fieldId?: string | null;
             fieldNumber?: string | null;
+            /** Format: uuid */
+            fieldTreatmentId?: string | null;
             comment?: string | null;
         };
         IncomeRequest: {
@@ -3071,18 +3633,15 @@ export interface components {
             chemicalId?: string;
             /** Format: uuid */
             warehouseId?: string;
-            unit?: components["schemas"]["UnitType"];
             /** Format: double */
             quantity?: number;
-            /** Format: double */
-            packageVolumeLiters?: number | null;
             /** Format: date-time */
             occurredAt?: string | null;
             comment?: string | null;
         };
         IncomeResultDto: {
             /** Format: double */
-            totalLiters?: number;
+            totalQuantity?: number;
             /** Format: uuid */
             movementId?: string;
         };
@@ -3090,20 +3649,15 @@ export interface components {
             /** Format: uuid */
             chemicalId?: string;
             /** Format: double */
-            actualTotalLiters?: number;
+            actualTotalQuantity?: number;
         };
         InventoryCheckLineDto: {
             /** Format: uuid */
             chemicalId?: string;
             chemicalName?: string | null;
+            measureUnit?: components["schemas"]["MeasureUnit"];
             /** Format: double */
-            currentTotalLiters?: number;
-            /** Format: double */
-            looseLiters?: number;
-            /** Format: int32 */
-            fullPackages?: number;
-            /** Format: int32 */
-            openedPackages?: number;
+            currentTotalQuantity?: number;
         };
         InventoryCheckLineResult: {
             /** Format: uuid */
@@ -3121,7 +3675,7 @@ export interface components {
          * Format: int32
          * @enum {integer}
          */
-        InventoryCheckOutcome: 0 | 1 | 2;
+        InventoryCheckOutcome: 0 | 1;
         InventoryCheckRequest: {
             /** Format: uuid */
             warehouseId?: string;
@@ -3135,8 +3689,6 @@ export interface components {
             appliedCount?: number;
             /** Format: int32 */
             unchangedCount?: number;
-            /** Format: int32 */
-            needsDetailedCount?: number;
             lines?: components["schemas"]["InventoryCheckLineResult"][] | null;
         };
         InventoryCheckSheetDto: {
@@ -3168,6 +3720,11 @@ export interface components {
             mustChangePassword?: boolean;
             memberships?: components["schemas"]["MembershipInfo"][] | null;
         };
+        /**
+         * Format: int32
+         * @enum {integer}
+         */
+        MeasureUnit: 1 | 2;
         MemberDto: {
             /** Format: uuid */
             membershipId?: string;
@@ -3208,29 +3765,12 @@ export interface components {
          * Format: int32
          * @enum {integer}
          */
-        MovementSourceType: 1 | 2 | 3;
-        /**
-         * Format: int32
-         * @enum {integer}
-         */
         MovementType: 1 | 2 | 3 | 4;
-        OpenedPackageDto: {
-            /** Format: uuid */
-            id?: string;
-            unitType?: components["schemas"]["UnitType"];
-            /** Format: double */
-            initialLiters?: number;
-            /** Format: double */
-            remainingLiters?: number;
-        };
         OperationSuggestionDto: {
             operationType?: components["schemas"]["MovementType"];
             chemical?: components["schemas"]["ReferenceMatchDto"];
             /** Format: double */
             quantity?: number | null;
-            unit?: components["schemas"]["UnitType"];
-            /** Format: double */
-            packageVolumeLiters?: number | null;
             warehouse?: components["schemas"]["ReferenceMatchDto"];
             crop?: components["schemas"]["ReferenceMatchDto"];
             comment?: string | null;
@@ -3241,13 +3781,7 @@ export interface components {
             /** Format: double */
             requested?: number;
             /** Format: double */
-            fulfilled?: number;
-            /** Format: double */
             available?: number;
-            willOpenNewPackage?: boolean;
-            topUpUsed?: boolean;
-            requiresOpenConfirmation?: boolean;
-            steps?: components["schemas"]["OutcomeStepDto"][] | null;
         };
         OutcomeRequest: {
             /** Format: uuid */
@@ -3257,9 +3791,7 @@ export interface components {
             /** Format: uuid */
             cropId?: string;
             /** Format: double */
-            quantityLiters?: number;
-            source?: components["schemas"]["OutcomeSourceDto"];
-            allowOpenNewPackage?: boolean;
+            quantity?: number;
             /** Format: date-time */
             occurredAt?: string | null;
             comment?: string | null;
@@ -3268,43 +3800,36 @@ export interface components {
         };
         OutcomeResultDto: {
             /** Format: double */
-            writtenOffLiters?: number;
+            writtenOffQuantity?: number;
             /** Format: double */
-            totalLiters?: number;
+            totalQuantity?: number;
             /** Format: uuid */
             movementId?: string;
         };
-        OutcomeSourceDto: {
-            type?: components["schemas"]["MovementSourceType"];
-            /** Format: uuid */
-            id?: string | null;
-        };
-        OutcomeStepDto: {
-            sourceType?: components["schemas"]["MovementSourceType"];
-            /** Format: uuid */
-            sourceId?: string | null;
-            unitType?: components["schemas"]["UnitType"];
-            /** Format: double */
-            packageVolumeLiters?: number | null;
-            /** Format: double */
-            liters?: number;
-            /** Format: int32 */
-            wholePackages?: number;
-            /** Format: double */
-            openedRemainder?: number;
-            opensNewPackage?: boolean;
-        };
-        PackageGroupDto: {
-            /** Format: uuid */
-            id?: string;
-            unitType?: components["schemas"]["UnitType"];
-            /** Format: double */
-            packageVolumeLiters?: number;
-            /** Format: int32 */
-            quantity?: number;
-        };
         ParseTextRequest: {
             text?: string | null;
+        };
+        ReceiptItemDto: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: date-time */
+            occurredAt?: string;
+            /** Format: uuid */
+            companyId?: string;
+            companyName?: string | null;
+            /** Format: uuid */
+            chemicalId?: string;
+            chemicalName?: string | null;
+            /** Format: uuid */
+            canonicalChemicalId?: string | null;
+            canonicalChemicalName?: string | null;
+            /** Format: double */
+            quantity?: number;
+            measureUnit?: components["schemas"]["MeasureUnit"];
+            /** Format: uuid */
+            warehouseId?: string;
+            warehouseNumber?: string | null;
+            comment?: string | null;
         };
         ReferenceMatchDto: {
             /** Format: uuid */
@@ -3340,11 +3865,45 @@ export interface components {
             refreshToken?: string | null;
             mustChangePassword?: boolean;
         };
-        /**
-         * Format: int32
-         * @enum {integer}
-         */
-        UnitType: 1 | 2 | 3;
+        TransferItemDto: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: date-time */
+            occurredAt?: string;
+            /** Format: uuid */
+            chemicalId?: string;
+            chemicalName?: string | null;
+            /** Format: uuid */
+            sourceWarehouseId?: string;
+            sourceWarehouseNumber?: string | null;
+            /** Format: uuid */
+            targetWarehouseId?: string;
+            targetWarehouseNumber?: string | null;
+            /** Format: double */
+            quantity?: number;
+            comment?: string | null;
+        };
+        TransferRequest: {
+            /** Format: uuid */
+            chemicalId?: string;
+            /** Format: uuid */
+            sourceWarehouseId?: string;
+            /** Format: uuid */
+            targetWarehouseId?: string;
+            /** Format: double */
+            quantity?: number;
+            /** Format: date-time */
+            occurredAt?: string | null;
+            comment?: string | null;
+        };
+        TransferResultDto: {
+            /** Format: uuid */
+            movementId?: string;
+            /** Format: double */
+            sourceTotalQuantity?: number;
+            /** Format: double */
+            targetTotalQuantity?: number;
+        };
         UpdateCanonicalChemicalRequest: {
             canonicalName?: string | null;
             manufacturer?: string | null;
@@ -3376,6 +3935,22 @@ export interface components {
         };
         UpdateFieldRequest: {
             number?: string | null;
+            /** Format: double */
+            areaHectares?: number | null;
+            /** Format: uuid */
+            currentCropId?: string | null;
+        };
+        UpdateFieldSeasonRequest: {
+            /** Format: uuid */
+            cropId?: string;
+            /** Format: int32 */
+            year?: number;
+            name?: string | null;
+            /** Format: date-time */
+            startedAt?: string | null;
+            /** Format: date-time */
+            finishedAt?: string | null;
+            comment?: string | null;
         };
         UpdateMemberRequest: {
             role?: components["schemas"]["AppRole"];
@@ -3387,7 +3962,8 @@ export interface components {
         UpdateSettingsRequest: {
             /** Format: double */
             lowStockThresholdLiters?: number;
-            autoOpenPackages?: boolean;
+            /** Format: double */
+            lowStockThresholdKg?: number;
         };
         UpdateUserRequest: {
             firstName?: string | null;
@@ -3413,11 +3989,7 @@ export interface components {
             warehouseId?: string;
             warehouseNumber?: string | null;
             /** Format: double */
-            totalLiters?: number;
-            /** Format: double */
-            looseLiters?: number;
-            packageGroups?: components["schemas"]["PackageGroupDto"][] | null;
-            openedPackages?: components["schemas"]["OpenedPackageDto"][] | null;
+            totalQuantity?: number;
         };
     };
     responses: never;

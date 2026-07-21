@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
-import { inventoryApi, CheckOutcome } from '../api/inventory'
+import { inventoryApi } from '../api/inventory'
 import type { InventoryCheckLineDto, InventoryCheckResultDto } from '../api/inventory'
 import { useReference } from '../composables/useReference'
+import { unitLabel } from '../api/types'
 import { nowLocalInput, localToIso } from '../utils/datetime'
 import { ApiError } from '../api/http'
 
-const router = useRouter()
 const toast = useToast()
 const ref_ = useReference()
 
@@ -42,7 +41,7 @@ async function loadSheet() {
   try {
     const sheet = await inventoryApi.checkSheet(warehouseId.value)
     warehouseNumber.value = sheet.warehouseNumber ?? ''
-    rows.value = (sheet.lines ?? []).map((l) => ({ ...l, actual: l.currentTotalLiters ?? 0 }))
+    rows.value = (sheet.lines ?? []).map((l) => ({ ...l, actual: l.currentTotalQuantity ?? 0 }))
     loaded.value = true
   } catch (e) {
     fail(e, 'Не удалось загрузить ведомость')
@@ -53,7 +52,10 @@ async function loadSheet() {
 
 function delta(r: Row): number | null {
   if (r.actual == null) return null
-  return Number((r.actual - (r.currentTotalLiters ?? 0)).toFixed(3))
+  return Number((r.actual - (r.currentTotalQuantity ?? 0)).toFixed(3))
+}
+function rowUnit(r: Row) {
+  return unitLabel(r.measureUnit)
 }
 
 // Строки, где введённый факт отличается от текущего остатка.
@@ -78,7 +80,7 @@ async function submit() {
   try {
     result.value = await inventoryApi.applyCheck({
       warehouseId: warehouseId.value!,
-      entries: changed.value.map((r) => ({ chemicalId: r.chemicalId!, actualTotalLiters: r.actual! })),
+      entries: changed.value.map((r) => ({ chemicalId: r.chemicalId!, actualTotalQuantity: r.actual! })),
       occurredAt: localToIso(occurredAt.value),
       comment: comment.value.trim() || null,
     })
@@ -89,14 +91,6 @@ async function submit() {
   } finally {
     saving.value = false
   }
-}
-
-const needsDetailed = computed(() =>
-  (result.value?.lines ?? []).filter((l) => l.outcome === CheckOutcome.NeedsDetailed),
-)
-
-function fixDetailed(chemicalId: string) {
-  router.push({ name: 'corrections', query: { chemicalId } })
 }
 
 onMounted(ref_.load)
@@ -117,41 +111,34 @@ onMounted(ref_.load)
     <!-- Итог применения -->
     <div v-if="result" class="result">
       <PvMessage severity="success" :closable="false">
-        Применено: {{ result.appliedCount }} · Без изменений: {{ result.unchangedCount }} · Требуют разбора: {{ result.needsDetailedCount }}
+        Применено: {{ result.appliedCount }} · Без изменений: {{ result.unchangedCount }}
       </PvMessage>
-      <div v-if="needsDetailed.length" class="detailed">
-        <b>Не удалось применить автоматически</b> — убыль больше наливного остатка, нужна детальная инвентаризация:
-        <ul>
-          <li v-for="l in needsDetailed" :key="l.chemicalId">
-            {{ l.chemicalName }}
-            <PvButton label="Разобрать" size="small" text @click="fixDetailed(l.chemicalId!)" />
-          </li>
-        </ul>
-      </div>
     </div>
 
     <template v-if="loaded">
       <div class="hint">
-        Склад {{ warehouseNumber }} — впишите фактический остаток в литрах. Изменённые строки применятся корректировкой.
+        Склад {{ warehouseNumber }} — впишите фактический остаток. Изменённые строки применятся корректировкой.
       </div>
 
       <PvDataTable :value="rows" :loading="loadingSheet" data-key="chemicalId" size="small" class="mt">
         <PvColumn field="chemicalName" header="Химия" />
         <PvColumn header="Учётный остаток">
           <template #body="{ data: r }">
-            <div>{{ fmtNum(r.currentTotalLiters) }} л</div>
-            <div class="sub">наливом {{ fmtNum(r.looseLiters) }} л<span v-if="r.fullPackages"> · {{ r.fullPackages }} упак.</span><span v-if="r.openedPackages"> · {{ r.openedPackages }} вскр.</span></div>
+            <div>{{ fmtNum(r.currentTotalQuantity) }} {{ rowUnit(r) }}</div>
           </template>
         </PvColumn>
-        <PvColumn header="Факт, л" style="width: 9rem">
+        <PvColumn header="Факт" style="width: 9rem">
           <template #body="{ data: r }">
-            <PvInputText v-model.number="r.actual" type="number" min="0" class="actual" />
+            <div class="actual-cell">
+              <PvInputText v-model.number="r.actual" type="number" min="0" class="actual" />
+              <span class="unit">{{ rowUnit(r) }}</span>
+            </div>
           </template>
         </PvColumn>
         <PvColumn header="Разница" style="width: 8rem">
           <template #body="{ data: r }">
             <span v-if="delta(r) !== null && delta(r) !== 0" :class="(delta(r) ?? 0) > 0 ? 'pos' : 'neg'">
-              {{ (delta(r) ?? 0) > 0 ? '+' : '' }}{{ fmtNum(delta(r)!) }} л
+              {{ (delta(r) ?? 0) > 0 ? '+' : '' }}{{ fmtNum(delta(r)!) }} {{ rowUnit(r) }}
             </span>
             <span v-else class="muted">—</span>
           </template>
@@ -183,7 +170,9 @@ onMounted(ref_.load)
 .hint { color: #6b7280; margin-bottom: 0.5rem; }
 .mt { margin-top: 0.5rem; }
 .sub { font-size: 0.8rem; color: #6b7280; }
+.actual-cell { display: flex; align-items: center; gap: 0.35rem; }
 .actual { width: 100%; }
+.unit { color: #6b7280; font-size: 0.85rem; }
 .pos { color: #16a34a; font-weight: 600; }
 .neg { color: #dc2626; font-weight: 600; }
 .muted { color: #9ca3af; }

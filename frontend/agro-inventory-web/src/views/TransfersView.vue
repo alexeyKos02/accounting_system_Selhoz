@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import { inventoryApi } from '../api/inventory'
 import type { TransferItemDto } from '../api/inventory'
 import { useReference } from '../composables/useReference'
+import { unitLabel } from '../api/types'
 import { localToIso, nowLocalInput } from '../utils/datetime'
 import { ApiError } from '../api/http'
 
@@ -17,12 +18,16 @@ const chemicalId = ref<string | null>(null)
 const sourceWarehouseId = ref<string | null>(null)
 const targetWarehouseId = ref<string | null>(null)
 const quantity = ref<number | null>(null)
-const allowOpenNewPackage = ref(false)
 const occurredAt = ref(nowLocalInput())
 const comment = ref('')
 
+const unit = computed(() => unitLabel(ref_.chemicalUnit(chemicalId.value)))
+
 function fmtNum(n?: number | null) {
   return (n ?? 0).toLocaleString('ru-RU', { maximumFractionDigits: 3 })
+}
+function rowUnit(id?: string) {
+  return unitLabel(ref_.chemicalUnit(id))
 }
 
 function fmtDate(iso?: string) {
@@ -64,14 +69,12 @@ async function submit() {
       chemicalId: chemicalId.value!,
       sourceWarehouseId: sourceWarehouseId.value!,
       targetWarehouseId: targetWarehouseId.value!,
-      quantityLiters: quantity.value!,
-      allowOpenNewPackage: allowOpenNewPackage.value,
+      quantity: quantity.value!,
       occurredAt: localToIso(occurredAt.value),
       comment: comment.value.trim() || null,
     })
     quantity.value = null
     comment.value = ''
-    allowOpenNewPackage.value = false
     toast.add({ severity: 'success', summary: 'Перемещение сохранено', life: 2500 })
     await load()
   } catch (e) {
@@ -102,17 +105,13 @@ onMounted(async () => {
         <label class="field"><span>Куда *</span>
           <PvSelect v-model="targetWarehouseId" :options="ref_.warehouseOptions.value" option-label="label" option-value="value" filter placeholder="Склад получатель" />
         </label>
-        <label class="field"><span>Количество, л *</span>
+        <label class="field"><span>Количество, {{ unit }} *</span>
           <PvInputText v-model.number="quantity" type="number" min="0" />
         </label>
       </div>
 
       <label class="field"><span>Дата и время</span>
         <input v-model="occurredAt" class="dt" type="datetime-local" />
-      </label>
-      <label class="confirm">
-        <input v-model="allowOpenNewPackage" type="checkbox" />
-        Разрешить вскрыть новую упаковку, если не хватает наливного остатка
       </label>
       <label class="field"><span>Комментарий</span><PvTextarea v-model="comment" rows="2" auto-resize /></label>
       <PvButton label="Переместить" icon="pi pi-arrow-right-arrow-left" :loading="saving" :disabled="!valid()" @click="submit" />
@@ -123,7 +122,7 @@ onMounted(async () => {
         <PvColumn header="Дата"><template #body="{ data }">{{ fmtDate(data.occurredAt) }}</template></PvColumn>
         <PvColumn field="chemicalName" header="Химия" />
         <PvColumn header="Маршрут"><template #body="{ data }">Склад {{ data.sourceWarehouseNumber }} → склад {{ data.targetWarehouseNumber }}</template></PvColumn>
-        <PvColumn header="Количество"><template #body="{ data }">{{ fmtNum(data.quantityLiters) }} л</template></PvColumn>
+        <PvColumn header="Количество"><template #body="{ data }">{{ fmtNum(data.quantity) }} {{ rowUnit(data.chemicalId) }}</template></PvColumn>
         <PvColumn field="comment" header="Комментарий" />
         <template #empty><div class="empty">Перемещений пока нет</div></template>
       </PvDataTable>
@@ -138,7 +137,7 @@ onMounted(async () => {
             <span>{{ fmtDate(item.occurredAt) }}</span>
           </div>
           <div class="card__route">Склад {{ item.sourceWarehouseNumber }} → склад {{ item.targetWarehouseNumber }}</div>
-          <div class="card__meta">{{ fmtNum(item.quantityLiters) }} л</div>
+          <div class="card__meta">{{ fmtNum(item.quantity) }} {{ rowUnit(item.chemicalId) }}</div>
           <div v-if="item.comment" class="card__meta">{{ item.comment }}</div>
         </article>
         <div v-if="!items.length" class="empty">Перемещений пока нет</div>

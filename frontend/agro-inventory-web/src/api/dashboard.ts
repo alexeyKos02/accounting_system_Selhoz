@@ -5,42 +5,8 @@ type S = components['schemas']
 export type DashboardDto = S['DashboardDto']
 export type DashboardStockDto = S['DashboardStockDto']
 
-export interface AllCompaniesDashboardCompanyDto {
-  companyId?: string
-  companyName?: string
-  activeChemicals?: number
-  warehouses?: number
-  totalLiters?: number
-  incomeLiters?: number
-  outcomeLiters?: number
-  lowCount?: number
-  emptyCount?: number
-}
-
-export interface AllCompaniesDashboardAlertDto {
-  companyId?: string
-  companyName?: string
-  chemicalId?: string
-  chemicalName?: string
-  totalLiters?: number
-  status?: number
-}
-
-export interface AllCompaniesDashboardDto {
-  companiesCount?: number
-  activeChemicals?: number
-  warehouses?: number
-  totalLiters?: number
-  incomeLiters?: number
-  outcomeLiters?: number
-  lowCount?: number
-  emptyCount?: number
-  lowStockThresholdLiters?: number
-  companies?: AllCompaniesDashboardCompanyDto[] | null
-  low?: AllCompaniesDashboardAlertDto[] | null
-  empty?: AllCompaniesDashboardAlertDto[] | null
-  recentOperations?: S['HistoryItemDto'][] | null
-}
+export type AllCompaniesDashboardAlertDto = S['AllCompaniesDashboardAlertDto']
+export type AllCompaniesDashboardDto = S['AllCompaniesDashboardDto']
 
 export interface AllCompaniesDashboardFilters {
   dateFrom?: string

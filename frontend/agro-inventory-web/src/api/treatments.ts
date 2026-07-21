@@ -11,8 +11,9 @@ export interface FieldTreatmentDto {
   warehouseNumber?: string
   cropId?: string
   cropName?: string
-  quantityLiters?: number
-  rateLitersPerHectare?: number | null
+  measureUnit?: number
+  quantity?: number
+  ratePerHectare?: number | null
   movementId?: string
   comment?: string | null
 }
@@ -22,9 +23,8 @@ export interface CreateFieldTreatmentRequest {
   chemicalId: string
   warehouseId: string
   cropId: string
-  quantityLiters?: number | null
-  rateLitersPerHectare?: number | null
-  allowOpenNewPackage: boolean
+  quantity?: number | null
+  ratePerHectare?: number | null
   treatedAt?: string | null
   comment?: string | null
 }

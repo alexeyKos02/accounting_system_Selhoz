@@ -5,7 +5,7 @@ import { useToast } from 'primevue/usetoast'
 import { chemicalsApi } from '../api/chemicals'
 import { cropsApi } from '../api/reference'
 import type { ChemicalDetailDto, ChemicalTypeValue, CropDto } from '../api/types'
-import { ItemStatus, UnitType, chemicalTypeLabels, chemicalTypeOptions } from '../api/types'
+import { ItemStatus, chemicalTypeLabels, chemicalTypeOptions, unitLabel } from '../api/types'
 import { ApiError } from '../api/http'
 
 const route = useRoute()
@@ -23,6 +23,7 @@ const edit = ref({ name: '', type: null as ChemicalTypeValue | null, manufacture
 
 const typeLabel = computed(() =>
   chem.value?.type != null ? chemicalTypeLabels[chem.value.type] : null)
+const unit = computed(() => unitLabel(chem.value?.measureUnit))
 
 const archiveDialog = ref(false)
 const archiveWord = ref('')
@@ -30,10 +31,6 @@ const archiveWord = ref('')
 const cropOptions = computed(() => crops.value.map((c) => ({ label: c.name, value: c.id })))
 const isArchived = computed(() => chem.value?.status === ItemStatus.Archived)
 const isMerged = computed(() => chem.value?.status === ItemStatus.Merged)
-
-function unitLabel(u: number): string {
-  return u === UnitType.Can ? 'банк.' : u === UnitType.Piece ? 'шт.' : 'л'
-}
 
 async function load() {
   loading.value = true
@@ -84,7 +81,7 @@ async function saveEdit() {
 
 function askArchive() {
   archiveWord.value = ''
-  const total = chem.value?.totalLiters ?? 0
+  const total = chem.value?.totalQuantity ?? 0
   if (total > 0) { archiveDialog.value = true } else { doArchive() }
 }
 
@@ -135,7 +132,7 @@ onMounted(load)
     </div>
     <p v-if="chem.comment" class="comment">{{ chem.comment }}</p>
 
-    <div class="total">Общий остаток: <b>{{ (chem.totalLiters ?? 0).toLocaleString('ru-RU') }} л</b></div>
+    <div class="total">Общий остаток: <b>{{ (chem.totalQuantity ?? 0).toLocaleString('ru-RU') }} {{ unit }}</b></div>
 
     <!-- Быстрые действия (ТЗ §15.1) -->
     <div class="actions" v-if="!isMerged">
@@ -158,14 +155,7 @@ onMounted(load)
       </button>
       <div v-show="expanded" class="wh-list">
         <div v-for="w in chem.warehouses" :key="w.warehouseId!" class="wh">
-          <div class="wh__head">Склад {{ w.warehouseNumber }} — <b>{{ (w.totalLiters ?? 0).toLocaleString('ru-RU') }} л</b></div>
-          <div class="wh__row">Наливом: {{ (w.looseLiters ?? 0).toLocaleString('ru-RU') }} л</div>
-          <div class="wh__row" v-for="g in w.packageGroups" :key="g.id!">
-            Полные: {{ g.quantity }} × {{ g.packageVolumeLiters }} л ({{ unitLabel(g.unitType!) }})
-          </div>
-          <div class="wh__row" v-for="o in w.openedPackages" :key="o.id!">
-            Вскрыто: {{ unitLabel(o.unitType!) }} {{ o.initialLiters }} л, осталось {{ o.remainingLiters }} л
-          </div>
+          <div class="wh__head">Склад {{ w.warehouseNumber }} — <b>{{ (w.totalQuantity ?? 0).toLocaleString('ru-RU') }} {{ unit }}</b></div>
         </div>
       </div>
     </div>

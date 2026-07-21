@@ -30,6 +30,10 @@ export function useReference() {
   }
 
   const chemicalOptions = computed(() => chemicals.value.map((c) => ({ label: c.name!, value: c.id! })))
+  /** Единица измерения выбранной химии (1 л / 2 кг), для подписей количества. */
+  function chemicalUnit(id?: string | null): number | undefined {
+    return chemicals.value.find((c) => c.id === id)?.measureUnit
+  }
   const warehouseOptions = computed(() =>
     warehouses.value.map((w) => ({ label: `Склад ${w.number}`, value: w.id! })),
   )
@@ -38,7 +42,7 @@ export function useReference() {
 
   return {
     chemicals, warehouses, crops, fields,
-    chemicalOptions, warehouseOptions, cropOptions, fieldOptions,
+    chemicalOptions, warehouseOptions, cropOptions, fieldOptions, chemicalUnit,
     load, reloadWarehouses, reloadCrops, reloadFields,
   }
 }

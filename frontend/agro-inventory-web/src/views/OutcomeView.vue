@@ -6,6 +6,7 @@ import { inventoryApi } from '../api/inventory'
 import { chemicalsApi } from '../api/chemicals'
 import { fieldsApi } from '../api/reference'
 import { useReference } from '../composables/useReference'
+import { unitLabel } from '../api/types'
 import type { OutcomePreviewResponse, OutcomeRequest } from '../api/inventory'
 import type { WarehouseStockDto } from '../api/types'
 import { nowLocalInput, localToIso } from '../utils/datetime'
@@ -22,41 +23,19 @@ const cropId = ref<string | null>(null)
 const fieldId = ref<string | null>(null)
 const newField = ref('')
 const quantity = ref<number | null>(null)
-const mode = ref<'auto' | 'manual'>('auto')
-const sourceKey = ref<string | null>(null) // "type:id"
 const occurredAt = ref(nowLocalInput())
 const comment = ref('')
 
 const stock = ref<WarehouseStockDto | null>(null)
 const preview = ref<OutcomePreviewResponse | null>(null)
-const showPlan = ref(false)
 const saving = ref(false)
 const done = ref(false)
-const doneLiters = ref(0)
+const doneQty = ref(0)
 const dirty = ref(false)
 
-const confirmOpenDialog = ref(false)
+const unit = computed(() => unitLabel(ref_.chemicalUnit(chemicalId.value)))
 
 let previewTimer: ReturnType<typeof setTimeout> | undefined
-
-// Источники для ручного выбора (ТЗ §11.3)
-const sourceOptions = computed(() => {
-  const s = stock.value
-  if (!s) return []
-  const opts: { label: string; value: string }[] = []
-  if ((s.looseLiters ?? 0) > 0) opts.push({ label: `Наливом (${s.looseLiters} л)`, value: '1:' })
-  for (const o of s.openedPackages ?? [])
-    opts.push({ label: `Вскрытая ${o.initialLiters} л — осталось ${o.remainingLiters} л`, value: `3:${o.id}` })
-  for (const g of s.packageGroups ?? [])
-    opts.push({ label: `Полные ${g.quantity} × ${g.packageVolumeLiters} л`, value: `2:${g.id}` })
-  return opts
-})
-
-function buildSource(): OutcomeRequest['source'] | undefined {
-  if (mode.value !== 'manual' || !sourceKey.value) return undefined
-  const [type, id] = sourceKey.value.split(':')
-  return { type: Number(type), id: id || null } as unknown as OutcomeRequest['source']
-}
 
 async function loadStock() {
   stock.value = null
@@ -65,24 +44,21 @@ async function loadStock() {
   try {
     const chem = await chemicalsApi.get(chemicalId.value)
     stock.value = (chem.warehouses ?? []).find((w) => w.warehouseId === warehouseId.value) ?? {
-      warehouseId: warehouseId.value, warehouseNumber: '', totalLiters: 0, looseLiters: 0,
-      packageGroups: [], openedPackages: [],
+      warehouseId: warehouseId.value, warehouseNumber: '', totalQuantity: 0,
     }
   } catch { /* тихо */ }
 }
 
-function baseRequest(allowOpen: boolean): OutcomeRequest {
+function baseRequest(): OutcomeRequest {
   return {
     chemicalId: chemicalId.value!,
     warehouseId: warehouseId.value!,
     cropId: cropId.value!,
     fieldId: fieldId.value || null,
-    quantityLiters: quantity.value!,
-    source: buildSource(),
-    allowOpenNewPackage: allowOpen,
+    quantity: quantity.value!,
     occurredAt: localToIso(occurredAt.value),
     comment: comment.value.trim() || null,
-  } as unknown as OutcomeRequest
+  } as OutcomeRequest
 }
 
 async function runPreview() {
@@ -91,11 +67,11 @@ async function runPreview() {
     return
   }
   try {
-    preview.value = await inventoryApi.previewOutcome(baseRequest(false))
+    preview.value = await inventoryApi.previewOutcome(baseRequest())
   } catch { preview.value = null }
 }
 
-watch([quantity, sourceKey, mode], () => {
+watch([quantity], () => {
   dirty.value = true
   clearTimeout(previewTimer)
   previewTimer = setTimeout(runPreview, 300)
@@ -115,23 +91,13 @@ async function submit() {
     toast.add({ severity: 'warn', summary: 'Заполните обязательные поля (в т.ч. культуру)', life: 3000 })
     return
   }
-  // Подтверждение вскрытия новой упаковки (ТЗ §11.9)
-  if (preview.value?.requiresOpenConfirmation) {
-    confirmOpenDialog.value = true
-    return
-  }
-  await commit(false)
-}
-
-async function commit(allowOpen: boolean) {
-  confirmOpenDialog.value = false
   saving.value = true
   try {
-    const res = await inventoryApi.outcome(baseRequest(allowOpen))
-    doneLiters.value = res.writtenOffLiters ?? quantity.value!
+    const res = await inventoryApi.outcome(baseRequest())
+    doneQty.value = res.writtenOffQuantity ?? quantity.value!
     dirty.value = false
     done.value = true
-    toast.add({ severity: 'success', summary: `Списано ${doneLiters.value} л`, life: 2500 })
+    toast.add({ severity: 'success', summary: `Списано ${doneQty.value} ${unit.value}`, life: 2500 })
   } catch (e) {
     fail(e, 'Не удалось списать')
   } finally {
@@ -156,8 +122,6 @@ function addAnother() {
   cropId.value = null
   fieldId.value = null
   quantity.value = null
-  mode.value = 'auto'
-  sourceKey.value = null
   comment.value = ''
   occurredAt.value = nowLocalInput()
   stock.value = null
@@ -166,8 +130,6 @@ function addAnother() {
 }
 
 function close() { router.back() }
-
-const sourceTypeLabel = (t: number) => (t === 1 ? 'Наливом' : t === 2 ? 'Полная упаковка' : 'Вскрытая упаковка')
 
 onBeforeRouteLeave(() => (dirty.value && !done.value)
   ? window.confirm('У вас есть несохранённые изменения. Выйти без сохранения?') : true)
@@ -180,7 +142,7 @@ onMounted(async () => { await ref_.load(); await loadStock() })
     <h1 class="page__title">Списание химии</h1>
 
     <div v-if="done" class="result">
-      <PvMessage severity="success" :closable="false">Списано {{ doneLiters }} л</PvMessage>
+      <PvMessage severity="success" :closable="false">Списано {{ doneQty }} {{ unit }}</PvMessage>
       <div class="row">
         <PvButton label="Закрыть" @click="close" />
         <PvButton label="Добавить ещё" outlined @click="addAnother" />
@@ -199,10 +161,7 @@ onMounted(async () => { await ref_.load(); await loadStock() })
 
       <!-- Остаток после выбора склада (ТЗ §11.2) -->
       <div v-if="stock" class="stock">
-        <b>Доступно: {{ (stock.totalLiters ?? 0).toLocaleString('ru-RU') }} л</b>
-        <span>наливом {{ stock.looseLiters ?? 0 }} л</span>
-        <span v-if="stock.packageGroups?.length">· полные: {{stock.packageGroups.map(g => `${g.quantity}×${g.packageVolumeLiters}`).join(', ')}}</span>
-        <span v-if="stock.openedPackages?.length">· вскрытые: {{stock.openedPackages.map(o => `${o.remainingLiters}`).join(', ')}} л</span>
+        <b>Доступно: {{ (stock.totalQuantity ?? 0).toLocaleString('ru-RU') }} {{ unit }}</b>
       </div>
 
       <label class="field"><span>Культура *</span>
@@ -219,38 +178,13 @@ onMounted(async () => { await ref_.load(); await loadStock() })
         <PvButton icon="pi pi-plus" text @click="quickAddField" />
       </div>
 
-      <label class="field"><span>Количество, л *</span>
+      <label class="field"><span>Количество, {{ unit }} *</span>
         <PvInputText v-model.number="quantity" type="number" min="0" />
       </label>
 
-      <label class="field"><span>Источник</span>
-        <PvSelect v-model="mode" :options="[{label:'Автоматический добор',value:'auto'},{label:'Выбрать вручную',value:'manual'}]"
-          option-label="label" option-value="value" />
-      </label>
-      <label v-if="mode === 'manual'" class="field"><span>Из чего списать</span>
-        <PvSelect v-model="sourceKey" :options="sourceOptions" option-label="label" option-value="value" placeholder="Источник" />
-      </label>
-
-      <!-- Предупреждения (ТЗ §11.8, §11.9) -->
       <PvMessage v-if="preview && !preview.sufficient" severity="error" :closable="false">
-        Недостаточно остатка: доступно {{ preview.available }} л.
+        Недостаточно остатка: доступно {{ preview.available }} {{ unit }}.
       </PvMessage>
-      <PvMessage v-else-if="preview?.topUpUsed" severity="warn" :closable="false">
-        Выбранного источника не хватает — остаток будет добран автоматически.
-      </PvMessage>
-      <PvMessage v-else-if="preview?.willOpenNewPackage" severity="warn" :closable="false">
-        Для списания будет вскрыта новая упаковка.
-      </PvMessage>
-
-      <div v-if="preview?.steps?.length" class="plan">
-        <a href="#" @click.prevent="showPlan = !showPlan">{{ showPlan ? 'Скрыть план' : 'Показать план списания' }}</a>
-        <ul v-if="showPlan">
-          <li v-for="(s, i) in preview.steps" :key="i">
-            {{ sourceTypeLabel(s.sourceType!) }}: {{ s.liters }} л
-            <span v-if="s.opensNewPackage">(вскрытие, остаток {{ s.openedRemainder }} л)</span>
-          </li>
-        </ul>
-      </div>
 
       <label class="field"><span>Дата и время</span>
         <input class="dt" type="datetime-local" v-model="occurredAt" />
@@ -265,14 +199,6 @@ onMounted(async () => { await ref_.load(); await loadStock() })
         <PvButton label="Отмена" text @click="close" />
       </div>
     </template>
-
-    <PvDialog v-model:visible="confirmOpenDialog" header="Вскрыть новую упаковку?" modal :style="{ width: '26rem' }">
-      <p>Для списания {{ quantity }} л нужно вскрыть новую полную упаковку. Продолжить?</p>
-      <template #footer>
-        <PvButton label="Отмена" text @click="confirmOpenDialog = false" />
-        <PvButton label="Вскрыть и списать" @click="commit(true)" />
-      </template>
-    </PvDialog>
   </section>
 </template>
 
@@ -284,8 +210,6 @@ onMounted(async () => { await ref_.load(); await loadStock() })
 .quick { display: flex; gap: 0.5rem; align-items: center; margin: -0.5rem 0 1rem; }
 .result { display: flex; flex-direction: column; gap: 1rem; }
 .stock { background: rgba(0,0,0,0.04); border-radius: 8px; padding: 0.6rem 0.8rem; margin-bottom: 1rem; display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; }
-.plan { margin-bottom: 1rem; }
-.plan ul { margin: 0.4rem 0; padding-left: 1.25rem; }
 .dt { padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font: inherit; }
 /* iOS Safari: нативный datetime-local распирает экран — сдавливаем до контейнера на мобилке */
 @media (max-width: 640px) {

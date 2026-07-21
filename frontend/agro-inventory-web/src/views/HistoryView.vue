@@ -7,7 +7,7 @@ import { useReference } from '../composables/useReference'
 import { exportApi } from '../api/export'
 import { localToIso } from '../utils/datetime'
 import { ApiError } from '../api/http'
-import { UnitType } from '../api/types'
+import { unitLabel } from '../api/types'
 
 const toast = useToast()
 const ref_ = useReference()
@@ -45,7 +45,8 @@ const filterBadge = computed(() => (activeFiltersCount.value ? String(activeFilt
 const detail = ref<HistoryDetailDto | null>(null)
 const detailDialog = ref(false)
 const editDialog = ref(false)
-const edit = ref({ occurredAtLocal: '', comment: '', quantityLiters: 0, packagesQuantity: 0, packageVolume: 0, cropId: '' as string | null, fieldId: '' as string | null })
+const edit = ref({ occurredAtLocal: '', comment: '', quantity: 0, cropId: '' as string | null, fieldId: '' as string | null })
+const detailUnit = computed(() => unitLabel(detail.value?.measureUnit))
 
 // Пустой GUID = явная очистка поля при редактировании (backend отличает от «не менять»).
 const EMPTY_GUID = '00000000-0000-0000-0000-000000000000'
@@ -81,21 +82,12 @@ async function openDetail(item: HistoryItemDto) {
   } catch (e) { fail(e, 'Не удалось загрузить операцию') }
 }
 
-function sourceLabel(t?: number) {
-  return t === 1 ? 'Наливом' : t === 2 ? 'Полная упаковка' : 'Вскрытая упаковка'
-}
-
-const isPackageIncome = () =>
-  detail.value?.movementType === MovementType.Income && detail.value?.unitType !== UnitType.Liter
-
 function openEdit() {
   const d = detail.value!
   edit.value = {
     occurredAtLocal: toLocal(d.occurredAt!),
     comment: d.comment ?? '',
-    quantityLiters: d.quantityLiters ?? 0,
-    packagesQuantity: d.packagesQuantity ?? 0,
-    packageVolume: d.packageVolumeLiters ?? 0,
+    quantity: d.quantity ?? 0,
     cropId: d.cropId ?? null,
     fieldId: d.fieldId ?? null,
   }
@@ -115,13 +107,7 @@ async function saveEdit() {
     comment: edit.value.comment,
     cropId: d.movementType === MovementType.Outcome ? edit.value.cropId : null,
     fieldId: d.movementType === MovementType.Outcome ? (edit.value.fieldId || EMPTY_GUID) : null,
-    quantityLiters: null, unit: undefined, packageVolumeLiters: null, packagesQuantity: null,
-  }
-  if (isPackageIncome()) {
-    body.packagesQuantity = edit.value.packagesQuantity
-    body.packageVolumeLiters = edit.value.packageVolume
-  } else {
-    body.quantityLiters = edit.value.quantityLiters
+    quantity: edit.value.quantity,
   }
   try {
     await historyApi.update(d.id!, body)
@@ -177,7 +163,7 @@ onMounted(async () => { await ref_.load(); await load() })
           <PvTag v-if="data.fieldTreatmentId" value="Обработка поля" severity="info" class="ml" />
         </template></PvColumn>
         <PvColumn field="chemicalName" header="Химия" />
-        <PvColumn header="Кол-во, л"><template #body="{ data }">{{ data.quantityLiters }}</template></PvColumn>
+        <PvColumn header="Кол-во"><template #body="{ data }">{{ data.quantity }} {{ unitLabel(data.measureUnit) }}</template></PvColumn>
         <PvColumn header="Склад"><template #body="{ data }">
           <span v-if="data.movementType === MovementType.Transfer">Склад {{ data.warehouseNumber }} → {{ data.targetWarehouseNumber }}</span>
           <span v-else>Склад {{ data.warehouseNumber }}</span>
@@ -203,7 +189,7 @@ onMounted(async () => { await ref_.load(); await load() })
           </div>
           <div class="history-card__name">{{ item.chemicalName }}</div>
           <div class="history-card__meta">
-            <span class="history-card__qty">{{ item.quantityLiters }} л</span>
+            <span class="history-card__qty">{{ item.quantity }} {{ unitLabel(item.measureUnit) }}</span>
             <span v-if="item.movementType === MovementType.Transfer">Склад {{ item.warehouseNumber }} → {{ item.targetWarehouseNumber }}</span>
             <span v-else>Склад {{ item.warehouseNumber }}</span>
             <span v-if="item.cropName">{{ item.cropName }}</span>
@@ -221,16 +207,12 @@ onMounted(async () => { await ref_.load(); await load() })
         <div><b>{{ typeLabel(detail.movementType) }}</b> · {{ fmtDate(detail.occurredAt!) }}</div>
         <PvTag v-if="detail.fieldTreatmentId" value="Создано обработкой поля" severity="info" class="fit" />
         <div v-if="detail.movementType === MovementType.Transfer">
-          {{ detail.chemicalName }} — {{ detail.quantityLiters }} л · Склад {{ detail.warehouseNumber }} → {{ detail.targetWarehouseNumber }}
+          {{ detail.chemicalName }} — {{ detail.quantity }} {{ detailUnit }} · Склад {{ detail.warehouseNumber }} → {{ detail.targetWarehouseNumber }}
         </div>
-        <div v-else>{{ detail.chemicalName }} — {{ detail.quantityLiters }} л · Склад {{ detail.warehouseNumber }}</div>
+        <div v-else>{{ detail.chemicalName }} — {{ detail.quantity }} {{ detailUnit }} · Склад {{ detail.warehouseNumber }}</div>
         <div v-if="detail.cropName">Культура: {{ detail.cropName }}</div>
         <div v-if="detail.fieldNumber">Поле: {{ detail.fieldNumber }}</div>
         <div v-if="detail.comment">Комментарий: {{ detail.comment }}</div>
-        <div v-if="detail.sources?.length" class="sources">
-          <b>Источники:</b>
-          <ul><li v-for="(s, i) in detail.sources" :key="i">{{ sourceLabel(s.sourceType) }}: {{ s.quantityLiters }} л</li></ul>
-        </div>
       </div>
       <template #footer>
         <PvButton v-if="detail?.movementType !== MovementType.Transfer" label="Удалить" text severity="danger" @click="remove(detail!)" />
@@ -244,11 +226,7 @@ onMounted(async () => { await ref_.load(); await load() })
       <div class="field"><span>Дата и время</span>
         <input class="dt" type="datetime-local" v-model="edit.occurredAtLocal" />
       </div>
-      <template v-if="isPackageIncome()">
-        <div class="field"><span>Литраж упаковки</span><PvInputText v-model.number="edit.packageVolume" type="number" /></div>
-        <div class="field"><span>Количество упаковок</span><PvInputText v-model.number="edit.packagesQuantity" type="number" /></div>
-      </template>
-      <div v-else class="field"><span>Количество, л</span><PvInputText v-model.number="edit.quantityLiters" type="number" /></div>
+      <div class="field"><span>Количество, {{ detailUnit }}</span><PvInputText v-model.number="edit.quantity" type="number" /></div>
       <div v-if="detail?.movementType === MovementType.Outcome" class="field"><span>Культура</span>
         <PvSelect v-model="edit.cropId" :options="ref_.cropOptions.value" option-label="label" option-value="value" filter />
       </div>

@@ -3,7 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter, onBeforeRouteLeave } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
 import { canonicalApi } from '../api/catalog'
-import { inventoryApi, Unit } from '../api/inventory'
+import { inventoryApi } from '../api/inventory'
 import type { BulkIncomeCompanyOptionDto, BulkIncomeLineRequest } from '../api/inventory'
 import type { CanonicalChemicalDto } from '../api/types'
 import { ApiError } from '../api/http'
@@ -12,16 +12,8 @@ import { nowLocalInput, localToIso } from '../utils/datetime'
 const router = useRouter()
 const toast = useToast()
 
-const unitOptions = [
-  { label: 'Литры', value: Unit.Liter },
-  { label: 'Банки', value: Unit.Can },
-  { label: 'Штуки', value: Unit.Piece },
-]
-
 const canonicalChemicals = ref<CanonicalChemicalDto[]>([])
 const canonicalId = ref<string | null>(null)
-const unit = ref<number>(Unit.Liter)
-const packageVolume = ref<number | null>(null)
 const occurredAt = ref(nowLocalInput())
 const comment = ref('')
 const companies = ref<BulkIncomeCompanyOptionDto[]>([])
@@ -84,7 +76,6 @@ async function loadOptions() {
 
 function valid(): boolean {
   if (!canonicalId.value) return false
-  if (unit.value !== Unit.Liter && (!packageVolume.value || packageVolume.value <= 0)) return false
   return lines.value.length > 0
 }
 
@@ -98,8 +89,6 @@ async function submit() {
   try {
     await inventoryApi.bulkIncome({
       canonicalChemicalId: canonicalId.value!,
-      unit: unit.value,
-      packageVolumeLiters: unit.value === Unit.Liter ? null : packageVolume.value!,
       occurredAt: localToIso(occurredAt.value),
       comment: comment.value.trim() || null,
       lines: lines.value,
@@ -149,15 +138,6 @@ onMounted(async () => {
           placeholder="Выберите препарат"
         />
       </label>
-
-      <div class="grid2">
-        <label class="field"><span>Единица *</span>
-          <PvSelect v-model="unit" :options="unitOptions" option-label="label" option-value="value" @change="markDirty" />
-        </label>
-        <label v-if="unit !== Unit.Liter" class="field"><span>Литраж упаковки, л *</span>
-          <PvInputText v-model.number="packageVolume" type="number" min="0" @input="markDirty" />
-        </label>
-      </div>
 
       <label class="field"><span>Дата и время</span>
         <input class="dt" type="datetime-local" v-model="occurredAt" @change="markDirty" />
@@ -215,7 +195,7 @@ onMounted(async () => {
             v-model.number="quantities[company.companyId!]"
             type="number"
             min="0"
-            :placeholder="unit === Unit.Liter ? 'л' : 'упак.'"
+            placeholder="кол-во"
             class="company-row__qty"
             @input="markDirty"
           />

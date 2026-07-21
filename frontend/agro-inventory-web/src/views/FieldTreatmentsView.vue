@@ -6,6 +6,7 @@ import { treatmentsApi } from '../api/treatments'
 import type { FieldTreatmentDto } from '../api/treatments'
 import { ApiError } from '../api/http'
 import { useReference } from '../composables/useReference'
+import { unitLabel } from '../api/types'
 import { localToIso, nowLocalInput } from '../utils/datetime'
 
 const toast = useToast()
@@ -22,10 +23,10 @@ const cropId = ref<string | null>(null)
 const mode = ref<'total' | 'rate'>('total')
 const quantity = ref<number | null>(null)
 const rate = ref<number | null>(null)
-const allowOpenNewPackage = ref(false)
 const treatedAt = ref(nowLocalInput())
 const comment = ref('')
 
+const unit = computed(() => unitLabel(ref_.chemicalUnit(chemicalId.value)))
 const selectedField = computed(() =>
   ref_.fields.value.find((f) => f.id === fieldId.value) ?? null,
 )
@@ -74,9 +75,8 @@ async function submit() {
       chemicalId: chemicalId.value!,
       warehouseId: warehouseId.value!,
       cropId: cropId.value!,
-      quantityLiters: mode.value === 'total' ? quantity.value : null,
-      rateLitersPerHectare: mode.value === 'rate' ? rate.value : null,
-      allowOpenNewPackage: allowOpenNewPackage.value,
+      quantity: mode.value === 'total' ? quantity.value : null,
+      ratePerHectare: mode.value === 'rate' ? rate.value : null,
       treatedAt: localToIso(treatedAt.value),
       comment: comment.value.trim() || null,
     })
@@ -120,15 +120,15 @@ onMounted(async () => {
       </div>
 
       <div class="mode">
-        <PvButton label="Всего литров" size="small" :outlined="mode !== 'total'" @click="mode = 'total'" />
-        <PvButton label="Норма, л/га" size="small" :outlined="mode !== 'rate'" @click="mode = 'rate'" />
+        <PvButton label="Всего" size="small" :outlined="mode !== 'total'" @click="mode = 'total'" />
+        <PvButton :label="`Норма, ${unit}/га`" size="small" :outlined="mode !== 'rate'" @click="mode = 'rate'" />
       </div>
 
       <div class="grid">
-        <label v-if="mode === 'total'" class="field"><span>Количество, л *</span>
+        <label v-if="mode === 'total'" class="field"><span>Количество, {{ unit }} *</span>
           <PvInputText v-model.number="quantity" type="number" min="0" />
         </label>
-        <label v-else class="field"><span>Норма, л/га *</span>
+        <label v-else class="field"><span>Норма, {{ unit }}/га *</span>
           <PvInputText v-model.number="rate" type="number" min="0" />
         </label>
         <label class="field"><span>Дата и время</span>
@@ -137,13 +137,8 @@ onMounted(async () => {
       </div>
 
       <PvMessage v-if="mode === 'rate'" severity="info" :closable="false">
-        {{ selectedField?.areaHectares ? `Будет списано ${fmtNum(calculatedQuantity)} л (${fmtNum(selectedField.areaHectares)} га × ${fmtNum(rate)} л/га)` : 'У выбранного поля не указана площадь.' }}
+        {{ selectedField?.areaHectares ? `Будет списано ${fmtNum(calculatedQuantity)} ${unit} (${fmtNum(selectedField.areaHectares)} га × ${fmtNum(rate)} ${unit}/га)` : 'У выбранного поля не указана площадь.' }}
       </PvMessage>
-
-      <label class="confirm">
-        <input v-model="allowOpenNewPackage" type="checkbox" />
-        Разрешить вскрыть новую упаковку, если не хватает наливного остатка
-      </label>
 
       <label class="field"><span>Комментарий</span><PvTextarea v-model="comment" rows="2" auto-resize /></label>
 
@@ -156,8 +151,8 @@ onMounted(async () => {
         <PvColumn header="Поле"><template #body="{ data }">Поле {{ data.fieldNumber }}</template></PvColumn>
         <PvColumn field="cropName" header="Культура" />
         <PvColumn field="chemicalName" header="Химия" />
-        <PvColumn header="Количество"><template #body="{ data }">{{ fmtNum(data.quantityLiters) }} л</template></PvColumn>
-        <PvColumn header="Норма"><template #body="{ data }">{{ data.rateLitersPerHectare ? `${fmtNum(data.rateLitersPerHectare)} л/га` : '—' }}</template></PvColumn>
+        <PvColumn header="Количество"><template #body="{ data }">{{ fmtNum(data.quantity) }} {{ unitLabel(data.measureUnit) }}</template></PvColumn>
+        <PvColumn header="Норма"><template #body="{ data }">{{ data.ratePerHectare ? `${fmtNum(data.ratePerHectare)} ${unitLabel(data.measureUnit)}/га` : '—' }}</template></PvColumn>
         <PvColumn header="Склад"><template #body="{ data }">Склад {{ data.warehouseNumber }}</template></PvColumn>
         <template #empty><div class="empty">Обработок пока нет</div></template>
       </PvDataTable>
@@ -172,8 +167,8 @@ onMounted(async () => {
             <span>{{ fmtDate(item.treatedAt) }}</span>
           </div>
           <div class="card__name">{{ item.chemicalName }}</div>
-          <div class="card__meta">{{ item.cropName }} · {{ fmtNum(item.quantityLiters) }} л · Склад {{ item.warehouseNumber }}</div>
-          <div v-if="item.rateLitersPerHectare" class="card__meta">Норма {{ fmtNum(item.rateLitersPerHectare) }} л/га</div>
+          <div class="card__meta">{{ item.cropName }} · {{ fmtNum(item.quantity) }} {{ unitLabel(item.measureUnit) }} · Склад {{ item.warehouseNumber }}</div>
+          <div v-if="item.ratePerHectare" class="card__meta">Норма {{ fmtNum(item.ratePerHectare) }} {{ unitLabel(item.measureUnit) }}/га</div>
         </article>
         <div v-if="!items.length" class="empty">Обработок пока нет</div>
       </template>

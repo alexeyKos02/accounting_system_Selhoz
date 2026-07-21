@@ -9,7 +9,7 @@ import { cropsApi, warehousesApi } from '../api/reference'
 import { exportApi } from '../api/export'
 import { ApiError } from '../api/http'
 import type { ChemicalListItemDto, CropDto, WarehouseDto } from '../api/types'
-import { StockStatus, chemicalTypeLabels, chemicalTypeOptions } from '../api/types'
+import { StockStatus, chemicalTypeLabels, chemicalTypeOptions, unitLabel } from '../api/types'
 import { useCompanyContextStore } from '../stores/companyContext'
 import AggregatedChemicals from '../components/AggregatedChemicals.vue'
 
@@ -199,7 +199,7 @@ onMounted(async () => {
         <PvColumn header="Остаток">
           <template #body="{ data }">
             <div class="stock-cell">
-              <span>{{ (data.totalLiters ?? 0).toLocaleString('ru-RU') }} л</span>
+              <span>{{ (data.totalQuantity ?? 0).toLocaleString('ru-RU') }} {{ unitLabel(data.measureUnit) }}</span>
               <span
                 v-if="badge(data.stockStatus)"
                 class="stock-label"
@@ -266,7 +266,7 @@ onMounted(async () => {
             </div>
           </div>
           <div class="chemical-card__stock">
-            <div>{{ (item.totalLiters ?? 0).toLocaleString('ru-RU') }} л</div>
+            <div>{{ (item.totalQuantity ?? 0).toLocaleString('ru-RU') }} {{ unitLabel(item.measureUnit) }}</div>
             <PvTag v-if="badge(item.stockStatus)" :value="badge(item.stockStatus)!.label"
               :severity="badge(item.stockStatus)!.severity" />
           </div>

@@ -5,8 +5,8 @@ import { settingsApi } from '../api/settings'
 import { ApiError } from '../api/http'
 
 const toast = useToast()
-const threshold = ref<number>(10)
-const autoOpen = ref<boolean>(false)
+const thresholdLiters = ref<number>(10)
+const thresholdKg = ref<number>(10)
 const updatedAt = ref<string | null>(null)
 const loading = ref(false)
 const saving = ref(false)
@@ -15,8 +15,8 @@ async function load() {
   loading.value = true
   try {
     const s = await settingsApi.get()
-    threshold.value = s.lowStockThresholdLiters ?? 10
-    autoOpen.value = s.autoOpenPackages ?? false
+    thresholdLiters.value = s.lowStockThresholdLiters ?? 10
+    thresholdKg.value = s.lowStockThresholdKg ?? 10
     updatedAt.value = s.updatedAt ?? null
   } finally {
     loading.value = false
@@ -24,15 +24,16 @@ async function load() {
 }
 
 async function save() {
-  if (threshold.value == null || threshold.value < 0) {
+  if (thresholdLiters.value == null || thresholdLiters.value < 0
+    || thresholdKg.value == null || thresholdKg.value < 0) {
     toast.add({ severity: 'warn', summary: 'Порог не может быть отрицательным', life: 3000 })
     return
   }
   saving.value = true
   try {
     const s = await settingsApi.update({
-      lowStockThresholdLiters: threshold.value,
-      autoOpenPackages: autoOpen.value,
+      lowStockThresholdLiters: thresholdLiters.value,
+      lowStockThresholdKg: thresholdKg.value,
     })
     updatedAt.value = s.updatedAt ?? null
     toast.add({ severity: 'success', summary: 'Настройки сохранены', life: 2500 })
@@ -59,16 +60,14 @@ onMounted(load)
 
     <label class="field">
       <span>Порог малого остатка, л</span>
-      <PvInputText v-model.number="threshold" type="number" min="0" :disabled="loading" />
-      <small>Химия с остатком ниже этого значения попадает в блок «Малый остаток» на дашборде.</small>
+      <PvInputText v-model.number="thresholdLiters" type="number" min="0" :disabled="loading" />
+      <small>Жидкая химия (в литрах) с остатком ниже этого значения попадает в блок «Малый остаток».</small>
     </label>
 
-    <label class="field field--row">
-      <PvToggleSwitch v-model="autoOpen" :disabled="loading" />
-      <span class="field__inline">
-        <b>Автоматически вскрывать упаковки при списании</b>
-        <small>Если не хватает наливного остатка — вскрывать новую упаковку без подтверждения.</small>
-      </span>
+    <label class="field">
+      <span>Порог малого остатка, кг</span>
+      <PvInputText v-model.number="thresholdKg" type="number" min="0" :disabled="loading" />
+      <small>Сухая химия (в килограммах) с остатком ниже этого значения попадает в блок «Малый остаток».</small>
     </label>
 
     <div class="row">

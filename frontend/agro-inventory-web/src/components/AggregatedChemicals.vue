@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { allCompaniesApi } from '../api/catalog'
 import type { AggregatedChemicalGroupDto } from '../api/types'
+import { unitLabel } from '../api/types'
 import { ApiError } from '../api/http'
 
 // Общий режим «Все хозяйства» для химии (ТЗ §17): суммарно по каноническому препарату либо
@@ -24,7 +25,8 @@ const separateRows = computed(() =>
       companyName: p.companyName,
       localName: p.localName,
       canonicalName: g.linked ? g.name : null,
-      liters: p.totalLiters ?? 0,
+      quantity: p.totalQuantity ?? 0,
+      unit: unitLabel(p.measureUnit),
     })),
   ).sort((a, b) => (a.companyName ?? '').localeCompare(b.companyName ?? '')))
 
@@ -72,18 +74,18 @@ onMounted(load)
           <i class="pi" :class="isOpen(g.key) ? 'pi-chevron-down' : 'pi-chevron-right'" />
           <span class="group__name">{{ g.name }}</span>
           <PvTag v-if="!g.linked" value="без каталога" severity="secondary" />
-          <span class="group__meta">{{ fmt(g.totalLiters) }} л · хозяйств {{ g.companiesCount }} · складов {{ g.warehousesCount }}</span>
+          <span class="group__meta">{{ fmt(g.totalQuantity) }} {{ unitLabel(g.measureUnit) }} · хозяйств {{ g.companiesCount }} · складов {{ g.warehousesCount }}</span>
         </button>
         <div v-if="isOpen(g.key)" class="group__body">
           <div v-for="p in g.positions" :key="p.inventoryItemId ?? ''" class="pos">
             <div class="pos__row">
               <span class="pos__company">{{ p.companyName }}</span>
               <span class="pos__local">«{{ p.localName }}»</span>
-              <span class="pos__liters">{{ fmt(p.totalLiters) }} л</span>
+              <span class="pos__liters">{{ fmt(p.totalQuantity) }} {{ unitLabel(p.measureUnit) }}</span>
             </div>
             <div class="pos__wh">
               <span v-for="w in p.warehouses" :key="w.warehouseId" class="chip">
-                {{ w.warehouseNumber }}: {{ fmt(w.totalLiters) }} л
+                {{ w.warehouseNumber }}: {{ fmt(w.totalQuantity) }} {{ unitLabel(p.measureUnit) }}
               </span>
             </div>
           </div>
@@ -102,7 +104,7 @@ onMounted(load)
         </template>
       </PvColumn>
       <PvColumn header="Остаток">
-        <template #body="{ data }">{{ fmt(data.liters) }} л</template>
+        <template #body="{ data }">{{ fmt(data.quantity) }} {{ data.unit }}</template>
       </PvColumn>
     </PvDataTable>
   </section>

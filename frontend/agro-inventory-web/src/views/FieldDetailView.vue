@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
 import { fieldsApi, cropsApi } from '../api/reference'
 import type { CropDto, FieldDto } from '../api/types'
+import { unitLabel } from '../api/types'
 import { fieldSeasonsApi } from '../api/fieldSeasons'
 import type { FieldSeasonDto } from '../api/fieldSeasons'
 import { treatmentsApi } from '../api/treatments'
@@ -169,9 +170,9 @@ onMounted(load)
               </div>
               <div class="treatment-card__chips">
                 <span>{{ item.cropName }}</span>
-                <span>{{ fmtNum(item.quantityLiters) }} л</span>
+                <span>{{ fmtNum(item.quantity) }} {{ unitLabel(item.measureUnit) }}</span>
                 <span>Склад {{ item.warehouseNumber }}</span>
-                <span v-if="item.rateLitersPerHectare">Норма {{ fmtNum(item.rateLitersPerHectare) }} л/га</span>
+                <span v-if="item.ratePerHectare">Норма {{ fmtNum(item.ratePerHectare) }} {{ unitLabel(item.measureUnit) }}/га</span>
               </div>
               <div v-if="item.comment" class="season-card__comment">{{ item.comment }}</div>
             </article>

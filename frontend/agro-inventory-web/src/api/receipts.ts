@@ -16,10 +16,8 @@ export interface ReceiptItemDto {
   chemicalName?: string
   canonicalChemicalId?: string | null
   canonicalChemicalName?: string | null
-  quantityLiters?: number
-  unitType?: number | null
-  packageVolumeLiters?: number | null
-  packagesQuantity?: number | null
+  quantity?: number
+  measureUnit?: number
   warehouseId?: string
   warehouseNumber?: string
   comment?: string | null

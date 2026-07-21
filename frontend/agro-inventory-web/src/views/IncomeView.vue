@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
-import { inventoryApi, Unit } from '../api/inventory'
+import { inventoryApi } from '../api/inventory'
 import type { IncomeRequest } from '../api/inventory'
 import { warehousesApi } from '../api/reference'
+import { unitLabel } from '../api/types'
 import { gptApi } from '../api/gpt'
 import type { OperationSuggestionDto } from '../api/gpt'
 import GptParseDialog from '../components/GptParseDialog.vue'
@@ -18,18 +19,11 @@ const router = useRouter()
 const toast = useToast()
 const ref_ = useReference()
 
-const unitOptions = [
-  { label: 'Литры', value: Unit.Liter },
-  { label: 'Банки', value: Unit.Can },
-  { label: 'Штуки', value: Unit.Piece },
-]
-
 const chemicalId = ref<string | null>((route.query.chemicalId as string) ?? null)
 const warehouseId = ref<string | null>(null)
-const unit = ref<number>(Unit.Liter)
 const quantity = ref<number | null>(null)
-const packageVolume = ref<number | null>(null)
 const occurredAt = ref(nowLocalInput())
+const unit = computed(() => unitLabel(ref_.chemicalUnit(chemicalId.value)))
 const comment = ref('')
 const saving = ref(false)
 const done = ref(false)
@@ -55,9 +49,7 @@ function applySuggestion(s: OperationSuggestionDto) {
   if (s.warehouse?.id) warehouseId.value = s.warehouse.id
   else if (s.warehouse?.name) notes.push(`Склад «${s.warehouse.name}» не найден — выберите вручную.`)
 
-  if (s.unit) unit.value = s.unit
   if (s.quantity != null) quantity.value = s.quantity
-  if (s.packageVolumeLiters != null) packageVolume.value = s.packageVolumeLiters
   if (s.comment) comment.value = s.comment
   if (s.notes) notes.push(s.notes)
 
@@ -85,7 +77,6 @@ async function quickAddWarehouse() {
 
 function valid(): boolean {
   if (!chemicalId.value || !warehouseId.value || !quantity.value || quantity.value <= 0) return false
-  if (unit.value !== Unit.Liter && (!packageVolume.value || packageVolume.value <= 0)) return false
   return true
 }
 
@@ -99,12 +90,10 @@ async function submit() {
     await inventoryApi.income({
       chemicalId: chemicalId.value!,
       warehouseId: warehouseId.value!,
-      unit: unit.value,
       quantity: quantity.value!,
-      packageVolumeLiters: unit.value === Unit.Liter ? null : packageVolume.value!,
       occurredAt: localToIso(occurredAt.value),
       comment: comment.value.trim() || null,
-    } as unknown as IncomeRequest)
+    } as IncomeRequest)
     dirty.value = false
     done.value = true
     toast.add({ severity: 'success', summary: 'Приход добавлен', life: 2500 })
@@ -120,8 +109,6 @@ function addAnother() {
   done.value = false
   warehouseId.value = null
   quantity.value = null
-  packageVolume.value = null
-  unit.value = Unit.Liter
   comment.value = ''
   occurredAt.value = nowLocalInput()
   dirty.value = false
@@ -175,18 +162,9 @@ onMounted(async () => {
         <PvButton icon="pi pi-plus" text @click="quickAddWarehouse" />
       </div>
 
-      <label class="field"><span>Единица *</span>
-        <PvSelect v-model="unit" :options="unitOptions" option-label="label" option-value="value" @change="markDirty" />
+      <label class="field"><span>Количество, {{ unit }} *</span>
+        <PvInputText v-model.number="quantity" type="number" min="0" @input="markDirty" />
       </label>
-
-      <div class="grid2">
-        <label class="field"><span>{{ unit === Unit.Liter ? 'Количество, л *' : 'Количество упаковок *' }}</span>
-          <PvInputText v-model.number="quantity" type="number" min="0" @input="markDirty" />
-        </label>
-        <label v-if="unit !== Unit.Liter" class="field"><span>Литраж упаковки, л *</span>
-          <PvInputText v-model.number="packageVolume" type="number" min="0" @input="markDirty" />
-        </label>
-      </div>
 
       <label class="field"><span>Дата и время</span>
         <input class="dt" type="datetime-local" v-model="occurredAt" @change="markDirty" />

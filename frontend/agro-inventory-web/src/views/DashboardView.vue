@@ -2,9 +2,10 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { dashboardApi } from '../api/dashboard'
-import type { AllCompaniesDashboardDto, AllCompaniesDashboardCompanyDto, DashboardDto, DashboardStockDto } from '../api/dashboard'
+import type { AllCompaniesDashboardDto, DashboardDto, DashboardStockDto } from '../api/dashboard'
 import { allCompaniesApi } from '../api/catalog'
 import type { AggregatedChemicalGroupDto } from '../api/types'
+import { unitLabel } from '../api/types'
 import { MovementType } from '../api/history'
 import { useCompanyContextStore } from '../stores/companyContext'
 
@@ -44,12 +45,12 @@ function isGroupOpen(key?: string | null) {
 }
 // Разворот группы: остаток препарата по каждому хозяйству (позиции хозяйства суммируются).
 function perCompany(g: AggregatedChemicalGroupDto) {
-  const map = new Map<string, { companyId: string; companyName: string; totalLiters: number }>()
+  const map = new Map<string, { companyId: string; companyName: string; totalQuantity: number }>()
   for (const p of g.positions ?? []) {
     const id = p.companyId ?? ''
     const cur = map.get(id)
-    if (cur) cur.totalLiters += p.totalLiters ?? 0
-    else map.set(id, { companyId: id, companyName: p.companyName ?? '', totalLiters: p.totalLiters ?? 0 })
+    if (cur) cur.totalQuantity += p.totalQuantity ?? 0
+    else map.set(id, { companyId: id, companyName: p.companyName ?? '', totalQuantity: p.totalQuantity ?? 0 })
   }
   return [...map.values()].sort((a, b) => a.companyName.localeCompare(b.companyName, 'ru'))
 }
@@ -135,14 +136,6 @@ function runQuickAction(to: string) {
   quickOpen.value = false
   router.push(to)
 }
-function openCompany(row: AllCompaniesDashboardCompanyDto) {
-  if (!row.companyId) return
-  ctx.selectCompany(row.companyId)
-  router.push({ name: 'dashboard' })
-}
-function onCompanyRowClick(event: { data: AllCompaniesDashboardCompanyDto }) {
-  openCompany(event.data)
-}
 
 const quick = [
   { label: 'Приход', icon: 'pi pi-plus-circle', to: '/income', color: 'green' },
@@ -190,12 +183,12 @@ onMounted(() => {
               <i class="pi" :class="isGroupOpen(g.key) ? 'pi-chevron-down' : 'pi-chevron-right'" />
               <span class="name">{{ g.name }}</span>
               <span class="group-item__meta">хозяйств {{ g.companiesCount }}</span>
-              <PvTag :value="`${fmtNum(g.totalLiters)} л`" severity="info" />
+              <PvTag :value="`${fmtNum(g.totalQuantity)} ${unitLabel(g.measureUnit)}`" severity="info" />
             </button>
             <div v-if="isGroupOpen(g.key)" class="group-item__body">
               <div v-for="p in perCompany(g)" :key="p.companyId" class="company-line">
                 <span class="company-line__name">{{ p.companyName }}</span>
-                <span class="company-line__qty">{{ fmtNum(p.totalLiters) }} л</span>
+                <span class="company-line__qty">{{ fmtNum(p.totalQuantity) }} {{ unitLabel(g.measureUnit) }}</span>
               </div>
             </div>
           </li>
@@ -209,48 +202,22 @@ onMounted(() => {
           <ul v-if="allData?.empty?.length" class="list">
             <li v-for="c in allData.empty" :key="`${c.companyId}:${c.chemicalId}`">
               <span class="name">{{ c.chemicalName }} · {{ c.companyName }}</span>
-              <PvTag value="0 л" severity="danger" />
+              <PvTag :value="`0 ${unitLabel(c.measureUnit)}`" severity="danger" />
             </li>
           </ul>
           <div v-else class="empty">Всё в наличии</div>
         </div>
         <div class="block">
           <div class="block__head"><i class="pi pi-exclamation-triangle" /> Малый остаток
-            <span v-if="allData" class="thr">(&lt; {{ fmtNum(allData.lowStockThresholdLiters) }} л)</span>
+            <span v-if="allData" class="thr">(порог: {{ fmtNum(allData.lowStockThresholdLiters) }} л / {{ fmtNum(allData.lowStockThresholdKg) }} кг)</span>
           </div>
           <ul v-if="allData?.low?.length" class="list">
             <li v-for="c in allData.low" :key="`${c.companyId}:${c.chemicalId}`">
               <span class="name">{{ c.chemicalName }} · {{ c.companyName }}</span>
-              <PvTag :value="`${fmtNum(c.totalLiters)} л`" severity="warn" />
+              <PvTag :value="`${fmtNum(c.totalQuantity)} ${unitLabel(c.measureUnit)}`" severity="warn" />
             </li>
           </ul>
           <div v-else class="empty">Нет позиций на исходе</div>
-        </div>
-      </div>
-
-      <div class="block">
-        <div class="block__head"><i class="pi pi-building" /> Сравнение хозяйств</div>
-        <div class="ops-desktop">
-          <PvDataTable :value="allData?.companies ?? []" :loading="loading" data-key="companyId" size="small" @row-click="onCompanyRowClick">
-            <PvColumn field="companyName" header="Хозяйство" />
-            <PvColumn header="Остаток"><template #body="{ data: r }">{{ fmtNum(r.totalLiters) }} л</template></PvColumn>
-            <PvColumn header="Приход"><template #body="{ data: r }">{{ fmtNum(r.incomeLiters) }} л</template></PvColumn>
-            <PvColumn header="Списание"><template #body="{ data: r }">{{ fmtNum(r.outcomeLiters) }} л</template></PvColumn>
-            <PvColumn field="activeChemicals" header="Химии" />
-            <PvColumn field="warehouses" header="Складов" />
-            <template #empty><div class="empty">Нет данных</div></template>
-          </PvDataTable>
-        </div>
-        <div class="ops-cards">
-          <article v-for="row in allData?.companies ?? []" :key="row.companyId" class="ops-card" @click="openCompany(row)">
-            <div class="ops-card__row">
-              <strong>{{ row.companyName }}</strong>
-              <span class="ops-card__qty">{{ fmtNum(row.totalLiters) }} л</span>
-            </div>
-            <div class="ops-card__meta">Приход {{ fmtNum(row.incomeLiters) }} л · Списание {{ fmtNum(row.outcomeLiters) }} л</div>
-            <div class="ops-card__meta">Химии {{ row.activeChemicals }} · Складов {{ row.warehouses }}</div>
-          </article>
-          <div v-if="!(allData?.companies?.length)" class="empty">Нет данных</div>
         </div>
       </div>
 
@@ -263,7 +230,7 @@ onMounted(() => {
               <PvTag :value="typeLabel(r.movementType)" :severity="typeSeverity(r.movementType)" />
             </template></PvColumn>
             <PvColumn field="chemicalName" header="Химия" />
-            <PvColumn header="Кол-во, л"><template #body="{ data: r }">{{ fmtNum(r.quantityLiters) }}</template></PvColumn>
+            <PvColumn header="Кол-во"><template #body="{ data: r }">{{ fmtNum(r.quantity) }} {{ unitLabel(r.measureUnit) }}</template></PvColumn>
             <PvColumn header="Склад"><template #body="{ data: r }">Склад {{ r.warehouseNumber }}</template></PvColumn>
             <template #empty><div class="empty">Операций пока нет</div></template>
           </PvDataTable>
@@ -272,7 +239,7 @@ onMounted(() => {
           <div v-for="r in allRecentMobile" :key="r.id!" class="ops-card">
             <div class="ops-card__row">
               <PvTag :value="typeLabel(r.movementType)" :severity="typeSeverity(r.movementType)" />
-              <span class="ops-card__qty">{{ fmtNum(r.quantityLiters) }} л</span>
+              <span class="ops-card__qty">{{ fmtNum(r.quantity) }} {{ unitLabel(r.measureUnit) }}</span>
             </div>
             <div class="ops-card__name">{{ r.chemicalName }}</div>
             <div class="ops-card__meta">{{ fmtDate(r.occurredAt!) }} · Склад {{ r.warehouseNumber }}</div>
@@ -325,7 +292,7 @@ onMounted(() => {
       <ul v-if="topChemicals.length" class="list">
         <li v-for="c in topChemicals" :key="c.chemicalId" @click="openChemical(c)">
           <span class="name">{{ c.name }}</span>
-          <PvTag :value="`${fmtNum(c.totalLiters)} л`" :severity="stockSeverity(c.status)" />
+          <PvTag :value="`${fmtNum(c.totalQuantity)} ${unitLabel(c.measureUnit)}`" :severity="stockSeverity(c.status)" />
         </li>
       </ul>
       <div v-else class="empty">Химия не заведена</div>
@@ -338,7 +305,7 @@ onMounted(() => {
         <ul v-if="data?.empty?.length" class="list">
           <li v-for="c in data.empty" :key="c.chemicalId" @click="openChemical(c)">
             <span class="name">{{ c.name }}</span>
-            <PvTag value="0 л" severity="danger" />
+            <PvTag :value="`0 ${unitLabel(c.measureUnit)}`" severity="danger" />
           </li>
         </ul>
         <div v-else class="empty">Всё в наличии</div>
@@ -347,12 +314,12 @@ onMounted(() => {
       <!-- Малый остаток -->
       <div class="block">
         <div class="block__head"><i class="pi pi-exclamation-triangle" /> Малый остаток
-          <span v-if="data" class="thr">(&lt; {{ fmtNum(data.lowStockThresholdLiters) }} л)</span>
+          <span v-if="data" class="thr">(порог: {{ fmtNum(data.lowStockThresholdLiters) }} л / {{ fmtNum(data.lowStockThresholdKg) }} кг)</span>
         </div>
         <ul v-if="data?.low?.length" class="list">
           <li v-for="c in data.low" :key="c.chemicalId" @click="openChemical(c)">
             <span class="name">{{ c.name }}</span>
-            <PvTag :value="`${fmtNum(c.totalLiters)} л`" severity="warn" />
+            <PvTag :value="`${fmtNum(c.totalQuantity)} ${unitLabel(c.measureUnit)}`" severity="warn" />
           </li>
         </ul>
         <div v-else class="empty">Нет позиций на исходе</div>
@@ -372,7 +339,7 @@ onMounted(() => {
             <PvTag :value="typeLabel(r.movementType)" :severity="typeSeverity(r.movementType)" />
           </template></PvColumn>
           <PvColumn field="chemicalName" header="Химия" />
-          <PvColumn header="Кол-во, л"><template #body="{ data: r }">{{ fmtNum(r.quantityLiters) }}</template></PvColumn>
+          <PvColumn header="Кол-во"><template #body="{ data: r }">{{ fmtNum(r.quantity) }} {{ unitLabel(r.measureUnit) }}</template></PvColumn>
           <PvColumn header="Склад"><template #body="{ data: r }">Склад {{ r.warehouseNumber }}</template></PvColumn>
           <template #empty><div class="empty">Операций пока нет</div></template>
         </PvDataTable>
@@ -383,7 +350,7 @@ onMounted(() => {
         <div v-for="r in recentMobile" :key="r.id!" class="ops-card">
           <div class="ops-card__row">
             <PvTag :value="typeLabel(r.movementType)" :severity="typeSeverity(r.movementType)" />
-            <span class="ops-card__qty">{{ fmtNum(r.quantityLiters) }} л</span>
+            <span class="ops-card__qty">{{ fmtNum(r.quantity) }} {{ unitLabel(r.measureUnit) }}</span>
           </div>
           <div class="ops-card__name">{{ r.chemicalName }}</div>
           <div class="ops-card__meta">{{ fmtDate(r.occurredAt!) }} · Склад {{ r.warehouseNumber }}</div>

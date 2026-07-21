@@ -5,7 +5,7 @@ import { companiesApi } from '../api/companies'
 import { receiptsApi } from '../api/receipts'
 import type { ReceiptFilters, ReceiptItemDto } from '../api/receipts'
 import type { CanonicalChemicalDto, CompanyListItemDto } from '../api/types'
-import { UnitType } from '../api/types'
+import { unitLabel } from '../api/types'
 import { ApiError } from '../api/http'
 import { useToast } from 'primevue/usetoast'
 
@@ -37,10 +37,8 @@ function fmtDate(iso?: string) {
 function fmtNum(n?: number) {
   return (n ?? 0).toLocaleString('ru-RU', { maximumFractionDigits: 3 })
 }
-function unitLabel(item: ReceiptItemDto) {
-  if (item.unitType === UnitType.Can) return `${item.packagesQuantity ?? 0} бан. × ${fmtNum(item.packageVolumeLiters ?? 0)} л`
-  if (item.unitType === UnitType.Piece) return `${item.packagesQuantity ?? 0} шт. × ${fmtNum(item.packageVolumeLiters ?? 0)} л`
-  return `${fmtNum(item.quantityLiters)} л`
+function qtyLabel(item: ReceiptItemDto) {
+  return `${fmtNum(item.quantity)} ${unitLabel(item.measureUnit)}`
 }
 function fail(e: unknown) {
   toast.add({
@@ -138,8 +136,7 @@ onMounted(async () => {
             </div>
           </template>
         </PvColumn>
-        <PvColumn header="Количество"><template #body="{ data }">{{ unitLabel(data) }}</template></PvColumn>
-        <PvColumn header="Всего, л"><template #body="{ data }">{{ fmtNum(data.quantityLiters) }} л</template></PvColumn>
+        <PvColumn header="Количество"><template #body="{ data }">{{ qtyLabel(data) }}</template></PvColumn>
         <PvColumn header="Склад"><template #body="{ data }">Склад {{ data.warehouseNumber }}</template></PvColumn>
         <PvColumn field="comment" header="Комментарий" />
         <template #empty><div class="empty">Приходов нет</div></template>
@@ -157,8 +154,7 @@ onMounted(async () => {
           <div class="receipt-card__name">{{ item.chemicalName }}</div>
           <div v-if="item.canonicalChemicalName" class="receipt-card__canonical">{{ item.canonicalChemicalName }}</div>
           <div class="receipt-card__meta">
-            <span class="receipt-card__qty">{{ unitLabel(item) }}</span>
-            <span>{{ fmtNum(item.quantityLiters) }} л</span>
+            <span class="receipt-card__qty">{{ qtyLabel(item) }}</span>
             <span>Склад {{ item.warehouseNumber }}</span>
           </div>
           <div v-if="item.comment" class="receipt-card__comment">{{ item.comment }}</div>

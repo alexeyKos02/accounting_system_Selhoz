@@ -7,7 +7,7 @@ import { cropsApi } from '../api/reference'
 import { canonicalApi } from '../api/catalog'
 import { gptApi } from '../api/gpt'
 import type { ChemicalTypeValue, CropDto, DuplicateDto, CanonicalChemicalDto } from '../api/types'
-import { chemicalTypeOptions } from '../api/types'
+import { chemicalTypeOptions, MeasureUnit, measureUnitOptions } from '../api/types'
 import { ApiError } from '../api/http'
 
 const router = useRouter()
@@ -15,6 +15,7 @@ const toast = useToast()
 
 const name = ref('')
 const type = ref<ChemicalTypeValue | null>(null)
+const measureUnit = ref<1 | 2>(MeasureUnit.Liter)
 const manufacturer = ref('')
 const comment = ref('')
 const selectedCropIds = ref<string[]>([])
@@ -124,6 +125,7 @@ async function submit() {
     const created = await chemicalsApi.create({
       name: name.value.trim(),
       type: type.value ?? undefined,
+      measureUnit: measureUnit.value,
       manufacturer: manufacturer.value.trim() || null,
       comment: comment.value.trim() || null,
       cropIds: selectedCropIds.value,
@@ -144,6 +146,7 @@ function addAnother() {
   createdId.value = null
   name.value = ''
   type.value = null
+  measureUnit.value = MeasureUnit.Liter
   manufacturer.value = ''
   comment.value = ''
   selectedCropIds.value = []
@@ -214,6 +217,12 @@ onMounted(async () => {
         <span>Тип средства</span>
         <PvSelect v-model="type" :options="chemicalTypeOptions" option-label="label"
           option-value="value" placeholder="Не указан" show-clear />
+      </label>
+
+      <label class="field">
+        <span>Единица измерения *</span>
+        <PvSelect v-model="measureUnit" :options="measureUnitOptions" option-label="label" option-value="value" />
+        <small class="hint">Литры — для жидкой химии, килограммы — для сухой. После создания не меняется.</small>
       </label>
 
       <label class="field">
