@@ -18,4 +18,5 @@ public class Crop
     public DateTimeOffset UpdatedAt { get; set; }
 
     public ICollection<ChemicalCrop> ChemicalCrops { get; set; } = new List<ChemicalCrop>();
+    public ICollection<CanonicalChemicalCrop> CanonicalChemicalCrops { get; set; } = new List<CanonicalChemicalCrop>();
 }

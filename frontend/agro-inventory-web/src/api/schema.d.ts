@@ -3265,11 +3265,11 @@ export interface components {
             /** Format: uuid */
             id?: string;
             canonicalName?: string | null;
+            type?: components["schemas"]["ChemicalType"];
+            measureUnit?: components["schemas"]["MeasureUnit"];
             manufacturer?: string | null;
-            activeIngredient?: string | null;
-            concentration?: string | null;
-            formulation?: string | null;
-            registrationNumber?: string | null;
+            comment?: string | null;
+            crops?: components["schemas"]["CropRefDto"][] | null;
         };
         ChangePasswordRequest: {
             currentPassword?: string | null;
@@ -3384,11 +3384,11 @@ export interface components {
         };
         CreateCanonicalChemicalRequest: {
             canonicalName?: string | null;
+            type?: components["schemas"]["ChemicalType"];
+            measureUnit?: components["schemas"]["MeasureUnit"];
             manufacturer?: string | null;
-            activeIngredient?: string | null;
-            concentration?: string | null;
-            formulation?: string | null;
-            registrationNumber?: string | null;
+            comment?: string | null;
+            cropIds?: string[] | null;
         };
         CreateChemicalRequest: {
             name?: string | null;
@@ -3906,11 +3906,11 @@ export interface components {
         };
         UpdateCanonicalChemicalRequest: {
             canonicalName?: string | null;
+            type?: components["schemas"]["ChemicalType"];
+            measureUnit?: components["schemas"]["MeasureUnit"];
             manufacturer?: string | null;
-            activeIngredient?: string | null;
-            concentration?: string | null;
-            formulation?: string | null;
-            registrationNumber?: string | null;
+            comment?: string | null;
+            cropIds?: string[] | null;
         };
         UpdateChemicalRequest: {
             name?: string | null;

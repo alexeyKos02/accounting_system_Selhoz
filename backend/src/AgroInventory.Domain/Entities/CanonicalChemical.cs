@@ -1,3 +1,5 @@
+using AgroInventory.Domain.Enums;
+
 namespace AgroInventory.Domain.Entities;
 
 /// <summary>
@@ -7,6 +9,8 @@ namespace AgroInventory.Domain.Entities;
 /// каноническую запись через canonical_chemical_id — по ней и объединяется одинаковая химия в общем
 /// режиме (ТЗ §17). Автообъединение по названию запрещено — привязку ставит человек.
 /// «Каталог хозяйства» — это его карточки химии; отдельной таблицы каталога нет.
+/// Набор полей повторяет карточку химии (ТЗ §7.1–7.3): тип, единица измерения, производитель,
+/// культуры, комментарий — чтобы привязка/предзаполнение карточки из каталога были прямыми.
 /// </summary>
 public class CanonicalChemical
 {
@@ -15,12 +19,18 @@ public class CanonicalChemical
     /// <summary>Каноническое (эталонное) название препарата.</summary>
     public string CanonicalName { get; set; } = string.Empty;
 
+    /// <summary>Тип средства (гербицид, фунгицид и т.д.). Необязателен.</summary>
+    public ChemicalType? Type { get; set; }
+
+    /// <summary>Единица измерения препарата (литры/кг). У каталога — свойство самого препарата.</summary>
+    public MeasureUnit MeasureUnit { get; set; } = MeasureUnit.Liter;
+
     public string? Manufacturer { get; set; }
-    public string? ActiveIngredient { get; set; }
-    public string? Concentration { get; set; }
-    public string? Formulation { get; set; }
-    public string? RegistrationNumber { get; set; }
+    public string? Comment { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
+
+    // Навигация
+    public ICollection<CanonicalChemicalCrop> CanonicalChemicalCrops { get; set; } = new List<CanonicalChemicalCrop>();
 }
