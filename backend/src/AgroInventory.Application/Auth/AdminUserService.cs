@@ -37,7 +37,7 @@ public sealed class AdminUserService
             .OrderBy(u => u.Email)
             .Select(u => new AdminUserDto(
                 u.Id, u.Email, u.FirstName, u.LastName, u.Phone,
-                u.Status, u.IsSystemAdmin, u.MustChangePassword, u.CreatedAt))
+                u.Status, u.IsSystemAdmin, u.CanAddToCatalog, u.MustChangePassword, u.CreatedAt))
             .ToListAsync(ct);
 
     public async Task<AdminUserDto> CreateAsync(CreateUserRequest request, CancellationToken ct = default)
@@ -67,13 +67,14 @@ public sealed class AdminUserService
             Status = UserStatus.Active,
             MustChangePassword = true, // временный пароль меняется при первом входе (ТЗ §1)
             IsSystemAdmin = request.IsSystemAdmin,
+            CanAddToCatalog = request.CanAddToCatalog,
             CreatedAt = now,
             UpdatedAt = now,
         };
         _db.Users.Add(user);
 
         _audit.Log(AuditAction.Create, EntityType, user.Id,
-            null, new { user.Email, user.FirstName, user.LastName, user.IsSystemAdmin });
+            null, new { user.Email, user.FirstName, user.LastName, user.IsSystemAdmin, user.CanAddToCatalog });
         await _db.SaveChangesAsync(ct);
 
         return ToDto(user);
@@ -85,17 +86,18 @@ public sealed class AdminUserService
         if (string.IsNullOrWhiteSpace(request.FirstName))
             throw new ValidationException(nameof(request.FirstName), "Имя обязательно.");
 
-        var old = new { user.FirstName, user.LastName, user.Phone, user.IsSystemAdmin };
+        var old = new { user.FirstName, user.LastName, user.Phone, user.IsSystemAdmin, user.CanAddToCatalog };
 
         user.FirstName = request.FirstName.Trim();
         user.LastName = (request.LastName ?? string.Empty).Trim();
         user.Phone = Trim(request.Phone);
         user.IsSystemAdmin = request.IsSystemAdmin;
+        user.CanAddToCatalog = request.CanAddToCatalog;
         user.DisplayName = BuildDisplayName(user.FirstName, user.LastName, user.Email);
         user.UpdatedAt = _clock.GetUtcNow();
 
         _audit.Log(AuditAction.Update, EntityType, user.Id,
-            old, new { user.FirstName, user.LastName, user.Phone, user.IsSystemAdmin });
+            old, new { user.FirstName, user.LastName, user.Phone, user.IsSystemAdmin, user.CanAddToCatalog });
         await _db.SaveChangesAsync(ct);
 
         return ToDto(user);
@@ -154,7 +156,7 @@ public sealed class AdminUserService
 
     private static AdminUserDto ToDto(User u) => new(
         u.Id, u.Email, u.FirstName, u.LastName, u.Phone,
-        u.Status, u.IsSystemAdmin, u.MustChangePassword, u.CreatedAt);
+        u.Status, u.IsSystemAdmin, u.CanAddToCatalog, u.MustChangePassword, u.CreatedAt);
 
     private static string BuildDisplayName(string firstName, string lastName, string? email)
     {

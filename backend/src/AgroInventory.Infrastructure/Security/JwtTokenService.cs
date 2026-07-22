@@ -35,6 +35,7 @@ public sealed class JwtTokenService : IJwtTokenService
         {
             new(JwtClaimNames.Subject, user.Id.ToString()),
             new(JwtClaimNames.IsSystemAdmin, user.IsSystemAdmin ? "true" : "false"),
+            new(JwtClaimNames.CanAddToCatalog, user.CanAddToCatalog ? "true" : "false"),
             new(JwtClaimNames.Name, user.DisplayName),
         };
         if (!string.IsNullOrEmpty(user.Email))

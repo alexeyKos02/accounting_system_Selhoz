@@ -84,6 +84,12 @@ builder.Services.AddAuthorization(o =>
     o.AddPolicy(AuthorizationPolicies.SystemAdmin, p =>
         p.RequireClaim(JwtClaimNames.IsSystemAdmin, "true"));
 
+    // Добавление в общий каталог (§12): системный админ или пользователь с флагом can_add_to_catalog.
+    o.AddPolicy(AuthorizationPolicies.AddToCatalog, p =>
+        p.RequireAssertion(ctx =>
+            ctx.User.FindFirst(JwtClaimNames.IsSystemAdmin)?.Value == "true" ||
+            ctx.User.FindFirst(JwtClaimNames.CanAddToCatalog)?.Value == "true"));
+
     // По умолчанию все endpoints требуют аутентификации (ТЗ §24). Открытые точки
     // (вход, обновление токена, health) помечены [AllowAnonymous].
     o.FallbackPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()

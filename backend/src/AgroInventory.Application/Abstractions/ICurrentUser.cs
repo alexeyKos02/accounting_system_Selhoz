@@ -11,6 +11,9 @@ public interface ICurrentUser
     /// <summary>Глобальный системный администратор (ТЗ §4) — из claim'а токена.</summary>
     bool IsSystemAdmin { get; }
 
+    /// <summary>Право добавлять препараты в общий каталог (§12) — из claim'а токена.</summary>
+    bool CanAddToCatalog { get; }
+
     /// <summary>
     /// Явно выбранное хозяйство из HTTP-контекста (заголовок X-Company-Id, ТЗ §15).
     /// NULL — хозяйство не выбрано (режим «Все хозяйства» либо не-хозяйственный запрос).

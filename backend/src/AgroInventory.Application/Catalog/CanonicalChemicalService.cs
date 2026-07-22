@@ -59,6 +59,12 @@ public sealed class CanonicalChemicalService
         if (name.Length == 0)
             throw new ValidationException(nameof(request.CanonicalName), "Название препарата обязательно.");
 
+        // Защита от дублей по названию (§12). Сравнение в памяти через OrdinalIgnoreCase —
+        // корректно сворачивает регистр кириллицы независимо от коллации БД (в отличие от SQL lower()).
+        var existingNames = await _db.CanonicalChemicals.Select(c => c.CanonicalName).ToListAsync(ct);
+        if (existingNames.Any(n => string.Equals(n.Trim(), name, StringComparison.OrdinalIgnoreCase)))
+            throw new ConflictException($"Препарат «{name}» уже есть в общем каталоге.");
+
         var cropIds = await ValidateCropsAsync(request.CropIds, ct);
 
         var now = _clock.GetUtcNow();

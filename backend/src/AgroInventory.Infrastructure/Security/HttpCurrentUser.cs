@@ -30,6 +30,9 @@ public sealed class HttpCurrentUser : ICurrentUser
     public bool IsSystemAdmin =>
         _accessor.HttpContext?.User.FindFirst(JwtClaimNames.IsSystemAdmin)?.Value == "true";
 
+    public bool CanAddToCatalog =>
+        _accessor.HttpContext?.User.FindFirst(JwtClaimNames.CanAddToCatalog)?.Value == "true";
+
     public Guid? SelectedCompanyId
     {
         get

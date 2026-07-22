@@ -3085,6 +3085,7 @@ export interface components {
             phone?: string | null;
             status?: components["schemas"]["UserStatus"];
             isSystemAdmin?: boolean;
+            canAddToCatalog?: boolean;
             mustChangePassword?: boolean;
             /** Format: date-time */
             createdAt?: string;
@@ -3457,6 +3458,7 @@ export interface components {
             lastName?: string | null;
             phone?: string | null;
             isSystemAdmin?: boolean;
+            canAddToCatalog?: boolean;
         };
         CreateWarehouseRequest: {
             number?: string | null;
@@ -3717,6 +3719,7 @@ export interface components {
             lastName?: string | null;
             phone?: string | null;
             isSystemAdmin?: boolean;
+            canAddToCatalog?: boolean;
             mustChangePassword?: boolean;
             memberships?: components["schemas"]["MembershipInfo"][] | null;
         };
@@ -3970,6 +3973,7 @@ export interface components {
             lastName?: string | null;
             phone?: string | null;
             isSystemAdmin?: boolean;
+            canAddToCatalog?: boolean;
         };
         UpdateWarehouseRequest: {
             number?: string | null;

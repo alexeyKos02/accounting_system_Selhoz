@@ -27,7 +27,7 @@ public sealed class CanonicalChemicalsController : ControllerBase
         await _service.GetAsync(id, ct);
 
     [HttpPost]
-    [Authorize(Policy = AuthorizationPolicies.SystemAdmin)]
+    [Authorize(Policy = AuthorizationPolicies.AddToCatalog)]
     public async Task<ActionResult<CanonicalChemicalDto>> Create(CreateCanonicalChemicalRequest request, CancellationToken ct)
     {
         var item = await _service.CreateAsync(request, ct);

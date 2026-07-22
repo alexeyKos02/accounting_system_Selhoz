@@ -14,6 +14,8 @@ export const useAuthStore = defineStore('auth', () => {
   const hasToken = computed(() => !!authStorage.getAccess())
   const mustChangePassword = computed(() => user.value?.mustChangePassword ?? false)
   const isSystemAdmin = computed(() => user.value?.isSystemAdmin ?? false)
+  // Право добавлять препараты в общий каталог (§12). SystemAdmin имеет его неявно.
+  const canAddToCatalog = computed(() => user.value?.canAddToCatalog || user.value?.isSystemAdmin || false)
   const memberships = computed(() => user.value?.memberships ?? [])
   const displayName = computed(() =>
     user.value ? `${user.value.firstName ?? ''} ${user.value.lastName ?? ''}`.trim() || (user.value.email ?? '') : '')
@@ -56,7 +58,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   return {
     user, loading,
-    isAuthenticated, hasToken, mustChangePassword, isSystemAdmin, memberships, displayName,
+    isAuthenticated, hasToken, mustChangePassword, isSystemAdmin, canAddToCatalog, memberships, displayName,
     login, fetchMe, changePassword, logout, reset,
   }
 })

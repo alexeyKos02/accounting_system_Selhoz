@@ -28,6 +28,13 @@ public class User
     /// <summary>Глобальный системный администратор всего AgroInventory (ТЗ §4).</summary>
     public bool IsSystemAdmin { get; set; }
 
+    /// <summary>
+    /// Право добавлять препараты в общий канонический каталог (§12). Глобальный флаг, по образцу
+    /// <see cref="IsSystemAdmin"/>. Разрешает только создание записей каталога (не редактирование —
+    /// это по-прежнему только SystemAdmin). SystemAdmin имеет это право неявно.
+    /// </summary>
+    public bool CanAddToCatalog { get; set; }
+
     /// <summary>Служебный пользователь для системных записей/аудита (не логинится).</summary>
     public bool IsSystem { get; set; }
 

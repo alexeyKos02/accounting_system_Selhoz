@@ -9,9 +9,15 @@ import { gptApi } from '../api/gpt'
 import type { ChemicalTypeValue, CropDto, DuplicateDto, CanonicalChemicalDto } from '../api/types'
 import { chemicalTypeOptions, MeasureUnit, measureUnitOptions } from '../api/types'
 import { ApiError } from '../api/http'
+import { useAuthStore } from '../stores/auth'
 
 const router = useRouter()
 const toast = useToast()
+const auth = useAuthStore()
+
+// Право добавлять препарат в общий каталог (§12). Тоггл виден только при наличии права
+// и когда карточка ещё не привязана к канону.
+const addToCatalog = ref(false)
 
 const name = ref('')
 const type = ref<ChemicalTypeValue | null>(null)
@@ -122,6 +128,35 @@ async function quickAddCrop() {
 async function submit() {
   saving.value = true
   try {
+    let linkedCanonicalId = canonicalId.value ?? undefined
+
+    // Тоггл «Добавить в общий каталог»: создаём канонический препарат из полей карточки и
+    // сразу привязываем к нему. Защита от дублей — на бэкенде (409): не создаём дубль,
+    // предлагаем привязать существующий через поле «Каталожный препарат».
+    if (addToCatalog.value && !canonicalId.value) {
+      try {
+        const canon = await canonicalApi.create({
+          canonicalName: name.value.trim(),
+          type: type.value ?? undefined,
+          measureUnit: measureUnit.value,
+          manufacturer: manufacturer.value.trim() || null,
+          comment: comment.value.trim() || null,
+          cropIds: selectedCropIds.value,
+        })
+        linkedCanonicalId = canon.id ?? undefined
+      } catch (e) {
+        if (e instanceof ApiError && e.status === 409) {
+          toast.add({
+            severity: 'warn', summary: 'Такой препарат уже есть в общем каталоге',
+            detail: 'Привяжите его в поле «Каталожный препарат» вместо создания дубля.', life: 6000,
+          })
+          saving.value = false
+          return
+        }
+        throw e
+      }
+    }
+
     const created = await chemicalsApi.create({
       name: name.value.trim(),
       type: type.value ?? undefined,
@@ -129,7 +164,7 @@ async function submit() {
       manufacturer: manufacturer.value.trim() || null,
       comment: comment.value.trim() || null,
       cropIds: selectedCropIds.value,
-      canonicalChemicalId: canonicalId.value ?? undefined,
+      canonicalChemicalId: linkedCanonicalId,
     })
     dirty.value = false
     createdId.value = created.id ?? null
@@ -152,6 +187,7 @@ function addAnother() {
   selectedCropIds.value = []
   canonicalId.value = null
   canonicalSuggestion.value = null
+  addToCatalog.value = false
   duplicates.value = []
   dirty.value = false
 }
@@ -242,6 +278,14 @@ onMounted(async () => {
         <a href="#" @click.prevent="applySuggestion">Привязать</a>
       </PvMessage>
 
+      <label v-if="auth.canAddToCatalog && !canonicalId" class="field catalog-toggle">
+        <div class="toggle-row">
+          <PvToggleSwitch v-model="addToCatalog" />
+          <span>Добавить в общий каталог</span>
+        </div>
+        <small class="hint">Создаст запись в общем справочнике из этих полей и привяжет карточку к ней (§12).</small>
+      </label>
+
       <label class="field">
         <span>Культуры *</span>
         <PvMultiSelect v-model="selectedCropIds" :options="cropOptions" option-label="label"
@@ -278,4 +322,5 @@ onMounted(async () => {
 .hint { color: var(--p-text-muted-color, #6b7280); font-weight: 400; font-size: 0.8rem; }
 .dups { margin-bottom: 1rem; }
 .dups ul { margin: 0.25rem 0; padding-left: 1.25rem; }
+.catalog-toggle .toggle-row { display: flex; align-items: center; gap: 0.6rem; font-weight: 600; font-size: 0.9rem; }
 </style>

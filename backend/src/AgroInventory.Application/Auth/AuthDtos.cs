@@ -27,6 +27,7 @@ public sealed record MeResponse(
     string LastName,
     string? Phone,
     bool IsSystemAdmin,
+    bool CanAddToCatalog,
     bool MustChangePassword,
     IReadOnlyList<MembershipInfo> Memberships);
 
@@ -48,6 +49,7 @@ public sealed record AdminUserDto(
     string? Phone,
     UserStatus Status,
     bool IsSystemAdmin,
+    bool CanAddToCatalog,
     bool MustChangePassword,
     DateTimeOffset CreatedAt);
 
@@ -57,12 +59,14 @@ public sealed record CreateUserRequest(
     string FirstName,
     string LastName,
     string? Phone,
-    bool IsSystemAdmin);
+    bool IsSystemAdmin,
+    bool CanAddToCatalog = false);
 
 public sealed record UpdateUserRequest(
     string FirstName,
     string LastName,
     string? Phone,
-    bool IsSystemAdmin);
+    bool IsSystemAdmin,
+    bool CanAddToCatalog = false);
 
 public sealed record ResetPasswordRequest(string NewPassword);

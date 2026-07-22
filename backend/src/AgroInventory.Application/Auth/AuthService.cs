@@ -129,7 +129,7 @@ public sealed class AuthService
 
         return new MeResponse(
             user.Id, user.Email, user.FirstName, user.LastName, user.Phone,
-            user.IsSystemAdmin, user.MustChangePassword, membershipInfos);
+            user.IsSystemAdmin, user.CanAddToCatalog, user.MustChangePassword, membershipInfos);
     }
 
     // ---------- Помощники ----------

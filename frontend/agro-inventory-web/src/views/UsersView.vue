@@ -12,7 +12,7 @@ const users = ref<AdminUserDto[]>([])
 const loading = ref(false)
 
 const createDialog = ref(false)
-const form = ref({ email: '', password: '', firstName: '', lastName: '', phone: '', isSystemAdmin: false })
+const form = ref({ email: '', password: '', firstName: '', lastName: '', phone: '', isSystemAdmin: false, canAddToCatalog: false })
 const saving = ref(false)
 
 const resetDialog = ref(false)
@@ -35,7 +35,7 @@ async function load() {
 }
 
 function openCreate() {
-  form.value = { email: '', password: '', firstName: '', lastName: '', phone: '', isSystemAdmin: false }
+  form.value = { email: '', password: '', firstName: '', lastName: '', phone: '', isSystemAdmin: false, canAddToCatalog: false }
   createDialog.value = true
 }
 
@@ -49,6 +49,7 @@ async function create() {
       lastName: form.value.lastName.trim(),
       phone: form.value.phone.trim() || null,
       isSystemAdmin: form.value.isSystemAdmin,
+      canAddToCatalog: form.value.canAddToCatalog,
     })
     createDialog.value = false
     toast.add({ severity: 'success', summary: 'Пользователь создан', life: 2500 })
@@ -57,6 +58,24 @@ async function create() {
     fail(e, 'Не удалось создать пользователя')
   } finally {
     saving.value = false
+  }
+}
+
+// Выдать/снять право добавлять химию в общий каталог (§12). Сохраняем сразу через PUT,
+// передавая текущие поля пользователя (эндпоинт обновляет их целиком).
+async function setCatalogRight(u: AdminUserDto, value: boolean) {
+  try {
+    await adminUsersApi.update(u.id!, {
+      firstName: u.firstName ?? '',
+      lastName: u.lastName ?? '',
+      phone: u.phone ?? null,
+      isSystemAdmin: u.isSystemAdmin ?? false,
+      canAddToCatalog: value,
+    })
+    u.canAddToCatalog = value
+    toast.add({ severity: 'success', summary: value ? 'Право выдано' : 'Право снято', life: 2000 })
+  } catch (e) {
+    fail(e, 'Не удалось изменить право')
   }
 }
 
@@ -108,6 +127,15 @@ onMounted(load)
           <span v-else>—</span>
         </template>
       </PvColumn>
+      <PvColumn header="Добавляет в каталог" style="width: 12rem">
+        <template #body="{ data }">
+          <span v-if="data.isSystemAdmin" title="У системного администратора это право есть всегда">
+            <PvToggleSwitch :model-value="true" disabled />
+          </span>
+          <PvToggleSwitch v-else :model-value="data.canAddToCatalog"
+                          @update:model-value="(v: boolean) => setCatalogRight(data, v)" />
+        </template>
+      </PvColumn>
       <PvColumn header="Статус">
         <template #body="{ data }">
           <PvTag :value="userStatusLabels[data.status]"
@@ -135,6 +163,10 @@ onMounted(load)
         <label class="form__field"><span>Телефон</span><PvInputText v-model="form.phone" /></label>
         <label class="form__row">
           <PvToggleSwitch v-model="form.isSystemAdmin" /><span>Системный администратор</span>
+        </label>
+        <label class="form__row">
+          <PvToggleSwitch v-model="form.canAddToCatalog" :disabled="form.isSystemAdmin" />
+          <span>Может добавлять химию в общий каталог</span>
         </label>
         <p class="form__hint">Пользователь обязан сменить временный пароль при первом входе.</p>
       </div>

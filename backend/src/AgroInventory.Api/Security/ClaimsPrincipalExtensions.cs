@@ -8,6 +8,9 @@ namespace AgroInventory.Api.Security;
 public static class AuthorizationPolicies
 {
     public const string SystemAdmin = "SystemAdmin";
+
+    /// <summary>Право добавлять препараты в общий каталог (§12): SystemAdmin или флаг can_add_to_catalog.</summary>
+    public const string AddToCatalog = "AddToCatalog";
 }
 
 /// <summary>Извлечение идентификатора пользователя из claim'ов access-токена.</summary>
