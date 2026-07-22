@@ -107,6 +107,22 @@ function applySuggestion() {
   }
 }
 
+// Выбор препарата из общего каталога (§12) — автозаполняем поля карточки из канонической записи.
+// Культуры берём только известные текущему хозяйству (остальные не показать в списке).
+watch(canonicalId, (id) => {
+  if (!id) return
+  const c = canonicals.value.find((x) => x.id === id)
+  if (!c) return
+  name.value = c.canonicalName ?? ''
+  type.value = c.type ?? null
+  if (c.measureUnit) measureUnit.value = c.measureUnit as 1 | 2
+  manufacturer.value = c.manufacturer ?? ''
+  comment.value = c.comment ?? ''
+  const known = new Set(crops.value.map((cr) => cr.id))
+  selectedCropIds.value = (c.crops ?? []).map((cr) => cr.id).filter((cid): cid is string => !!cid && known.has(cid))
+  canonicalSuggestion.value = null
+})
+
 function fail(e: unknown, fallback: string) {
   const msg = e instanceof ApiError ? e.message : fallback
   toast.add({ severity: 'error', summary: 'Ошибка', detail: msg, life: 4000 })
@@ -230,6 +246,13 @@ onMounted(async () => {
 
     <template v-else>
       <label class="field">
+        <span>Каталожный препарат</span>
+        <PvSelect v-model="canonicalId" :options="canonicalOptions" option-label="label"
+          option-value="value" placeholder="Не привязан" filter show-clear />
+        <small class="hint">Выберите препарат из общего справочника — поля ниже заполнятся автоматически (§12, §17).</small>
+      </label>
+
+      <label class="field">
         <span>Название *</span>
         <div class="name-row">
           <PvInputText v-model="name" placeholder="Например, Раундап" />
@@ -249,6 +272,11 @@ onMounted(async () => {
         <small>Можно использовать существующую или всё равно создать новую.</small>
       </PvMessage>
 
+      <PvMessage v-if="canonicalSuggestion && !canonicalId" severity="info" :closable="false" class="dups">
+        Возможно, это «{{ canonicalSuggestion.canonicalName }}» из общего каталога.
+        <a href="#" @click.prevent="applySuggestion">Привязать</a>
+      </PvMessage>
+
       <label class="field">
         <span>Тип средства</span>
         <PvSelect v-model="type" :options="chemicalTypeOptions" option-label="label"
@@ -265,18 +293,6 @@ onMounted(async () => {
         <span>Производитель</span>
         <PvInputText v-model="manufacturer" />
       </label>
-
-      <label class="field">
-        <span>Каталожный препарат</span>
-        <PvSelect v-model="canonicalId" :options="canonicalOptions" option-label="label"
-          option-value="value" placeholder="Не привязан" filter show-clear />
-        <small class="hint">Привязка к общему справочнику — чтобы одинаковую химию показывать суммарно по хозяйствам (§17).</small>
-      </label>
-
-      <PvMessage v-if="canonicalSuggestion && !canonicalId" severity="info" :closable="false" class="dups">
-        Возможно, это «{{ canonicalSuggestion.canonicalName }}» из общего каталога.
-        <a href="#" @click.prevent="applySuggestion">Привязать</a>
-      </PvMessage>
 
       <label v-if="auth.canAddToCatalog && !canonicalId" class="field catalog-toggle">
         <div class="toggle-row">
