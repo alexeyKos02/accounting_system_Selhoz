@@ -99,9 +99,10 @@ export type AggregatedChemicalGroupDto = S['AggregatedChemicalGroupDto']
 export type AggregatedPositionDto = S['AggregatedPositionDto']
 export type AggregatedWarehouseDto = S['AggregatedWarehouseDto']
 
-// AppRole (Domain/Enums/AppRole.cs): 0 SystemAdmin, 1 Owner, 2 CompanyAdmin, 3 Manager, 4 Storekeeper, 5 Viewer
+// AppRole (Domain/Enums/AppRole.cs): 0 SystemAdmin, 1 Owner, 2 CompanyAdmin, 3 Manager, 4 Storekeeper, 5 Viewer, 6 Agronomist, 7 Auditor
 export const AppRole = {
   SystemAdmin: 0, Owner: 1, CompanyAdmin: 2, Manager: 3, Storekeeper: 4, Viewer: 5,
+  Agronomist: 6, Auditor: 7,
 } as const
 export const appRoleLabels: Record<number, string> = {
   0: 'Системный администратор',
@@ -110,9 +111,11 @@ export const appRoleLabels: Record<number, string> = {
   3: 'Менеджер',
   4: 'Кладовщик',
   5: 'Наблюдатель',
+  6: 'Агроном',
+  7: 'Учётчик',
 }
 // Роли, назначаемые в рамках хозяйства (SystemAdmin — глобальная, здесь не назначается).
-export const companyRoleOptions = [1, 2, 3, 4, 5].map((value) => ({ value, label: appRoleLabels[value] }))
+export const companyRoleOptions = [1, 2, 3, 6, 4, 7, 5].map((value) => ({ value, label: appRoleLabels[value] }))
 
 // MembershipStatus: 0 Active, 1 Suspended, 2 Removed
 export const MembershipStatus = { Active: 0, Suspended: 1, Removed: 2 } as const

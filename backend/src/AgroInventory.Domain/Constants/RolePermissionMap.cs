@@ -27,7 +27,21 @@ public static class RolePermissionMap
                 Permissions.InventoryView, Permissions.InventoryManage,
                 Permissions.ReceiptsView, Permissions.ReceiptsCreate,
                 Permissions.WriteoffsView, Permissions.WriteoffsCreate,
-                Permissions.TransfersView,
+                Permissions.TransfersView, Permissions.TransfersCreate,
+                Permissions.TreatmentsView, Permissions.TreatmentsManage,
+                Permissions.HarvestsView, Permissions.HarvestsManage,
+                Permissions.ReportsView,
+            },
+
+            // Агроном — «полевая» половина Manager: поля/обработки/урожай. Обработка сама
+            // списывает химию со склада (TreatmentsManage достаточно), но приход/перемещения не ведёт.
+            [AppRole.Agronomist] = new HashSet<string>
+            {
+                Permissions.CompanyView,
+                Permissions.WarehousesView,
+                Permissions.FieldsView, Permissions.FieldsManage,
+                Permissions.InventoryView,
+                Permissions.WriteoffsView,
                 Permissions.TreatmentsView, Permissions.TreatmentsManage,
                 Permissions.HarvestsView, Permissions.HarvestsManage,
                 Permissions.ReportsView,
@@ -41,6 +55,23 @@ public static class RolePermissionMap
                 Permissions.ReceiptsView, Permissions.ReceiptsCreate,
                 Permissions.WriteoffsView, Permissions.WriteoffsCreate,
                 Permissions.TransfersView, Permissions.TransfersCreate,
+                Permissions.AdjustmentsCreate,
+            },
+
+            // Учётчик/ревизор — только чтение по всему + отчёты и аудит. Ничего не меняет.
+            [AppRole.Auditor] = new HashSet<string>
+            {
+                Permissions.CompanyView,
+                Permissions.WarehousesView,
+                Permissions.FieldsView,
+                Permissions.InventoryView,
+                Permissions.ReceiptsView,
+                Permissions.WriteoffsView,
+                Permissions.TransfersView,
+                Permissions.TreatmentsView,
+                Permissions.HarvestsView,
+                Permissions.ReportsView,
+                Permissions.AuditView,
             },
 
             [AppRole.Viewer] = new HashSet<string>
