@@ -7,6 +7,8 @@ import type { AdminUserDto, CompanyListItemDto, CreateCompanyRequest } from '../
 import { AppRole, appRoleLabels } from '../api/types'
 import { ApiError } from '../api/http'
 import { useCompanyContextStore } from '../stores/companyContext'
+import { countryOptions, normalizeCountry } from '../data/countries'
+import { timezoneOptions } from '../data/timezones'
 
 const toast = useToast()
 const ctx = useCompanyContextStore()
@@ -18,12 +20,15 @@ const saving = ref(false)
 const dialog = ref(false)
 const editId = ref<string | null>(null)
 
+const DEFAULT_COUNTRY = 'RU'
+const DEFAULT_TIMEZONE = 'Europe/Moscow'
+
 const form = ref({
   name: '',
   legalName: '',
   binOrInn: '',
-  country: 'Россия',
-  timezone: 'Europe/Moscow',
+  country: DEFAULT_COUNTRY,
+  timezone: DEFAULT_TIMEZONE,
   address: '',
   description: '',
   ownerUserId: null as string | null,
@@ -59,8 +64,8 @@ function resetForm() {
     name: '',
     legalName: '',
     binOrInn: '',
-    country: 'Россия',
-    timezone: 'Europe/Moscow',
+    country: DEFAULT_COUNTRY,
+    timezone: DEFAULT_TIMEZONE,
     address: '',
     description: '',
     ownerUserId: null,
@@ -82,8 +87,8 @@ async function openEdit(row: CompanyListItemDto) {
       name: company.name ?? '',
       legalName: company.legalName ?? '',
       binOrInn: company.binOrInn ?? '',
-      country: company.country ?? 'Россия',
-      timezone: company.timezone ?? 'Europe/Moscow',
+      country: normalizeCountry(company.country) || DEFAULT_COUNTRY,
+      timezone: company.timezone?.trim() || DEFAULT_TIMEZONE,
       address: company.address ?? '',
       description: company.description ?? '',
       ownerUserId: null,
@@ -99,8 +104,8 @@ function body(): CreateCompanyRequest {
     name: form.value.name.trim(),
     legalName: form.value.legalName.trim() || null,
     binOrInn: form.value.binOrInn.trim() || null,
-    country: form.value.country.trim() || 'Россия',
-    timezone: form.value.timezone.trim() || 'Europe/Moscow',
+    country: form.value.country.trim() || DEFAULT_COUNTRY,
+    timezone: form.value.timezone.trim() || DEFAULT_TIMEZONE,
     address: form.value.address.trim() || null,
     description: form.value.description.trim() || null,
   }
@@ -165,8 +170,25 @@ onMounted(load)
         <label class="field"><span>Юр. название</span><PvInputText v-model="form.legalName" /></label>
         <label class="field"><span>ИНН / БИН</span><PvInputText v-model="form.binOrInn" /></label>
         <div class="grid">
-          <label class="field"><span>Страна</span><PvInputText v-model="form.country" /></label>
-          <label class="field"><span>Часовой пояс</span><PvInputText v-model="form.timezone" /></label>
+          <label class="field"><span>Страна</span>
+            <PvSelect
+              v-model="form.country"
+              :options="countryOptions"
+              option-label="name"
+              option-value="code"
+              filter
+              placeholder="Выберите страну"
+            />
+          </label>
+          <label class="field"><span>Часовой пояс</span>
+            <PvSelect
+              v-model="form.timezone"
+              :options="timezoneOptions"
+              editable
+              filter
+              placeholder="Выберите часовой пояс"
+            />
+          </label>
         </div>
         <label class="field"><span>Адрес</span><PvInputText v-model="form.address" /></label>
         <label class="field"><span>Описание</span><PvTextarea v-model="form.description" rows="2" auto-resize /></label>
